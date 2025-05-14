@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import ProgressBar from "@/components/ProgressBar";
 import WelcomeStep from "@/components/WelcomeStep";
@@ -9,6 +10,7 @@ import FormStepAmeacas from "@/components/FormStepAmeacas";
 import FormStepSaudeFinanceira from "@/components/FormStepSaudeFinanceira";
 import FormStepPrioridades from "@/components/FormStepPrioridades";
 import FinalizacaoStep from "@/components/FinalizacaoStep";
+import ResultsScreen from "@/pages/ResultsScreen";
 
 const STEPS = [
   { label: "Boas-vindas" },
@@ -20,6 +22,7 @@ const STEPS = [
   { label: "Saúde Financeira" },
   { label: "Prioridades e Maturidade" },
   { label: "Finalização" },
+  { label: "Resultados" },
 ];
 
 const Index = () => {
@@ -36,7 +39,11 @@ const Index = () => {
       matriz_swot?: string,
       diagnostico_textual?: string,
       planos_acao?: string,
-    }
+    },
+    step_prioridades_ok?: boolean,
+    gpt_prompt_ok?: boolean,
+    ai_block_pronto?: boolean,
+    resultados_bloco1_e_2_ok?: boolean
   }>({});
 
   const resetForm = () => {
@@ -44,10 +51,15 @@ const Index = () => {
     setStep(0);
   };
 
+  // Check if AI results are ready to show results screen
+  const areResultsReady = () => {
+    return formData.ai_block_pronto && formData.gpt_prompt_ok;
+  };
+
   return (
     <div className="min-h-screen bg-white text-black font-manrope flex flex-col items-center justify-start">
       <ProgressBar currentStep={step} stepsCount={STEPS.length} />
-      <main className="w-full max-w-xl p-4 flex-1 flex flex-col items-center justify-center animate-fade-in">
+      <main className="w-full max-w-5xl p-4 flex-1 flex flex-col items-center justify-center animate-fade-in">
         {step === 0 && (
           <WelcomeStep
             onStart={() => setStep(1)}
@@ -111,8 +123,11 @@ const Index = () => {
           <FormStepPrioridades
             defaultValues={formData.prioridades}
             onComplete={(prioridades) => {
-              setFormData((prev) => ({ ...prev, prioridades }));
-              console.log("Formulário completo:", formData);
+              setFormData((prev) => ({ 
+                ...prev, 
+                prioridades,
+                step_prioridades_ok: true
+              }));
               setStep(8);
             }}
           />
@@ -120,6 +135,20 @@ const Index = () => {
         {step === 8 && (
           <FinalizacaoStep 
             onRestart={resetForm} 
+            formData={formData}
+            onAIComplete={(resultadoFinal) => {
+              setFormData(prev => ({
+                ...prev,
+                resultadoFinal,
+                gpt_prompt_ok: true,
+                ai_block_pronto: true
+              }));
+              setStep(9);
+            }}
+          />
+        )}
+        {step === 9 && areResultsReady() && (
+          <ResultsScreen 
             formData={formData}
           />
         )}

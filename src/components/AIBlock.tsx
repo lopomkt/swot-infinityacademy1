@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Loader } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -7,9 +6,10 @@ import { useToast } from "@/hooks/use-toast";
 interface AIBlockProps {
   formData: any;
   onRestart: () => void;
+  onAIComplete?: (resultadoFinal: any) => void;
 }
 
-const AIBlock: React.FC<AIBlockProps> = ({ formData, onRestart }) => {
+const AIBlock: React.FC<AIBlockProps> = ({ formData, onRestart, onAIComplete }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [resultadoFinal, setResultadoFinal] = useState<{
     matriz_swot: string;
@@ -169,14 +169,22 @@ As áreas mais frágeis (${formData.prioridades?.areas_fraqueza?.join(", ") || "
         setIsLoading(false);
         
         // Set the gpx_prompt_ok flag
-        const updatedFormData = {
-          ...formData,
-          resultadoFinal: mockResponse,
-          gpt_prompt_ok: true
+        const updatedResultados = {
+          ...mockResponse,
         };
         
         // We would save this to Supabase in a real implementation
-        console.log("Form data with AI results:", updatedFormData);
+        console.log("Form data with AI results:", { 
+          ...formData, 
+          resultadoFinal: updatedResultados, 
+          gpt_prompt_ok: true,
+          ai_block_pronto: true
+        });
+        
+        // Send results back to parent component if callback exists
+        if (onAIComplete) {
+          onAIComplete(updatedResultados);
+        }
         
         toast({
           title: "Relatório gerado com sucesso!",
@@ -194,7 +202,7 @@ As áreas mais frágeis (${formData.prioridades?.areas_fraqueza?.join(", ") || "
     }, 3000);
 
     return () => clearTimeout(timer);
-  }, [formData, toast]);
+  }, [formData, toast, onAIComplete]);
 
   return (
     <div className="w-full max-w-4xl mx-auto py-8 px-4 animate-fade-in">

@@ -7,13 +7,22 @@ import AIBlock from "@/components/AIBlock";
 interface FinalizacaoStepProps {
   onRestart: () => void;
   formData?: any;
+  onAIComplete?: (resultadoFinal: any) => void;
 }
 
-const FinalizacaoStep: React.FC<FinalizacaoStepProps> = ({ onRestart, formData }) => {
+const FinalizacaoStep: React.FC<FinalizacaoStepProps> = ({ 
+  onRestart, 
+  formData,
+  onAIComplete
+}) => {
   const [showAiBlock, setShowAiBlock] = React.useState(false);
 
   if (showAiBlock) {
-    return <AIBlock formData={formData} onRestart={onRestart} />;
+    return <AIBlock 
+      formData={formData} 
+      onRestart={onRestart}
+      onAIComplete={onAIComplete}
+    />;
   }
 
   return (
