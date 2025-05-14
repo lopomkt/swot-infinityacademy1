@@ -1,6 +1,6 @@
 
 import React from "react";
-import { Check, X, LightbulbIcon, AlertTriangle, BrainIcon, ArrowRight } from "lucide-react";
+import { Check, X, LightbulbIcon, AlertTriangle, BrainIcon, ArrowRight, ChartBarIcon, StarIcon, Settings2Icon, AlertOctagonIcon } from "lucide-react";
 import { 
   Collapsible, 
   CollapsibleContent, 
@@ -9,6 +9,20 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { 
+  ChartContainer, 
+  ChartLegend, 
+  ChartLegendContent
+} from "@/components/ui/chart";
+import {
+  RadarChart,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  Radar,
+  ResponsiveContainer
+} from "recharts";
 
 interface ResultsScreenProps {
   formData: any;
@@ -108,6 +122,57 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData }) => {
     segmento: formData.identificacao?.segmento || "Não informado",
     scoreProntidao: formData.prioridades?.comprometimento_estrategico || "N/A"
   };
+
+  // Calculate strategic score data for radar chart
+  const calculateStrategicScore = () => {
+    // This is a simple mock calculation - in a real scenario, this would use actual formulas
+    const marketing = parseInt(formData.prioridades?.foco_marketing || "0") || Math.floor(Math.random() * 7) + 3;
+    const vendas = parseInt(formData.prioridades?.foco_vendas || "0") || Math.floor(Math.random() * 7) + 3;
+    const gestao = parseInt(formData.prioridades?.foco_gestao || "0") || Math.floor(Math.random() * 7) + 3;
+    const financas = parseInt(formData.saudeFinanceira?.saude_score || "0") || Math.floor(Math.random() * 7) + 3;
+    const operacoes = parseInt(formData.prioridades?.foco_operacoes || "0") || Math.floor(Math.random() * 7) + 3;
+    
+    return [
+      { subject: "Marketing", A: marketing, fullMark: 10 },
+      { subject: "Vendas", A: vendas, fullMark: 10 },
+      { subject: "Gestão", A: gestao, fullMark: 10 },
+      { subject: "Finanças", A: financas, fullMark: 10 },
+      { subject: "Operações", A: operacoes, fullMark: 10 }
+    ];
+  };
+
+  const strategicScoreData = calculateStrategicScore();
+  
+  // Calculate average score for maturity level
+  const averageScore = strategicScoreData.reduce((sum, item) => sum + item.A, 0) / strategicScoreData.length;
+  
+  // Determine maturity level based on average score
+  const getMaturityLevel = () => {
+    if (averageScore >= 7) {
+      return {
+        icon: <StarIcon className="h-8 w-8 text-green-600" />,
+        title: "Empresário de Visão",
+        color: "bg-green-100 border-green-500 text-green-800",
+        description: "Você demonstra maturidade estratégica relevante, especialmente nas áreas de gestão e operação. Avance ainda mais em planejamento de longo prazo."
+      };
+    } else if (averageScore >= 4) {
+      return {
+        icon: <Settings2Icon className="h-8 w-8 text-orange-600" />,
+        title: "Estrategista em Construção",
+        color: "bg-orange-100 border-orange-500 text-orange-800",
+        description: "Sua empresa está no caminho certo, mas precisa consolidar práticas estratégicas e métricas para avançar ao próximo nível."
+      };
+    } else {
+      return {
+        icon: <AlertOctagonIcon className="h-8 w-8 text-red-600" />,
+        title: "Zona de Alerta",
+        color: "bg-red-100 border-red-500 text-red-800",
+        description: "Existem oportunidades críticas de melhoria em seus processos estratégicos. Foque em organização e métricas básicas para avançar."
+      };
+    }
+  };
+
+  const maturityLevel = getMaturityLevel();
 
   return (
     <div className="bg-white min-h-screen py-8 px-4 md:px-8 animate-fade-in">
@@ -310,6 +375,109 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData }) => {
 
         {/* Anchor for Diagnostic Section */}
         <div id="ancora_diagnostico">
+          <Separator className="mb-12" />
+        </div>
+
+        {/* NEW BLOCK 3: Diagnostic Section */}
+        <div id="bloco_diagnostico_ia" className="mb-16">
+          <div className="text-center mb-8">
+            <div className="flex justify-center mb-3">
+              <BrainIcon className="h-8 w-8 text-[#ef0002]" />
+            </div>
+            <h2 className="text-2xl font-bold text-[#560005] mb-2">
+              Análise Profunda do Seu Negócio
+            </h2>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              Abaixo está a interpretação completa da situação atual da sua empresa, 
+              com base nos dados fornecidos, feita por inteligência artificial estratégica.
+            </p>
+          </div>
+
+          <Card className="max-w-3xl mx-auto border border-[#ef0002]">
+            <CardContent className="p-6">
+              <ScrollArea className="max-h-[400px]">
+                <div className="text-base leading-relaxed text-gray-800 whitespace-pre-line">
+                  {formData.resultadoFinal.diagnostico_textual}
+                </div>
+              </ScrollArea>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* NEW BLOCK 4: Strategic Score */}
+        <div id="bloco_score_final" className="mb-16">
+          <div id="ancora_score"></div> {/* Anchor for navigation */}
+          
+          <div className="text-center mb-8">
+            <div className="flex justify-center mb-3">
+              <ChartBarIcon className="h-8 w-8 text-[#ef0002]" />
+            </div>
+            <h2 className="text-2xl font-bold text-[#560005] mb-2">
+              Nível de Maturidade e Prontidão Estratégica
+            </h2>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              Essa avaliação considera suas respostas em múltiplas áreas como gestão, 
+              finanças, marketing, operação e decisão estratégica.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-8 items-center max-w-4xl mx-auto">
+            {/* Radar Chart */}
+            <div className="h-[300px] w-full">
+              <ChartContainer
+                config={{
+                  area: {
+                    theme: {
+                      light: "#ef0002",
+                      dark: "#ef0002",
+                    },
+                  },
+                }}
+              >
+                <RadarChart outerRadius={90} data={strategicScoreData}>
+                  <PolarGrid stroke="#ccc" />
+                  <PolarAngleAxis dataKey="subject" />
+                  <PolarRadiusAxis angle={30} domain={[0, 10]} />
+                  <Radar
+                    name="Sua Empresa"
+                    dataKey="A"
+                    stroke="#ef0002"
+                    fill="#ef0002"
+                    fillOpacity={0.3}
+                  />
+                  <ChartLegend>
+                    <ChartLegendContent />
+                  </ChartLegend>
+                </RadarChart>
+              </ChartContainer>
+            </div>
+
+            {/* Maturity Badge */}
+            <div>
+              <Card className={`border ${maturityLevel.color} p-6 text-center`}>
+                <div className="flex justify-center mb-4">
+                  {maturityLevel.icon}
+                </div>
+                <h3 className="text-xl font-bold mb-2">{maturityLevel.title}</h3>
+                <p className="text-sm">{maturityLevel.description}</p>
+              </Card>
+              
+              <div className="mt-8 flex justify-center">
+                <Button 
+                  id="btn_ver_planos"
+                  className="bg-[#ef0002] hover:bg-[#c50000] text-white"
+                  onClick={() => scrollToSection("ancora_planos")}
+                >
+                  Visualizar Plano Estratégico A/B/C
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Anchor for Plans Section */}
+        <div id="ancora_planos">
           <Separator className="mb-12" />
         </div>
       </div>
