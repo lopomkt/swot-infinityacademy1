@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import ProgressBar from "@/components/ProgressBar";
 import WelcomeStep from "@/components/WelcomeStep";
@@ -7,6 +8,8 @@ import FormStepFraquezas from "@/components/FormStepFraquezas";
 import FormStepOportunidades from "@/components/FormStepOportunidades";
 import FormStepAmeacas from "@/components/FormStepAmeacas";
 import FormStepSaudeFinanceira from "@/components/FormStepSaudeFinanceira";
+import FormStepPrioridades from "@/components/FormStepPrioridades";
+import FinalizacaoStep from "@/components/FinalizacaoStep";
 
 const STEPS = [
   { label: "Boas-vindas" },
@@ -14,7 +17,10 @@ const STEPS = [
   { label: "Forças" },
   { label: "Fraquezas" },
   { label: "Oportunidades" },
-  // futuras etapas...
+  { label: "Ameaças" },
+  { label: "Saúde Financeira" },
+  { label: "Prioridades e Maturidade" },
+  { label: "Finalização" },
 ];
 
 const Index = () => {
@@ -26,11 +32,17 @@ const Index = () => {
     oportunidades?: any,
     ameacas?: any,
     saudeFinanceira?: any,
+    prioridades?: any,
   }>({});
+
+  const resetForm = () => {
+    setFormData({});
+    setStep(0);
+  };
 
   return (
     <div className="min-h-screen bg-white text-black font-manrope flex flex-col items-center justify-start">
-      <ProgressBar currentStep={step} stepsCount={STEPS.length + 2} />
+      <ProgressBar currentStep={step} stepsCount={STEPS.length} />
       <main className="w-full max-w-xl p-4 flex-1 flex flex-col items-center justify-center animate-fade-in">
         {step === 0 && (
           <WelcomeStep
@@ -87,9 +99,22 @@ const Index = () => {
             defaultValues={formData.saudeFinanceira}
             onComplete={(saudeFinanceira) => {
               setFormData((prev) => ({ ...prev, saudeFinanceira }));
-              // Futuro: setStep(7) para próximas etapas
+              setStep(7);
             }}
           />
+        )}
+        {step === 7 && (
+          <FormStepPrioridades
+            defaultValues={formData.prioridades}
+            onComplete={(prioridades) => {
+              setFormData((prev) => ({ ...prev, prioridades }));
+              console.log("Formulário completo:", formData);
+              setStep(8);
+            }}
+          />
+        )}
+        {step === 8 && (
+          <FinalizacaoStep onRestart={resetForm} />
         )}
       </main>
     </div>
