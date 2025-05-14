@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import ProgressBar from "@/components/ProgressBar";
 import WelcomeStep from "@/components/WelcomeStep";
@@ -33,6 +32,11 @@ const Index = () => {
     ameacas?: any,
     saudeFinanceira?: any,
     prioridades?: any,
+    resultadoFinal?: {
+      matriz_swot?: string,
+      diagnostico_textual?: string,
+      planos_acao?: string,
+    }
   }>({});
 
   const resetForm = () => {
@@ -114,7 +118,10 @@ const Index = () => {
           />
         )}
         {step === 8 && (
-          <FinalizacaoStep onRestart={resetForm} />
+          <FinalizacaoStep 
+            onRestart={resetForm} 
+            formData={formData}
+          />
         )}
       </main>
     </div>

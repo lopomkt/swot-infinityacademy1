@@ -1,60 +1,72 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowDown, CheckCircle } from "lucide-react";
+import { ArrowRight } from "lucide-react";
+import AIBlock from "@/components/AIBlock";
 
-interface Props {
+interface FinalizacaoStepProps {
   onRestart: () => void;
+  formData?: any;
 }
 
-const FinalizacaoStep: React.FC<Props> = ({ onRestart }) => {
-  return (
-    <div className="w-full max-w-2xl mx-auto py-10 px-6 text-center animate-fade-in">
-      <div className="mb-6">
-        <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-green-600 mb-4">
-          <CheckCircle className="h-10 w-10" />
-        </div>
-        <h2 className="text-2xl font-bold text-[#560005] mb-2">
-          Seu diagnóstico foi concluído com sucesso!
-        </h2>
-      </div>
+const FinalizacaoStep: React.FC<FinalizacaoStepProps> = ({ onRestart, formData }) => {
+  const [showAiBlock, setShowAiBlock] = React.useState(false);
 
-      <div className="p-6 mb-8 bg-gray-50 rounded-lg shadow-sm">
-        <p className="text-gray-700 mb-4">
-          Agora vamos gerar seu relatório estratégico personalizado com análise de SWOT e recomendações específicas para o seu negócio.
+  if (showAiBlock) {
+    return <AIBlock formData={formData} onRestart={onRestart} />;
+  }
+
+  return (
+    <div className="w-full max-w-2xl mx-auto py-8 flex flex-col items-center animate-fade-in">
+      <div className="text-center">
+        <h2 className="text-2xl font-bold text-[#560005] mb-4">
+          Diagnóstico SWOT concluído com sucesso!
+        </h2>
+        
+        <p className="text-gray-700 mb-8 max-w-md mx-auto">
+          Parabéns! Você completou todos os passos do diagnóstico estratégico.
+          Agora você pode gerar seu relatório personalizado.
         </p>
         
-        <div className="flex flex-col items-center justify-center space-y-2">
-          <div className="animate-bounce">
-            <ArrowDown className="h-8 w-8 text-[#ef0002]" />
-          </div>
-          <p className="font-semibold">Processando sua análise...</p>
-        </div>
-      </div>
-
-      <div className="space-y-6 mb-8">
-        <div className="border-l-4 border-[#ef0002] pl-4 text-left">
-          <h3 className="font-semibold text-lg">O que acontece agora?</h3>
-          <p className="text-gray-600">
-            Nossa inteligência artificial está processando todas as suas respostas para criar um relatório estratégico completo. Você receberá uma notificação assim que estiver pronto.
+        <div className="bg-white rounded-lg p-6 shadow-md mb-8 w-full max-w-md mx-auto">
+          <h3 className="text-xl font-semibold text-[#ef0002] mb-4">
+            Relatório Estratégico SWOT
+          </h3>
+          <p className="text-gray-600 mb-6">
+            Ao clicar no botão abaixo, nossa inteligência artificial analisará seus dados e criará:
           </p>
+          <ul className="text-left space-y-3 mb-6">
+            <li className="flex items-start">
+              <span className="text-[#ef0002] font-bold mr-2">✓</span>
+              <span>Matriz SWOT detalhada</span>
+            </li>
+            <li className="flex items-start">
+              <span className="text-[#ef0002] font-bold mr-2">✓</span>
+              <span>Diagnóstico estratégico personalizado</span>
+            </li>
+            <li className="flex items-start">
+              <span className="text-[#ef0002] font-bold mr-2">✓</span>
+              <span>Planos de ação com múltiplas rotas estratégicas</span>
+            </li>
+          </ul>
+          
+          <Button 
+            onClick={() => setShowAiBlock(true)}
+            className="bg-[#ef0002] hover:bg-[#c50000] text-white w-full gap-2"
+          >
+            Gerar Relatório Estratégico
+            <ArrowRight className="h-4 w-4" />
+          </Button>
         </div>
-
-        <div className="border-l-4 border-[#ef0002] pl-4 text-left">
-          <h3 className="font-semibold text-lg">Próximos passos</h3>
-          <p className="text-gray-600">
-            Revise seu relatório, implemente as sugestões prioritárias e considere agendar uma consultoria para aprofundar os pontos críticos identificados.
-          </p>
-        </div>
+        
+        <Button 
+          variant="outline" 
+          onClick={onRestart}
+          className="border-gray-300 text-gray-700 hover:bg-gray-100"
+        >
+          Iniciar Novo Diagnóstico
+        </Button>
       </div>
-
-      <Button
-        onClick={onRestart}
-        variant="outline"
-        className="mt-4"
-      >
-        Voltar ao início
-      </Button>
     </div>
   );
 };
