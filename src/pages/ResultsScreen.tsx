@@ -11,7 +11,9 @@ import {
   Settings2Icon, 
   AlertOctagonIcon,
   TrendingUpIcon,
-  ArrowDownIcon
+  ArrowDownIcon,
+  Download,
+  MessageCircle
 } from "lucide-react";
 import { 
   Collapsible, 
@@ -38,6 +40,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
+import html2pdf from "html2pdf.js";
 
 // Define types for better TypeScript support
 interface ActionItem {
@@ -450,9 +453,66 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData }) => {
   const actionsByAreaB = groupActionsByArea(strategicPlans.rotaB.actions);
   const actionsByAreaC = groupActionsByArea(strategicPlans.rotaC.actions);
 
+  // Function to generate and download PDF
+  const generatePDF = () => {
+    const element = document.getElementById('container_resultado_pdf');
+    
+    if (!element) {
+      toast({
+        title: "Erro ao gerar PDF",
+        description: "Não foi possível encontrar o conteúdo para exportação.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    toast({
+      title: "Gerando PDF",
+      description: "Seu diagnóstico está sendo preparado para download."
+    });
+    
+    const opt = {
+      margin: 1,
+      filename: 'Diagnostico_SWOT_Insights.pdf',
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2 },
+      jsPDF: { unit: 'cm', format: 'a4', orientation: 'portrait' }
+    };
+    
+    html2pdf().set(opt).from(element).save().then(() => {
+      toast({
+        title: "PDF Gerado com Sucesso",
+        description: "Seu diagnóstico foi salvo em seu dispositivo."
+      });
+    }).catch(err => {
+      console.error("Erro ao gerar PDF:", err);
+      toast({
+        title: "Erro ao gerar PDF",
+        description: "Ocorreu um problema durante a exportação. Tente novamente.",
+        variant: "destructive"
+      });
+    });
+  };
+  
+  // Function to open WhatsApp with predefined message
+  const openWhatsApp = () => {
+    const phoneNumber = "5567993146148";
+    const message = encodeURIComponent("Olá! Acabei de concluir o SWOT INSIGHTS da INFINITY e quero conversar com a equipe sobre o meu diagnóstico.");
+    const whatsappURL = `https://wa.me/${phoneNumber}?text=${message}`;
+    window.open(whatsappURL, '_blank');
+  };
+
+  // Check if previous sections are completed
+  const allSectionsReady = formData.resultadoFinal?.resultados_bloco5_e_4b_ok === true;
+  
+  // Set the final ready flag
+  if (formData.resultadoFinal && allSectionsReady) {
+    formData.resultadoFinal.resultados_pdf_export_ready = true;
+  }
+
   return (
     <div className="bg-white min-h-screen py-8 px-4 md:px-8 animate-fade-in">
-      <div className="max-w-5xl mx-auto">
+      <div id="container_resultado_pdf" className="max-w-5xl mx-auto">
         {/* Header Section */}
         <div className="text-center mb-12">
           <div className="flex justify-center mb-4">
@@ -1027,6 +1087,57 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData }) => {
             </div>
           </div>
         </div>
+
+        {/* FINAL BLOCK: Conclusion & CTA */}
+        {allSectionsReady && (
+          <>
+            <div id="ancora_final">
+              <Separator className="mb-12" />
+            </div>
+            
+            <div id="bloco_final_cta" className="mb-16">
+              <div className="text-center mb-8">
+                <h2 className="text-2xl font-bold text-[#560005] mb-2">
+                  Seu Diagnóstico Está Pronto.
+                </h2>
+                <p className="text-gray-600 max-w-2xl mx-auto">
+                  Agora você tem um raio-X completo da sua empresa. Pode baixar esse relatório, 
+                  compartilhar ou aplicar com sua equipe. E, se quiser ir além, fale com nossos 
+                  especialistas para executar esse plano com apoio total.
+                </p>
+              </div>
+              
+              {/* CTA Buttons */}
+              <div className="flex flex-col md:flex-row gap-4 justify-center mb-8">
+                <Button 
+                  onClick={generatePDF}
+                  className="bg-[#ef0002] hover:bg-[#c50000] text-white"
+                >
+                  <Download className="mr-2 h-4 w-4" />
+                  Baixar Diagnóstico em PDF
+                </Button>
+                
+                <Button 
+                  onClick={openWhatsApp}
+                  className="bg-[#560005] hover:bg-[#3d0003] text-white"
+                >
+                  <MessageCircle className="mr-2 h-4 w-4" />
+                  Falar com a Equipe da INFINITY
+                </Button>
+              </div>
+              
+              {/* Reinforcement message */}
+              <p className="text-center text-gray-700 max-w-2xl mx-auto">
+                Esse relatório é o primeiro passo. A execução começa agora. Estamos prontos para caminhar com você.
+              </p>
+              
+              {/* Footer watermark */}
+              <div className="text-xs text-center text-[#b70001] mt-10">
+                SWOT INSIGHTS | Infinity Academy
+              </div>
+            </div>
+          </>
+        )}
 
         {/* Set the flag for next prompt */}
         <div className="hidden">
