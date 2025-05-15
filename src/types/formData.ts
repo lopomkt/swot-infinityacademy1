@@ -50,10 +50,10 @@ export interface PrioridadesData {
   ajuda_externa_urgente: string;
   acao_unica_desejada: string;
   engajamento_equipe: number;
-  distribuicao_tempo: string;
+  distribuicao_tempo: "Sim" | "Parcialmente" | "Estou sobrecarregado";
   comprometimento_estrategico: number;
-  estilo_decisao: string;
-  prontidao_execucao?: string;
+  estilo_decisao: "Analítico" | "Rápido e objetivo" | "Intuitivo" | "Compartilhado com sócios / equipe";
+  prontidao_execucao?: "Sim" | "Com adaptações" | "Ainda não";
 }
 
 export interface ResultadoFinalData {

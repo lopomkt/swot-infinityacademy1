@@ -74,7 +74,7 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 interface Props {
-  defaultValues?: Partial<PrioridadesData>;
+  defaultValues?: Partial<FormValues>;
   onComplete: (data: PrioridadesData) => void;
 }
 
