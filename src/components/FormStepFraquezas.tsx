@@ -1,6 +1,6 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { FraquezasData } from "@/types/formData";
 
 const inconsistenciaOpcoes = [
   "Marketing",
@@ -19,21 +19,6 @@ const tentativasResolucaoOpcoes = [
   "Sim, mas sem sucesso",
   "Não ainda"
 ];
-
-interface FraquezasData {
-  pontos_inconsistentes: string[];
-  fraqueza_critica: string;
-  bloqueio_estrategico: string;
-  centralizacao_gestao: string;
-  retrabalho_frequente: string;
-  clareza_funcoes: number;
-  documentacao_processos: string;
-  indicadores_ativos: string;
-  ferramentas_utilizadas: string;
-  tentativas_resolucao: string;
-  tentativa_falha_motivo?: string;
-  step_fraquezas_ok: boolean;
-}
 
 interface Props {
   defaultValues?: Partial<FraquezasData>;
