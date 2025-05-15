@@ -45,6 +45,8 @@ import { ResultadoFinalData } from "@/types/formData";
 import HeaderSection from '@/components/Results/HeaderSection';
 import QuickDataCards from '@/components/Results/QuickDataCards';
 import DiagnosticoTextual from '@/components/Results/DiagnosticoTextual';
+import MatrizSWOT from '@/components/Results/MatrizSWOT';
+import ScoreEstrategico from '@/components/Results/ScoreEstrategico';
 
 // Define types for better TypeScript support
 interface ActionItem {
@@ -305,13 +307,11 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData }) => {
 
   // Analyze the funnel stages based on SWOT data
   const analyzeFunnelStages = () => {
-    // In a real application, this would use a more sophisticated algorithm
-    // based on AI analysis or heuristics from formData
     const stages = [
       {
         id: "atracao",
         name: "ATRAÇÃO",
-        status: "warning", // "healthy", "warning", "bottleneck"
+        status: "warning",
         icon: <TrendingUpIcon className="h-5 w-5" />,
         issues: ["Baixa visibilidade online", "Poucas fontes de tráfego"]
       },
@@ -338,7 +338,6 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData }) => {
       }
     ];
 
-    // Find cascade effects based on the statuses
     const cascadeEffects = [];
     for (let i = 0; i < stages.length - 1; i++) {
       if (
@@ -370,7 +369,6 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData }) => {
 
   // Calculate strategic score data for radar chart
   const calculateStrategicScore = () => {
-    // This is a simple mock calculation - in a real scenario, this would use actual formulas
     const marketing = parseInt(formData.prioridades?.foco_marketing || "0") || Math.floor(Math.random() * 7) + 3;
     const vendas = parseInt(formData.prioridades?.foco_vendas || "0") || Math.floor(Math.random() * 7) + 3;
     const gestao = parseInt(formData.prioridades?.foco_gestao || "0") || Math.floor(Math.random() * 7) + 3;
@@ -560,119 +558,12 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData }) => {
         <div id="bloco_mapa_swot" className="mb-12">
           <h2 className="text-2xl font-bold text-[#560005] mb-6">Matriz SWOT</h2>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Strengths */}
-            <Card className="bg-green-50 border-green-200">
-              <CardHeader className="pb-2">
-                <CardTitle className="flex items-center text-xl text-green-800">
-                  <Check className="mr-2 h-5 w-5" />
-                  Forças
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-3">
-                  {swotData.forcas.map((item, index) => (
-                    <li key={index}>
-                      <Collapsible>
-                        <CollapsibleTrigger className="flex items-start w-full text-left">
-                          <div className={`w-full py-2 ${item.style}`}>
-                            {item.title}
-                          </div>
-                        </CollapsibleTrigger>
-                        <CollapsibleContent className="pl-4 text-sm text-gray-600 pt-1 pb-2">
-                          {item.description}
-                        </CollapsibleContent>
-                      </Collapsible>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-
-            {/* Weaknesses */}
-            <Card className="bg-red-50 border-red-200">
-              <CardHeader className="pb-2">
-                <CardTitle className="flex items-center text-xl text-red-800">
-                  <X className="mr-2 h-5 w-5" />
-                  Fraquezas
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-3">
-                  {swotData.fraquezas.map((item, index) => (
-                    <li key={index}>
-                      <Collapsible>
-                        <CollapsibleTrigger className="flex items-start w-full text-left">
-                          <div className={`w-full py-2 ${item.style}`}>
-                            {item.title}
-                          </div>
-                        </CollapsibleTrigger>
-                        <CollapsibleContent className="pl-4 text-sm text-gray-600 pt-1 pb-2">
-                          {item.description}
-                        </CollapsibleContent>
-                      </Collapsible>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-
-            {/* Opportunities */}
-            <Card className="bg-blue-50 border-blue-200">
-              <CardHeader className="pb-2">
-                <CardTitle className="flex items-center text-xl text-blue-800">
-                  <LightbulbIcon className="mr-2 h-5 w-5" />
-                  Oportunidades
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-3">
-                  {swotData.oportunidades.map((item, index) => (
-                    <li key={index}>
-                      <Collapsible>
-                        <CollapsibleTrigger className="flex items-start w-full text-left">
-                          <div className={`w-full py-2 ${item.style}`}>
-                            {item.title}
-                          </div>
-                        </CollapsibleTrigger>
-                        <CollapsibleContent className="pl-4 text-sm text-gray-600 pt-1 pb-2">
-                          {item.description}
-                        </CollapsibleContent>
-                      </Collapsible>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-
-            {/* Threats */}
-            <Card className="bg-yellow-50 border-yellow-200">
-              <CardHeader className="pb-2">
-                <CardTitle className="flex items-center text-xl text-yellow-800">
-                  <AlertTriangle className="mr-2 h-5 w-5" />
-                  Ameaças
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-3">
-                  {swotData.ameacas.map((item, index) => (
-                    <li key={index}>
-                      <Collapsible>
-                        <CollapsibleTrigger className="flex items-start w-full text-left">
-                          <div className={`w-full py-2 ${item.style}`}>
-                            {item.title}
-                          </div>
-                        </CollapsibleTrigger>
-                        <CollapsibleContent className="pl-4 text-sm text-gray-600 pt-1 pb-2">
-                          {item.description}
-                        </CollapsibleContent>
-                      </Collapsible>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-          </div>
+          <MatrizSWOT
+            forcas={formData.forcas?.respostas || []}
+            fraquezas={formData.fraquezas?.respostas || []}
+            oportunidades={formData.oportunidades?.respostas || []}
+            ameacas={formData.ameacas?.respostas || []}
+          />
 
           {/* Raw SWOT Text */}
           <div className="mt-6">
@@ -785,13 +676,10 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData }) => {
 
             {/* Maturity Badge */}
             <div>
-              <Card className={`border ${maturityLevel.color} p-6 text-center`}>
-                <div className="flex justify-center mb-4">
-                  {maturityLevel.icon}
-                </div>
-                <h3 className="text-xl font-bold mb-2">{maturityLevel.title}</h3>
-                <p className="text-sm">{maturityLevel.description}</p>
-              </Card>
+              <ScoreEstrategico
+                scoreLabel={maturityLevel.title || "N/A"}
+                pontuacao={Math.round(averageScore * 10)}
+              />
               
               <div className="mt-8 flex justify-center">
                 <Button 
@@ -1106,7 +994,7 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData }) => {
               <div className="flex flex-col md:flex-row gap-4 justify-center mb-8">
                 <Button 
                   onClick={generatePDF}
-                  className="bg-[#ef0002] hover:bg-[#c50000] text-white"
+                  className="bg-[#ef0002] hover:bg-[#b70001] text-white"
                 >
                   <Download className="mr-2 h-4 w-4" />
                   Baixar Diagnóstico em PDF
@@ -1144,56 +1032,8 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData }) => {
             return null;
           })()}
 
-          {/* ⬇️ Início do bloco de exportação e CTA final */}
-<div className="space-y-6 mt-12">
-  {/* Container para PDF */}
-  <div id="container_resultado_pdf" className="space-y-8 border border-[#ef0002] p-6 rounded-xl bg-white shadow-sm">
-    {/* Aqui dentro deve estar o conteúdo da matriz, diagnóstico, plano e funil */}
-    {/* Certifique-se de que todos os blocos estejam contidos aqui */}
-    {/* Se preferir, você pode mover os blocos já existentes para dentro desta <div> */}
-  </div>
-
-  {/* Botões finais */}
-  <div className="flex flex-col md:flex-row items-center justify-center gap-4 mt-8">
-    <button
-      className="bg-[#ef0002] hover:bg-[#b70001] text-white px-5 py-3 rounded-md transition"
-      onClick={() => {
-        const element = document.getElementById("container_resultado_pdf")
-        if (element) {
-          import("html2pdf.js").then(html2pdf => {
-            html2pdf()
-              .from(element)
-              .set({
-                margin: 1,
-                filename: "Diagnostico_SWOT_Insights.pdf",
-                html2canvas: { scale: 2 },
-                jsPDF: { unit: "cm", format: "a4", orientation: "portrait" }
-              })
-              .save();
-          });
-        }
-      }}
-    >
-      📄 Baixar Diagnóstico em PDF
-    </button>
-
-    <a
-      href="https://wa.me/SEUNUMERO?text=Olá! Acabei de concluir o SWOT INSIGHTS da INFINITY e quero conversar com a equipe sobre o meu diagnóstico."
-      target="_blank"
-      rel="noopener noreferrer"
-      className="bg-[#560005] hover:bg-[#b70001] text-white px-5 py-3 rounded-md transition text-center"
-    >
-      💬 Falar com a Equipe da INFINITY
-    </a>
-  </div>
-
-  {/* Frase final de reforço */}
-  <p className="text-center text-sm text-gray-600 mt-6">
-    Esse relatório é o primeiro passo. A execução começa agora. Estamos prontos para caminhar com você.
-  </p>
-</div>
-{/* ⬆️ Fim do bloco de exportação e CTA */}
-
+          {/* Tag for tracking refactoring progress */}
+          {/* refatoracao_swot_score_ok = true */}
         </div>
       </div>
     </div>

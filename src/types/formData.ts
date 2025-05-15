@@ -1,3 +1,4 @@
+
 // Tipagem central do projeto SWOT INSIGHTS – Infinity Academy
 // Cada etapa do formulário possui sua interface específica
 // Essa tipagem será usada progressivamente no projeto para substituir o uso de any
@@ -85,6 +86,8 @@ export interface ResultadoFinalData {
   diagnostico_textual: string;
   planos_acao: string;
   acoes_priorizadas: string[];
+  scoreLabel?: string;  // Added for ScoreEstrategico component
+  pontuacao?: number;   // Added for ScoreEstrategico component
   resultados_pdf_export_ready?: boolean;
   resultados_bloco5_e_4b_ok?: boolean;
   gpt_prompt_ok?: boolean;
