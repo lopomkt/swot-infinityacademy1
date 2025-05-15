@@ -43,14 +43,17 @@ export interface SaudeFinanceiraData {
 }
 
 export interface PrioridadesData {
-  grauEngajamento: string;
-  tempoDisponivel: string;
-  focoGestor: string;
-  conhecimentoMarketing: string;
-  clarezaIndicadores: string;
-  focoVendas: string;
-  focoFinanceiro: string;
-  focoRetencao: string;
+  meta_90_dias: string;
+  top3_desafios: string;
+  areas_fraqueza: string[];
+  areas_potenciais: string[];
+  ajuda_externa_urgente: string;
+  acao_unica_desejada: string;
+  engajamento_equipe: number;
+  distribuicao_tempo: string;
+  comprometimento_estrategico: number;
+  estilo_decisao: string;
+  prontidao_execucao?: string;
 }
 
 export interface ResultadoFinalData {

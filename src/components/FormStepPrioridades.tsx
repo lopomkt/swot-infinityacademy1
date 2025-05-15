@@ -3,6 +3,7 @@ import React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useForm } from "react-hook-form";
+import { PrioridadesData } from "@/types/formData";
 import {
   Form,
   FormControl,
@@ -73,8 +74,8 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 interface Props {
-  defaultValues?: any;
-  onComplete: (data: any) => void;
+  defaultValues?: Partial<PrioridadesData>;
+  onComplete: (data: PrioridadesData) => void;
 }
 
 const FormStepPrioridades: React.FC<Props> = ({ defaultValues, onComplete }) => {
@@ -102,7 +103,7 @@ const FormStepPrioridades: React.FC<Props> = ({ defaultValues, onComplete }) => 
       title: "Diagnóstico finalizado!",
       description: "Preparando análise estratégica...",
     });
-    onComplete(data);
+    onComplete(data as PrioridadesData);
   }
 
   return (
