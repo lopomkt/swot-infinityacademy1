@@ -18,7 +18,7 @@ const FormStepForcas: React.FC<Props> = ({ defaultValues, onComplete }) => {
   const form = useForm<ForcasSchema>({
     resolver: zodResolver(forcasSchema),
     defaultValues: defaultValues?.forcas || {
-      respostas: Array(5).fill("") as string[],
+      respostas: ["", "", "", "", ""] as string[],
     },
   });
 
