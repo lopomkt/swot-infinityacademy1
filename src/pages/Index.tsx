@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import ProgressBar from "@/components/ProgressBar";
 import WelcomeStep from "@/components/WelcomeStep";
@@ -63,7 +64,13 @@ const Index = () => {
           <FormStepForcas
             defaultValues={formData.forcas}
             onComplete={(forcas) => {
-              setFormData((prev) => ({ ...prev, forcas }));
+              setFormData((prev) => ({ 
+                ...prev, 
+                forcas: {
+                  respostas: forcas.respostas || [],  // Ensure respostas is always defined
+                },
+                step_forcas_ok: true
+              }));
               setStep(3);
             }}
           />
