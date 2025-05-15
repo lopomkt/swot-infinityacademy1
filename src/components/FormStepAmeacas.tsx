@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -86,7 +87,7 @@ const FormStepAmeacas = ({
   };
 
   // Verifica se há erros gerais no formulário para exibir ao usuário
-  const hasGeneralErrors = errors._errors && errors._errors.length > 0;
+  const hasGeneralErrors = errors.root?.message;
   
   // Submission handler
   const onSubmit = (data: AmeacasSchema) => {
@@ -380,9 +381,9 @@ const FormStepAmeacas = ({
         </div>
 
         {/* Erro geral (não preencheu 8 campos mínimos) */}
-        {errors.root && (
+        {hasGeneralErrors && (
           <p className="text-red-600 text-sm p-2 bg-red-50 border border-red-200 rounded-md">
-            {errors.root.message}
+            {hasGeneralErrors}
           </p>
         )}
 
