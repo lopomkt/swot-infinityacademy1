@@ -92,6 +92,11 @@ export interface ResultadoFinalData {
   resultados_bloco5_e_4b_ok?: boolean;
   gpt_prompt_ok?: boolean;
   ai_block_pronto?: boolean;
+  // Adding the missing properties that caused the TypeScript errors
+  planoB?: string[];
+  planoC?: string[];
+  gargalos?: string[];
+  alertasCascata?: string[];
 }
 
 // Flag interna para controlar a tipagem

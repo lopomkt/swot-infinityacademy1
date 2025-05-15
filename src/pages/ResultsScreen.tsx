@@ -711,9 +711,9 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData }) => {
 
           <PlanosEstrategicosABC
             planos={{
-              planoA: formData.resultadoFinal?.planos_acao?.split('\n').filter(line => line.trim()) || [],
-              planoB: formData.resultadoFinal?.planoB?.filter(line => line.trim()) || [],
-              planoC: formData.resultadoFinal?.planoC?.filter(line => line.trim()) || [],
+              planoA: (formData.resultadoFinal?.planos_acao?.split('\n').filter(line => line.trim()) || []),
+              planoB: (formData.resultadoFinal?.planoB?.filter(item => item && item.trim()) || []),
+              planoC: (formData.resultadoFinal?.planoC?.filter(item => item && item.trim()) || []),
             }}
           />
         </div>
