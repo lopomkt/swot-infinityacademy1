@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { forcasSchema, ForcasSchema } from "@/schemas/forcasSchema";
@@ -14,11 +14,11 @@ interface Props {
 }
 
 const FormStepForcas: React.FC<Props> = ({ defaultValues, onComplete }) => {
-  // Inicializar o formulário com validação Zod
+  // Inicializar o formulário com validação Zod - specify explicit type for the array
   const form = useForm<ForcasSchema>({
     resolver: zodResolver(forcasSchema),
     defaultValues: defaultValues?.forcas || {
-      respostas: Array(8).fill(""),
+      respostas: Array(5).fill("") as string[],
     },
   });
 
@@ -75,7 +75,7 @@ const FormStepForcas: React.FC<Props> = ({ defaultValues, onComplete }) => {
                           className="flex-1"
                         />
                       </FormControl>
-                      {index >= 8 && (
+                      {index >= 5 && (
                         <Button
                           type="button"
                           variant="ghost"
