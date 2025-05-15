@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import ProgressBar from "@/components/ProgressBar";
 import WelcomeStep from "@/components/WelcomeStep";
@@ -11,7 +10,7 @@ import FormStepSaudeFinanceira from "@/components/FormStepSaudeFinanceira";
 import FormStepPrioridades from "@/components/FormStepPrioridades";
 import FinalizacaoStep from "@/components/FinalizacaoStep";
 import ResultsScreen from "@/pages/ResultsScreen";
-import { ResultadoFinalData } from "@/types/formData";
+import { FormData } from "@/types/formData";
 
 const STEPS = [
   { label: "Boas-vindas" },
@@ -28,20 +27,12 @@ const STEPS = [
 
 const Index = () => {
   const [step, setStep] = useState(0);
-  const [formData, setFormData] = useState<{
-    identificacao?: any,
-    forcas?: any,
-    fraquezas?: any,
-    oportunidades?: any,
-    ameacas?: any,
-    saudeFinanceira?: any,
-    prioridades?: any,
-    resultadoFinal?: ResultadoFinalData,
-    step_prioridades_ok?: boolean,
-  }>({});
+  const [formData, setFormData] = useState<FormData>({
+    tipagem_index_ok: true
+  });
 
   const resetForm = () => {
-    setFormData({});
+    setFormData({ tipagem_index_ok: true });
     setStep(0);
   };
 
