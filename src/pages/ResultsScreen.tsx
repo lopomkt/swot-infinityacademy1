@@ -41,7 +41,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
 import html2pdf from "html2pdf.js";
-import { ResultadoFinalData } from "@/types/formData";
+import { ResultadoFinalData, FormData } from "@/types/formData";
 import HeaderSection from '@/components/Results/HeaderSection';
 import QuickDataCards from '@/components/Results/QuickDataCards';
 import DiagnosticoTextual from '@/components/Results/DiagnosticoTextual';
@@ -101,12 +101,7 @@ interface CascadeEffect {
 }
 
 interface ResultsScreenProps {
-  formData: {
-    identificacao?: any;
-    saudeFinanceira?: any;
-    prioridades?: any;
-    resultadoFinal?: ResultadoFinalData;
-  };
+  formData: FormData; // Updated to use the FormData type which includes all required fields
 }
 
 const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData }) => {
