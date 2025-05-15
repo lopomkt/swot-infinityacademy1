@@ -1148,6 +1148,57 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData }) => {
             }
             return null;
           })()}
+
+          {/* ⬇️ Início do bloco de exportação e CTA final */}
+<div className="space-y-6 mt-12">
+  {/* Container para PDF */}
+  <div id="container_resultado_pdf" className="space-y-8 border border-[#ef0002] p-6 rounded-xl bg-white shadow-sm">
+    {/* Aqui dentro deve estar o conteúdo da matriz, diagnóstico, plano e funil */}
+    {/* Certifique-se de que todos os blocos estejam contidos aqui */}
+    {/* Se preferir, você pode mover os blocos já existentes para dentro desta <div> */}
+  </div>
+
+  {/* Botões finais */}
+  <div className="flex flex-col md:flex-row items-center justify-center gap-4 mt-8">
+    <button
+      className="bg-[#ef0002] hover:bg-[#b70001] text-white px-5 py-3 rounded-md transition"
+      onClick={() => {
+        const element = document.getElementById("container_resultado_pdf")
+        if (element) {
+          import("html2pdf.js").then(html2pdf => {
+            html2pdf()
+              .from(element)
+              .set({
+                margin: 1,
+                filename: "Diagnostico_SWOT_Insights.pdf",
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: "cm", format: "a4", orientation: "portrait" }
+              })
+              .save();
+          });
+        }
+      }}
+    >
+      📄 Baixar Diagnóstico em PDF
+    </button>
+
+    <a
+      href="https://wa.me/SEUNUMERO?text=Olá! Acabei de concluir o SWOT INSIGHTS da INFINITY e quero conversar com a equipe sobre o meu diagnóstico."
+      target="_blank"
+      rel="noopener noreferrer"
+      className="bg-[#560005] hover:bg-[#b70001] text-white px-5 py-3 rounded-md transition text-center"
+    >
+      💬 Falar com a Equipe da INFINITY
+    </a>
+  </div>
+
+  {/* Frase final de reforço */}
+  <p className="text-center text-sm text-gray-600 mt-6">
+    Esse relatório é o primeiro passo. A execução começa agora. Estamos prontos para caminhar com você.
+  </p>
+</div>
+{/* ⬆️ Fim do bloco de exportação e CTA */}
+
         </div>
       </div>
     </div>
