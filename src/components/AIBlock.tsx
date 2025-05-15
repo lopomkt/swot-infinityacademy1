@@ -2,20 +2,17 @@ import React, { useState, useEffect } from "react";
 import { Loader } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { ResultadoFinalData } from "@/types/formData";
 
 interface AIBlockProps {
   formData: any;
   onRestart: () => void;
-  onAIComplete?: (resultadoFinal: any) => void;
+  onAIComplete?: (resultadoFinal: ResultadoFinalData) => void;
 }
 
 const AIBlock: React.FC<AIBlockProps> = ({ formData, onRestart, onAIComplete }) => {
   const [isLoading, setIsLoading] = useState(true);
-  const [resultadoFinal, setResultadoFinal] = useState<{
-    matriz_swot: string;
-    diagnostico_textual: string;
-    planos_acao: string;
-  }>({
+  const [resultadoFinal, setResultadoFinal] = useState<ResultadoFinalData>({
     matriz_swot: "",
     diagnostico_textual: "",
     planos_acao: "",

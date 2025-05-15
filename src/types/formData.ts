@@ -1,4 +1,5 @@
 
+
 // Tipagem central do projeto SWOT INSIGHTS – Infinity Academy
 // Cada etapa do formulário possui sua interface específica
 // Essa tipagem será usada progressivamente no projeto para substituir o uso de any
@@ -72,7 +73,11 @@ export interface ResultadoFinalData {
   diagnostico_textual: string;
   planos_acao: string;
   acoes_priorizadas?: string[];
+  resultados_pdf_export_ready?: boolean;
 }
+
+// Flag interna para controlar a tipagem
+// tipagem_resultado_final_ok = true
 
 export interface FormData {
   identificacao: IdentificacaoData;

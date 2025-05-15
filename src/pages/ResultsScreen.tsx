@@ -41,6 +41,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
 import html2pdf from "html2pdf.js";
+import { ResultadoFinalData } from "@/types/formData";
 
 // Define types for better TypeScript support
 interface ActionItem {
@@ -95,7 +96,12 @@ interface CascadeEffect {
 }
 
 interface ResultsScreenProps {
-  formData: any;
+  formData: {
+    identificacao?: any;
+    saudeFinanceira?: any;
+    prioridades?: any;
+    resultadoFinal?: ResultadoFinalData;
+  };
 }
 
 const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData }) => {
