@@ -23,24 +23,6 @@ const canaisOpcoes = [
   "Outro"
 ];
 
-interface OportunidadesData {
-  nova_demanda_cliente: string;
-  situacao_mercado: string;
-  nichos_ocultos: string;
-  concorrentes_enfraquecendo: string;
-  tendencias_aproveitaveis: string[];
-  tendencias_outro?: string;
-  demanda_nao_atendida: string;
-  parcerias_possiveis: string;
-  recurso_ocioso: string;
-  canais_potenciais: string[];
-  canais_outro?: string;
-  nivel_disposicao: number;
-  acao_inicial_oportunidade?: string;
-  step_oportunidades_ok: boolean;
-  respostas: []; // Adding the required respostas field from the interface
-}
-
 interface Props {
   defaultValues?: Partial<OportunidadesData>;
   onComplete: (data: OportunidadesData) => void;
@@ -62,7 +44,7 @@ export default function FormStepOportunidades({ defaultValues, onComplete }: Pro
     nivel_disposicao: 0,
     acao_inicial_oportunidade: "",
     step_oportunidades_ok: false,
-    respostas: [], // Adding the required respostas field from the interface
+    respostas: [], // Required field from the OportunidadesData interface
     ...defaultValues,
   });
 
