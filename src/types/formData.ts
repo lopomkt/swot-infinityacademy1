@@ -27,14 +27,19 @@ export interface AmeacasData {
 }
 
 export interface SaudeFinanceiraData {
-  temControleFinanceiro: string;
-  margemLucroMedia: string;
-  custoFixoMensal: string;
-  possuiFluxoCaixa: string;
-  nivelEndividamento: string;
-  reservasEmergencia: string;
-  ticketMedio: string;
-  fonteReceitaPrincipal: string;
+  caixa_disponivel: string;
+  autonomia_caixa: string;
+  controle_financeiro: string;
+  fluxo_frequencia: string;
+  endividamento_nivel: string;
+  inadimplencia_clientes: string;
+  custos_fixos: string;
+  cac_estimado_conhecimento: string;
+  cac_estimado: string;
+  orcamento_planejado: string;
+  intencao_investimento?: string;
+  maturidade_financeira: string;
+  step_financas_ok: boolean;
 }
 
 export interface PrioridadesData {
