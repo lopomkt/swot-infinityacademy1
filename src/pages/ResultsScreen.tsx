@@ -39,6 +39,58 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
 
+// Define types for better TypeScript support
+interface ActionItem {
+  id: string;
+  content: string;
+  area: string;
+  effort: string;
+  tag: string;
+  timeframe: string;
+}
+
+interface ActionsByArea {
+  [key: string]: ActionItem[];
+}
+
+interface StrategicPlan {
+  title: string;
+  actions: ActionItem[];
+}
+
+interface StrategicPlans {
+  rotaA: StrategicPlan;
+  rotaB: StrategicPlan;
+  rotaC: StrategicPlan;
+}
+
+interface SwotItem {
+  title: string;
+  description: string;
+  style: string;
+}
+
+interface SwotData {
+  forcas: SwotItem[];
+  fraquezas: SwotItem[];
+  oportunidades: SwotItem[];
+  ameacas: SwotItem[];
+}
+
+interface FunnelStage {
+  id: string;
+  name: string;
+  status: "healthy" | "warning" | "bottleneck";
+  icon: React.ReactNode;
+  issues: string[];
+}
+
+interface CascadeEffect {
+  from: string;
+  to: string;
+  message: string;
+}
+
 interface ResultsScreenProps {
   formData: any;
 }
@@ -105,7 +157,7 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData }) => {
   };
 
   // Extract and format SWOT data
-  const formatSwotData = () => {
+  const formatSwotData = (): SwotData => {
     try {
       const swotText = formData.resultadoFinal.matriz_swot;
 
@@ -163,12 +215,12 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData }) => {
   };
 
   // Format the strategic plans from the results
-  const formatStrategicPlans = () => {
+  const formatStrategicPlans = (): StrategicPlans => {
     try {
       const plansText = formData.resultadoFinal.planos_acao || "";
       
       // Initialize plans structure
-      const plans = {
+      const plans: StrategicPlans = {
         rotaA: { title: "🎯 Rota A – Estratégia ideal com investimento robusto", actions: [] },
         rotaB: { title: "⚙️ Rota B – Estratégia viável com recursos limitados", actions: [] },
         rotaC: { title: "💡 Rota C – Estratégia criativa com orçamento mínimo", actions: [] }
@@ -384,14 +436,14 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData }) => {
   };
 
   // Group actions by area for each route
-  const groupActionsByArea = (actions) => {
+  const groupActionsByArea = (actions: ActionItem[]): ActionsByArea => {
     return actions.reduce((grouped, action) => {
       if (!grouped[action.area]) {
         grouped[action.area] = [];
       }
       grouped[action.area].push(action);
       return grouped;
-    }, {});
+    }, {} as ActionsByArea);
   };
 
   const actionsByAreaA = groupActionsByArea(strategicPlans.rotaA.actions);
