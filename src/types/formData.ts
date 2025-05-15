@@ -1,5 +1,6 @@
 
 
+
 // Tipagem central do projeto SWOT INSIGHTS – Infinity Academy
 // Cada etapa do formulário possui sua interface específica
 // Essa tipagem será usada progressivamente no projeto para substituir o uso de any
@@ -74,6 +75,9 @@ export interface ResultadoFinalData {
   planos_acao: string;
   acoes_priorizadas?: string[];
   resultados_pdf_export_ready?: boolean;
+  resultados_bloco5_e_4b_ok?: boolean;
+  gpt_prompt_ok?: boolean;
+  ai_block_pronto?: boolean;
 }
 
 // Flag interna para controlar a tipagem
@@ -89,3 +93,4 @@ export interface FormData {
   prioridades: PrioridadesData;
   resultadoFinal?: ResultadoFinalData;
 }
+

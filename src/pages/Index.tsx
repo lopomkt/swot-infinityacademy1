@@ -11,6 +11,7 @@ import FormStepSaudeFinanceira from "@/components/FormStepSaudeFinanceira";
 import FormStepPrioridades from "@/components/FormStepPrioridades";
 import FinalizacaoStep from "@/components/FinalizacaoStep";
 import ResultsScreen from "@/pages/ResultsScreen";
+import { ResultadoFinalData } from "@/types/formData";
 
 const STEPS = [
   { label: "Boas-vindas" },
@@ -35,15 +36,8 @@ const Index = () => {
     ameacas?: any,
     saudeFinanceira?: any,
     prioridades?: any,
-    resultadoFinal?: {
-      matriz_swot?: string,
-      diagnostico_textual?: string,
-      planos_acao?: string,
-    },
+    resultadoFinal?: ResultadoFinalData,
     step_prioridades_ok?: boolean,
-    gpt_prompt_ok?: boolean,
-    ai_block_pronto?: boolean,
-    resultados_bloco1_e_2_ok?: boolean
   }>({});
 
   const resetForm = () => {
@@ -53,7 +47,7 @@ const Index = () => {
 
   // Check if AI results are ready to show results screen
   const areResultsReady = () => {
-    return formData.ai_block_pronto && formData.gpt_prompt_ok;
+    return formData.resultadoFinal?.ai_block_pronto && formData.resultadoFinal?.gpt_prompt_ok;
   };
 
   return (
@@ -139,9 +133,7 @@ const Index = () => {
             onAIComplete={(resultadoFinal) => {
               setFormData(prev => ({
                 ...prev,
-                resultadoFinal,
-                gpt_prompt_ok: true,
-                ai_block_pronto: true
+                resultadoFinal
               }));
               setStep(9);
             }}
