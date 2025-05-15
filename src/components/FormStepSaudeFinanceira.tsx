@@ -103,11 +103,26 @@ export default function FormStepSaudeFinanceira({ defaultValues, onComplete }: P
   const orcamento_planejado = watch("orcamento_planejado");
   
   const onSubmit = (data: SaudeFinanceiraSchema) => {
+    // Fix: Ensure all required properties from SaudeFinanceiraData are explicitly set
     const finalData: SaudeFinanceiraData = {
-      ...data,
+      caixa_disponivel: data.caixa_disponivel,
+      autonomia_caixa: data.autonomia_caixa,
+      controle_financeiro: data.controle_financeiro,
+      fluxo_frequencia: data.fluxo_frequencia, 
+      endividamento_nivel: data.endividamento_nivel,
+      inadimplencia_clientes: data.inadimplencia_clientes,
+      custos_fixos: data.custos_fixos,
+      cac_estimado_conhecimento: data.cac_estimado_conhecimento,
+      orcamento_planejado: data.orcamento_planejado,
+      maturidade_financeira: data.maturidade_financeira,
       step_financas_ok: true,
-      cac_estimado: (data.cac_estimado_conhecimento === "Sim" || data.cac_estimado_conhecimento === "Tenho uma estimativa") ? data.cac_estimado || "" : "",
-      intencao_investimento: data.orcamento_planejado === "Ainda não tenho recursos" ? data.intencao_investimento : undefined,
+      // Handle conditionally required fields
+      cac_estimado: (data.cac_estimado_conhecimento === "Sim" || data.cac_estimado_conhecimento === "Tenho uma estimativa") 
+        ? data.cac_estimado || "" 
+        : "",
+      intencao_investimento: data.orcamento_planejado === "Ainda não tenho recursos" 
+        ? data.intencao_investimento 
+        : undefined,
     };
     
     // Auto-save para Supabase poderia ser implementado aqui
@@ -367,3 +382,7 @@ export default function FormStepSaudeFinanceira({ defaultValues, onComplete }: P
     </form>
   );
 }
+
+const ErrorMessage = ({ message }: { message?: string }) => {
+  return message ? <p className="text-red-600 text-xs mt-1">{message}</p> : null;
+};
