@@ -10,12 +10,13 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import RedBullet from "@/components/RedBullet";
 
 interface FormStepForcasProps {
-  onSubmit: (data: ForcasData) => void;
+  onSubmit?: (data: ForcasData) => void;
+  onComplete?: (data: ForcasData) => void;  // Add onComplete prop
   defaultValues?: ForcasData;
   onBack?: () => void;
 }
 
-export default function FormStepForcas({ onSubmit, defaultValues, onBack }: FormStepForcasProps) {
+export default function FormStepForcas({ onSubmit, onComplete, defaultValues, onBack }: FormStepForcasProps) {
   // Initialize form with proper default values for the array of strings
   const defaultForcas = {
     respostas: Array(5).fill('') // Initialize with 5 empty strings
@@ -27,6 +28,15 @@ export default function FormStepForcas({ onSubmit, defaultValues, onBack }: Form
   });
 
   const { handleSubmit, control } = form;
+
+  // Handle form submission using either onComplete or onSubmit
+  const handleFormSubmit = (data: ForcasData) => {
+    if (onComplete) {
+      onComplete(data);
+    } else if (onSubmit) {
+      onSubmit(data);
+    }
+  };
 
   return (
     <div className="space-y-8 mt-4 max-w-5xl mx-auto">
@@ -40,7 +50,7 @@ export default function FormStepForcas({ onSubmit, defaultValues, onBack }: Form
           </CardDescription>
         </CardHeader>
         <Form {...form}>
-          <form onSubmit={handleSubmit(onSubmit)}>
+          <form onSubmit={handleSubmit(handleFormSubmit)}>
             <CardContent>
               <ScrollArea className="h-[40vh]">
                 <div className="space-y-4 pr-4">
