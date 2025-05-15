@@ -11,9 +11,7 @@ import {
   Settings2Icon, 
   AlertOctagonIcon,
   TrendingUpIcon,
-  ArrowDownIcon,
-  Download,
-  MessageCircle
+  ArrowDownIcon
 } from "lucide-react";
 import { 
   Collapsible, 
@@ -49,6 +47,8 @@ import MatrizSWOT from '@/components/Results/MatrizSWOT';
 import ScoreEstrategico from '@/components/Results/ScoreEstrategico';
 import PlanosEstrategicosABC from '@/components/Results/PlanosEstrategicosABC';
 import FunilEstrategico from '@/components/Results/FunilEstrategico';
+import ExportacaoPDF from '@/components/Results/ExportacaoPDF';
+import PrintableResults from '@/components/Results/PrintableResults';
 
 // Define types for better TypeScript support
 interface ActionItem {
@@ -515,296 +515,258 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData }) => {
   }
 
   return (
-    <div className="bg-white min-h-screen py-8 px-4 md:px-8 animate-fade-in">
-      <div id="container_resultado_pdf" className="max-w-5xl mx-auto">
-        {/* Header Section */}
-        <div className="text-center mb-12">
-          <div className="flex justify-center mb-4">
-            <div className="bg-[#F8F9FA] p-3 rounded-full">
-              <BrainIcon size={32} className="text-[#ef0002]" />
-            </div>
-          </div>
-          <h1 className="text-3xl md:text-4xl font-bold text-[#560005] mb-4">
-            Análise Estratégica de {formData.identificacao?.nomeEmpresa || "Sua Empresa"}
-          </h1>
-          <p className="text-gray-600 max-w-3xl mx-auto">
-            Este diagnóstico foi gerado com base nas informações fornecidas e analisado por 
-            inteligência artificial estratégica. Prepare-se para entender os verdadeiros 
-            caminhos da sua empresa.
-          </p>
-          <div id="print-header">
-            <HeaderSection
-              nomeEmpresa={formData.identificacao?.nomeEmpresa || ""}
-              segmento={formData.identificacao?.segmento || ""}
-              faturamentoMensal={formData.identificacao?.faturamentoMensal || ""}
-              tempoDeMercado={formData.identificacao?.tempoDeMercado || ""}
-            />
+    <PrintableResults>
+      {/* Header Section */}
+      <div className="text-center mb-12">
+        <div className="flex justify-center mb-4">
+          <div className="bg-[#F8F9FA] p-3 rounded-full">
+            <BrainIcon size={32} className="text-[#ef0002]" />
           </div>
         </div>
-
-        {/* Quick Data Cards */}
-        <div className="mb-12">
-          <QuickDataCards
-            tempoDeMercado={formData.identificacao?.tempoDeMercado || "Não informado"}
-            faturamentoMensal={formData.identificacao?.faturamentoMensal || "Não informado"}
-            segmento={formData.identificacao?.segmento || "Não informado"}
+        <h1 className="text-3xl md:text-4xl font-bold text-[#560005] mb-4">
+          Análise Estratégica de {formData.identificacao?.nomeEmpresa || "Sua Empresa"}
+        </h1>
+        <p className="text-gray-600 max-w-3xl mx-auto">
+          Este diagnóstico foi gerado com base nas informações fornecidas e analisado por 
+          inteligência artificial estratégica. Prepare-se para entender os verdadeiros 
+          caminhos da sua empresa.
+        </p>
+        <div id="print-header">
+          <HeaderSection
+            nomeEmpresa={formData.identificacao?.nomeEmpresa || ""}
+            segmento={formData.identificacao?.segmento || ""}
+            faturamentoMensal={formData.identificacao?.faturamentoMensal || ""}
+            tempoDeMercado={formData.identificacao?.tempoDeMercado || ""}
           />
-        </div>
-
-        {/* SWOT Matrix */}
-        <div id="bloco_mapa_swot" className="mb-12">
-          <h2 className="text-2xl font-bold text-[#560005] mb-6">Matriz SWOT</h2>
-          
-          <MatrizSWOT
-            forcas={formData.forcas?.respostas || []}
-            fraquezas={formData.fraquezas?.pontos_inconsistentes || []}
-            oportunidades={formData.oportunidades?.respostas || []}
-            ameacas={formData.ameacas?.respostas || []}
-          />
-
-          {/* Raw SWOT Text */}
-          <div className="mt-6">
-            <Collapsible className="w-full">
-              <CollapsibleTrigger asChild>
-                <Button variant="outline" className="w-full">
-                  Ver Matriz SWOT completa
-                </Button>
-              </CollapsibleTrigger>
-              <CollapsibleContent className="mt-4">
-                <div id="raw_matriz_texto" className="bg-gray-50 p-4 rounded-md max-h-96 overflow-y-auto">
-                  <pre className="whitespace-pre-wrap text-sm">
-                    {formData.resultadoFinal.matriz_swot}
-                  </pre>
-                </div>
-              </CollapsibleContent>
-            </Collapsible>
-          </div>
-        </div>
-
-        {/* Navigation Button */}
-        <div className="flex justify-center mb-16">
-          <Button 
-            className="bg-[#ef0002] hover:bg-[#c50000] text-white"
-            onClick={() => scrollToSection("ancora_diagnostico")}
-          >
-            Próximo: Diagnóstico do Negócio
-            <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
-        </div>
-
-        {/* Anchor for Diagnostic Section */}
-        <div id="ancora_diagnostico">
-          <Separator className="mb-12" />
-        </div>
-
-        {/* NEW BLOCK 3: Diagnostic Section */}
-        <div id="bloco_diagnostico_ia" className="mb-16">
-          <div className="text-center mb-8">
-            <div className="flex justify-center mb-3">
-              <BrainIcon className="h-8 w-8 text-[#ef0002]" />
-            </div>
-            <h2 className="text-2xl font-bold text-[#560005] mb-2">
-              Análise Profunda do Seu Negócio
-            </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
-              Abaixo está a interpretação completa da situação atual da sua empresa, 
-              com base nos dados fornecidos, feita por inteligência artificial estratégica.
-            </p>
-          </div>
-
-          <Card className="max-w-3xl mx-auto border border-[#ef0002]">
-            <CardContent className="p-6">
-              <ScrollArea className="max-h-[400px]">
-                <DiagnosticoTextual
-                  texto={formData.resultadoFinal?.diagnostico_textual || ''}
-                />
-              </ScrollArea>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* NEW BLOCK 4: Strategic Score */}
-        <div id="bloco_score_final" className="mb-16">
-          <div id="ancora_score"></div> {/* Anchor for navigation */}
-          
-          <div className="text-center mb-8">
-            <div className="flex justify-center mb-3">
-              <ChartBarIcon className="h-8 w-8 text-[#ef0002]" />
-            </div>
-            <h2 className="text-2xl font-bold text-[#560005] mb-2">
-              Nível de Maturidade e Prontidão Estratégica
-            </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
-              Essa avaliação considera suas respostas em múltiplas áreas como gestão, 
-              finanças, marketing, operação e decisão estratégica.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-8 items-center max-w-4xl mx-auto">
-            {/* Radar Chart */}
-            <div className="h-[300px] w-full">
-              <ChartContainer
-                config={{
-                  area: {
-                    theme: {
-                      light: "#ef0002",
-                      dark: "#ef0002",
-                    },
-                  },
-                }}
-              >
-                <RadarChart outerRadius={90} data={strategicScoreData}>
-                  <PolarGrid stroke="#ccc" />
-                  <PolarAngleAxis dataKey="subject" />
-                  <PolarRadiusAxis angle={30} domain={[0, 10]} />
-                  <Radar
-                    name="Sua Empresa"
-                    dataKey="A"
-                    stroke="#ef0002"
-                    fill="#ef0002"
-                    fillOpacity={0.3}
-                  />
-                  <ChartLegend>
-                    <ChartLegendContent />
-                  </ChartLegend>
-                </RadarChart>
-              </ChartContainer>
-            </div>
-
-            {/* Maturity Badge */}
-            <div>
-              <ScoreEstrategico
-                scoreLabel={maturityLevel.title || "N/A"}
-                pontuacao={Math.round(averageScore * 10)}
-              />
-              
-              <div className="mt-8 flex justify-center">
-                <Button 
-                  id="btn_ver_planos"
-                  className="bg-[#ef0002] hover:bg-[#c50000] text-white"
-                  onClick={() => scrollToSection("ancora_planos")}
-                >
-                  Visualizar Plano Estratégico A/B/C
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Anchor for Plans Section */}
-        <div id="ancora_planos">
-          <Separator className="mb-12" />
-        </div>
-
-        {/* NEW BLOCK 5: Strategic Action Plan A/B/C */}
-        <div id="bloco_planos_abc" className="mb-16">
-          <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold text-[#560005] mb-2">
-              Plano de Ação Estratégico: Escolha sua Rota
-            </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
-              Com base no diagnóstico, sugerimos 3 planos adaptados à sua realidade. 
-              Avalie cada um e veja qual se encaixa melhor na sua estrutura atual.
-            </p>
-          </div>
-
-          <PlanosEstrategicosABC
-            planos={{
-              planoA: (formData.resultadoFinal?.planos_acao?.split('\n').filter(line => line.trim()) || []),
-              planoB: (formData.resultadoFinal?.planoB?.filter(item => item && item.trim()) || []),
-              planoC: (formData.resultadoFinal?.planoC?.filter(item => item && item.trim()) || []),
-            }}
-          />
-        </div>
-
-        {/* NEW BLOCK 4B: Funnel Visualization */}
-        <div id="bloco_funil_gargalos" className="mb-16">
-          <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold text-[#560005] mb-2">
-              Funil Estratégico da Empresa: Gargalos e Alertas
-            </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
-              Veja como sua empresa se comporta nas 4 fases críticas e onde estão os pontos 
-              de atenção que podem comprometer toda a operação.
-            </p>
-          </div>
-
-          <div className="max-w-4xl mx-auto">
-            <FunilEstrategico
-              gargalos={formData.resultadoFinal?.gargalos || []}
-              alertasCascata={formData.resultadoFinal?.alertasCascata || []}
-            />
-          </div>
-        </div>
-
-        {/* FINAL BLOCK: Conclusion & CTA */}
-        {allSectionsReady && (
-          <>
-            <div id="ancora_final">
-              <Separator className="mb-12" />
-            </div>
-            
-            <div id="bloco_final_cta" className="mb-16">
-              <div className="text-center mb-8">
-                <h2 className="text-2xl font-bold text-[#560005] mb-2">
-                  Seu Diagnóstico Está Pronto.
-                </h2>
-                <p className="text-gray-600 max-w-2xl mx-auto">
-                  Agora você tem um raio-X completo da sua empresa. Pode baixar esse relatório, 
-                  compartilhar ou aplicar com sua equipe. E, se quiser ir além, fale com nossos 
-                  especialistas para executar esse plano com apoio total.
-                </p>
-              </div>
-              
-              {/* CTA Buttons */}
-              <div className="flex flex-col md:flex-row gap-4 justify-center mb-8">
-                <Button 
-                  onClick={generatePDF}
-                  className="bg-[#ef0002] hover:bg-[#b70001] text-white"
-                >
-                  <Download className="mr-2 h-4 w-4" />
-                  Baixar Diagnóstico em PDF
-                </Button>
-                
-                <Button 
-                  onClick={openWhatsApp}
-                  className="bg-[#560005] hover:bg-[#3d0003] text-white"
-                >
-                  <MessageCircle className="mr-2 h-4 w-4" />
-                  Falar com a Equipe da INFINITY
-                </Button>
-              </div>
-              
-              {/* Reinforcement message */}
-              <p className="text-center text-gray-700 max-w-2xl mx-auto">
-                Esse relatório é o primeiro passo. A execução começa agora. Estamos prontos para caminhar com você.
-              </p>
-              
-              {/* Footer watermark */}
-              <div className="text-xs text-center text-[#b70001] mt-10">
-                SWOT INSIGHTS | Infinity Academy
-              </div>
-            </div>
-          </>
-        )}
-
-        {/* Set the flag for next prompt */}
-        <div className="hidden">
-          {/* This is just a placeholder to indicate the flag is set */}
-          {(() => {
-            if (formData.resultadoFinal) {
-              formData.resultadoFinal.resultados_bloco5_e_4b_ok = true;
-            }
-            return null;
-          })()}
-
-          {/* Tag for tracking refactoring progress */}
-          {/* refatoracao_swot_score_ok = true */}
-          {/* refatoracao_planos_funil_ok = true */}
         </div>
       </div>
-    </div>
+
+      {/* Quick Data Cards */}
+      <div className="mb-12">
+        <QuickDataCards
+          tempoDeMercado={formData.identificacao?.tempoDeMercado || "Não informado"}
+          faturamentoMensal={formData.identificacao?.faturamentoMensal || "Não informado"}
+          segmento={formData.identificacao?.segmento || "Não informado"}
+        />
+      </div>
+
+      {/* SWOT Matrix */}
+      <div id="bloco_mapa_swot" className="mb-12">
+        <h2 className="text-2xl font-bold text-[#560005] mb-6">Matriz SWOT</h2>
+        
+        <MatrizSWOT
+          forcas={formData.forcas?.respostas || []}
+          fraquezas={formData.fraquezas?.pontos_inconsistentes || []}
+          oportunidades={formData.oportunidades?.respostas || []}
+          ameacas={formData.ameacas?.respostas || []}
+        />
+
+        {/* Raw SWOT Text */}
+        <div className="mt-6">
+          <Collapsible className="w-full">
+            <CollapsibleTrigger asChild>
+              <Button variant="outline" className="w-full">
+                Ver Matriz SWOT completa
+              </Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="mt-4">
+              <div id="raw_matriz_texto" className="bg-gray-50 p-4 rounded-md max-h-96 overflow-y-auto">
+                <pre className="whitespace-pre-wrap text-sm">
+                  {formData.resultadoFinal?.matriz_swot}
+                </pre>
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+        </div>
+      </div>
+
+      {/* Navigation Button */}
+      <div className="flex justify-center mb-16">
+        <Button 
+          className="bg-[#ef0002] hover:bg-[#c50000] text-white"
+          onClick={() => scrollToSection("ancora_diagnostico")}
+        >
+          Próximo: Diagnóstico do Negócio
+          <ArrowRight className="ml-2 h-4 w-4" />
+        </Button>
+      </div>
+
+      {/* Anchor for Diagnostic Section */}
+      <div id="ancora_diagnostico">
+        <Separator className="mb-12" />
+      </div>
+
+      {/* NEW BLOCK 3: Diagnostic Section */}
+      <div id="bloco_diagnostico_ia" className="mb-16">
+        <div className="text-center mb-8">
+          <div className="flex justify-center mb-3">
+            <BrainIcon className="h-8 w-8 text-[#ef0002]" />
+          </div>
+          <h2 className="text-2xl font-bold text-[#560005] mb-2">
+            Análise Profunda do Seu Negócio
+          </h2>
+          <p className="text-gray-600 max-w-2xl mx-auto">
+            Abaixo está a interpretação completa da situação atual da sua empresa, 
+            com base nos dados fornecidos, feita por inteligência artificial estratégica.
+          </p>
+        </div>
+
+        <Card className="max-w-3xl mx-auto border border-[#ef0002]">
+          <CardContent className="p-6">
+            <ScrollArea className="max-h-[400px]">
+              <DiagnosticoTextual
+                texto={formData.resultadoFinal?.diagnostico_textual || ''}
+              />
+            </ScrollArea>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* NEW BLOCK 4: Strategic Score */}
+      <div id="bloco_score_final" className="mb-16">
+        <div id="ancora_score"></div> {/* Anchor for navigation */}
+        
+        <div className="text-center mb-8">
+          <div className="flex justify-center mb-3">
+            <ChartBarIcon className="h-8 w-8 text-[#ef0002]" />
+          </div>
+          <h2 className="text-2xl font-bold text-[#560005] mb-2">
+            Nível de Maturidade e Prontidão Estratégica
+          </h2>
+          <p className="text-gray-600 max-w-2xl mx-auto">
+            Essa avaliação considera suas respostas em múltiplas áreas como gestão, 
+            finanças, marketing, operação e decisão estratégica.
+          </p>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-8 items-center max-w-4xl mx-auto">
+          {/* Radar Chart */}
+          <div className="h-[300px] w-full">
+            <ChartContainer
+              config={{
+                area: {
+                  theme: {
+                    light: "#ef0002",
+                    dark: "#ef0002",
+                  },
+                },
+              }}
+            >
+              <RadarChart outerRadius={90} data={strategicScoreData}>
+                <PolarGrid stroke="#ccc" />
+                <PolarAngleAxis dataKey="subject" />
+                <PolarRadiusAxis angle={30} domain={[0, 10]} />
+                <Radar
+                  name="Sua Empresa"
+                  dataKey="A"
+                  stroke="#ef0002"
+                  fill="#ef0002"
+                  fillOpacity={0.3}
+                />
+                <ChartLegend>
+                  <ChartLegendContent />
+                </ChartLegend>
+              </RadarChart>
+            </ChartContainer>
+          </div>
+
+          {/* Maturity Badge */}
+          <div>
+            <ScoreEstrategico
+              scoreLabel={maturityLevel.title || "N/A"}
+              pontuacao={Math.round(averageScore * 10)}
+            />
+            
+            <div className="mt-8 flex justify-center">
+              <Button 
+                id="btn_ver_planos"
+                className="bg-[#ef0002] hover:bg-[#c50000] text-white"
+                onClick={() => scrollToSection("ancora_planos")}
+              >
+                Visualizar Plano Estratégico A/B/C
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Anchor for Plans Section */}
+      <div id="ancora_planos">
+        <Separator className="mb-12" />
+      </div>
+
+      {/* NEW BLOCK 5: Strategic Action Plan A/B/C */}
+      <div id="bloco_planos_abc" className="mb-16">
+        <div className="text-center mb-8">
+          <h2 className="text-2xl font-bold text-[#560005] mb-2">
+            Plano de Ação Estratégico: Escolha sua Rota
+          </h2>
+          <p className="text-gray-600 max-w-2xl mx-auto">
+            Com base no diagnóstico, sugerimos 3 planos adaptados à sua realidade. 
+            Avalie cada um e veja qual se encaixa melhor na sua estrutura atual.
+          </p>
+        </div>
+
+        <PlanosEstrategicosABC
+          planos={{
+            planoA: (formData.resultadoFinal?.planos_acao?.split('\n').filter(line => line.trim()) || []),
+            planoB: (formData.resultadoFinal?.planoB?.filter(item => item && item.trim()) || []),
+            planoC: (formData.resultadoFinal?.planoC?.filter(item => item && item.trim()) || []),
+          }}
+        />
+      </div>
+
+      {/* NEW BLOCK 4B: Funnel Visualization */}
+      <div id="bloco_funil_gargalos" className="mb-16">
+        <div className="text-center mb-8">
+          <h2 className="text-2xl font-bold text-[#560005] mb-2">
+            Funil Estratégico da Empresa: Gargalos e Alertas
+          </h2>
+          <p className="text-gray-600 max-w-2xl mx-auto">
+            Veja como sua empresa se comporta nas 4 fases críticas e onde estão os pontos 
+            de atenção que podem comprometer toda a operação.
+          </p>
+        </div>
+
+        <div className="max-w-4xl mx-auto">
+          <FunilEstrategico
+            gargalos={formData.resultadoFinal?.gargalos || []}
+            alertasCascata={formData.resultadoFinal?.alertasCascata || []}
+          />
+        </div>
+      </div>
+
+      {/* FINAL BLOCK: Conclusion & CTA */}
+      {allSectionsReady && (
+        <>
+          <div id="ancora_final">
+            <Separator className="mb-12" />
+          </div>
+        </>
+      )}
+
+      {/* Set the flag for next prompt */}
+      <div className="hidden">
+        {/* This is just a placeholder to indicate the flag is set */}
+        {(() => {
+          if (formData.resultadoFinal) {
+            formData.resultadoFinal.resultados_bloco5_e_4b_ok = true;
+          }
+          return null;
+        })()}
+
+        {/* Tag for tracking refactoring progress */}
+        {/* refatoracao_swot_score_ok = true */}
+        {/* refatoracao_planos_funil_ok = true */}
+        {/* refatoracao_pdf_finalizacao_ok = true */}
+      </div>
+    </PrintableResults>
+    
+    {/* Outside PrintableResults - add the export functionality */}
+    {allSectionsReady && (
+      <ExportacaoPDF onExport={generatePDF} />
+    )}
   );
 };
 
