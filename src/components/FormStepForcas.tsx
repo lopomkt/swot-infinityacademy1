@@ -14,7 +14,7 @@ interface Props {
 }
 
 const FormStepForcas: React.FC<Props> = ({ defaultValues, onComplete }) => {
-  // Inicializar o formulário com validação Zod - specify explicit type for the array
+  // Inicializar o formulário com validação Zod
   const form = useForm<ForcasSchema>({
     resolver: zodResolver(forcasSchema),
     defaultValues: defaultValues?.forcas || {

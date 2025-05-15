@@ -1,10 +1,12 @@
 
 import { z } from 'zod';
 
-// Define the array schema first with clear string type
-const respostaArray = z.array(
-  z.string().min(1, 'Preencha todas as forças listadas')
-).min(5, 'Informe pelo menos 5 pontos fortes para prosseguir');
+// Define the string schema for each response item
+const respostaString = z.string().min(1, 'Preencha todas as forças listadas');
+
+// Define the array schema with proper typing
+const respostaArray = z.array(respostaString)
+  .min(5, 'Informe pelo menos 5 pontos fortes para prosseguir');
 
 export const forcasSchema = z.object({
   respostas: respostaArray,
