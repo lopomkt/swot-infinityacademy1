@@ -1,13 +1,25 @@
-
-import React from "react";
-import { Check, X, LightbulbIcon, AlertTriangle, BrainIcon, ArrowRight, ChartBarIcon, StarIcon, Settings2Icon, AlertOctagonIcon } from "lucide-react";
+import React, { useState } from "react";
+import { 
+  Check, 
+  X, 
+  LightbulbIcon, 
+  AlertTriangle, 
+  BrainIcon, 
+  ArrowRight, 
+  ChartBarIcon, 
+  StarIcon, 
+  Settings2Icon, 
+  AlertOctagonIcon,
+  TrendingUpIcon,
+  ArrowDownIcon
+} from "lucide-react";
 import { 
   Collapsible, 
   CollapsibleContent, 
   CollapsibleTrigger 
 } from "@/components/ui/collapsible";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
@@ -23,16 +35,53 @@ import {
   Radar,
   ResponsiveContainer
 } from "recharts";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { toast } from "@/hooks/use-toast";
 
 interface ResultsScreenProps {
   formData: any;
 }
 
 const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData }) => {
+  const [priorityActions, setPriorityActions] = useState<string[]>([]);
+  
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
     if (element) {
       element.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
+  // Function to toggle priority status of an action
+  const togglePriorityAction = (actionId: string) => {
+    setPriorityActions(prev => {
+      if (prev.includes(actionId)) {
+        return prev.filter(id => id !== actionId);
+      } else {
+        return [...prev, actionId];
+      }
+    });
+    
+    // Update formData if needed
+    if (!formData.resultadoFinal.acoes_priorizadas) {
+      formData.resultadoFinal.acoes_priorizadas = [];
+    }
+    
+    if (formData.resultadoFinal.acoes_priorizadas.includes(actionId)) {
+      formData.resultadoFinal.acoes_priorizadas = formData.resultadoFinal.acoes_priorizadas.filter(
+        (id: string) => id !== actionId
+      );
+      toast({
+        title: "Ação removida das prioridades",
+        description: "Esta ação não será mais destacada como prioritária."
+      });
+    } else {
+      formData.resultadoFinal.acoes_priorizadas.push(actionId);
+      toast({
+        title: "Ação marcada como prioridade",
+        description: "Esta ação será destacada como prioritária no seu plano."
+      });
     }
   };
 
@@ -113,7 +162,139 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData }) => {
     }
   };
 
+  // Format the strategic plans from the results
+  const formatStrategicPlans = () => {
+    try {
+      const plansText = formData.resultadoFinal.planos_acao || "";
+      
+      // Initialize plans structure
+      const plans = {
+        rotaA: { title: "🎯 Rota A – Estratégia ideal com investimento robusto", actions: [] },
+        rotaB: { title: "⚙️ Rota B – Estratégia viável com recursos limitados", actions: [] },
+        rotaC: { title: "💡 Rota C – Estratégia criativa com orçamento mínimo", actions: [] }
+      };
+
+      // Split by sections (each route)
+      const sections = plansText.split('#');
+      
+      // Process each route section
+      sections.forEach((section, sectionIndex) => {
+        if (!section.trim()) return;
+        
+        const lines = section.trim().split('\n');
+        const routeTitle = lines[0].trim();
+        
+        // Determine which route we're processing
+        let currentRoute = null;
+        if (routeTitle.toLowerCase().includes('rota a')) currentRoute = 'rotaA';
+        else if (routeTitle.toLowerCase().includes('rota b')) currentRoute = 'rotaB';
+        else if (routeTitle.toLowerCase().includes('rota c')) currentRoute = 'rotaC';
+        
+        if (!currentRoute) return;
+        
+        // Extract actions
+        const actionItems = lines.slice(1).filter(line => /^\d+\./.test(line.trim()));
+        
+        const actions = actionItems.map((item, index) => {
+          // Extract the action content (remove the number)
+          const actionContent = item.replace(/^\d+\./, '').trim();
+          
+          // Generate a unique ID for the action
+          const actionId = `${currentRoute}-action-${index}`;
+          
+          // Determine effort level (mock data, in a real app this would be from actual data)
+          const effortLevels = ['baixa', 'média', 'alta'];
+          const randomEffort = effortLevels[Math.floor(Math.random() * effortLevels.length)];
+          
+          // Determine action type tag (mock data)
+          const actionTags = ['Curto Prazo', 'Estratégico', 'Implementação'];
+          const randomTag = actionTags[Math.floor(Math.random() * actionTags.length)];
+          
+          // Determine area (mock data, in a real app this would be parsed from AI output)
+          const areas = ['Marketing', 'Vendas', 'Gestão', 'Operações', 'Finanças'];
+          const randomArea = areas[Math.floor(Math.random() * areas.length)];
+          
+          return {
+            id: actionId,
+            content: actionContent,
+            area: randomArea,
+            effort: randomEffort,
+            tag: randomTag,
+            timeframe: `${Math.floor(Math.random() * 6) + 1} meses`
+          };
+        });
+        
+        // Add to the appropriate route
+        plans[currentRoute].actions = actions;
+      });
+      
+      return plans;
+    } catch (error) {
+      console.error("Error parsing strategic plans:", error);
+      return {
+        rotaA: { title: "🎯 Rota A", actions: [] },
+        rotaB: { title: "⚙️ Rota B", actions: [] },
+        rotaC: { title: "💡 Rota C", actions: [] }
+      };
+    }
+  };
+
+  // Analyze the funnel stages based on SWOT data
+  const analyzeFunnelStages = () => {
+    // In a real application, this would use a more sophisticated algorithm
+    // based on AI analysis or heuristics from formData
+    const stages = [
+      {
+        id: "atracao",
+        name: "ATRAÇÃO",
+        status: "warning", // "healthy", "warning", "bottleneck"
+        icon: <TrendingUpIcon className="h-5 w-5" />,
+        issues: ["Baixa visibilidade online", "Poucas fontes de tráfego"]
+      },
+      {
+        id: "conversao",
+        name: "CONVERSÃO",
+        status: "bottleneck",
+        icon: <ArrowDownIcon className="h-5 w-5" />,
+        issues: ["Alto custo de aquisição", "Baixa taxa de fechamento"]
+      },
+      {
+        id: "operacao",
+        name: "ENTREGA/OPERAÇÃO",
+        status: "warning",
+        icon: <Settings2Icon className="h-5 w-5" />,
+        issues: ["Processos manuais", "Retrabalho frequente"]
+      },
+      {
+        id: "fidelizacao",
+        name: "FIDELIZAÇÃO",
+        status: "healthy",
+        icon: <StarIcon className="h-5 w-5" />,
+        issues: ["Cliente satisfeito, mas sem programa formal"]
+      }
+    ];
+
+    // Find cascade effects based on the statuses
+    const cascadeEffects = [];
+    for (let i = 0; i < stages.length - 1; i++) {
+      if (
+        (stages[i].status === "bottleneck" && stages[i + 1].status === "warning") ||
+        (stages[i].status === "bottleneck" && stages[i + 1].status === "bottleneck")
+      ) {
+        cascadeEffects.push({
+          from: stages[i].id,
+          to: stages[i + 1].id,
+          message: `Problemas em ${stages[i].name.toLowerCase()} estão afetando diretamente sua ${stages[i + 1].name.toLowerCase()}.`
+        });
+      }
+    }
+
+    return { stages, cascadeEffects };
+  };
+
   const swotData = formatSwotData();
+  const strategicPlans = formatStrategicPlans();
+  const { stages: funnelStages, cascadeEffects } = analyzeFunnelStages();
 
   // Get quick data from form
   const quickData = {
@@ -173,6 +354,49 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData }) => {
   };
 
   const maturityLevel = getMaturityLevel();
+
+  // Get status icon for funnel stages
+  const getStatusIcon = (status) => {
+    switch(status) {
+      case "healthy":
+        return <Check className="h-5 w-5 text-green-600" />;
+      case "warning":
+        return <AlertTriangle className="h-5 w-5 text-yellow-600" />;
+      case "bottleneck":
+        return <X className="h-5 w-5 text-red-600" />;
+      default:
+        return <Check className="h-5 w-5 text-green-600" />;
+    }
+  };
+
+  // Get status color for funnel stages
+  const getStatusColor = (status) => {
+    switch(status) {
+      case "healthy":
+        return "bg-green-50 border-green-200 text-green-700";
+      case "warning":
+        return "bg-yellow-50 border-yellow-200 text-yellow-700";
+      case "bottleneck":
+        return "bg-red-50 border-red-200 text-red-700";
+      default:
+        return "bg-gray-50 border-gray-200 text-gray-700";
+    }
+  };
+
+  // Group actions by area for each route
+  const groupActionsByArea = (actions) => {
+    return actions.reduce((grouped, action) => {
+      if (!grouped[action.area]) {
+        grouped[action.area] = [];
+      }
+      grouped[action.area].push(action);
+      return grouped;
+    }, {});
+  };
+
+  const actionsByAreaA = groupActionsByArea(strategicPlans.rotaA.actions);
+  const actionsByAreaB = groupActionsByArea(strategicPlans.rotaB.actions);
+  const actionsByAreaC = groupActionsByArea(strategicPlans.rotaC.actions);
 
   return (
     <div className="bg-white min-h-screen py-8 px-4 md:px-8 animate-fade-in">
@@ -479,6 +703,288 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData }) => {
         {/* Anchor for Plans Section */}
         <div id="ancora_planos">
           <Separator className="mb-12" />
+        </div>
+
+        {/* NEW BLOCK 5: Strategic Action Plan A/B/C */}
+        <div id="bloco_planos_abc" className="mb-16">
+          <div className="text-center mb-8">
+            <h2 className="text-2xl font-bold text-[#560005] mb-2">
+              Plano de Ação Estratégico: Escolha sua Rota
+            </h2>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              Com base no diagnóstico, sugerimos 3 planos adaptados à sua realidade. 
+              Avalie cada um e veja qual se encaixa melhor na sua estrutura atual.
+            </p>
+          </div>
+
+          <Tabs defaultValue="rotaA" className="max-w-4xl mx-auto">
+            <TabsList className="grid grid-cols-3 mb-8">
+              <TabsTrigger value="rotaA" className="data-[state=active]:bg-green-100 data-[state=active]:text-green-900">
+                🎯 Rota A – Investimento Robusto
+              </TabsTrigger>
+              <TabsTrigger value="rotaB" className="data-[state=active]:bg-blue-100 data-[state=active]:text-blue-900">
+                ⚙️ Rota B – Recursos Limitados
+              </TabsTrigger>
+              <TabsTrigger value="rotaC" className="data-[state=active]:bg-amber-100 data-[state=active]:text-amber-900">
+                💡 Rota C – Orçamento Mínimo
+              </TabsTrigger>
+            </TabsList>
+
+            {/* Rota A Content */}
+            <TabsContent value="rotaA">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-green-700">{strategicPlans.rotaA.title}</CardTitle>
+                  <CardDescription>Investimento direcionado para crescimento acelerado</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-8">
+                    {Object.entries(actionsByAreaA).map(([area, actions]) => (
+                      <div key={area} className="border-b pb-6 last:border-0">
+                        <h4 className="text-lg font-medium text-green-800 mb-4">{area}</h4>
+                        <div className="grid gap-4 md:grid-cols-2">
+                          {actions.map((action) => (
+                            <Card key={action.id} className={`overflow-hidden ${
+                              priorityActions.includes(action.id) 
+                                ? 'border-2 border-[#ef0002] ring-1 ring-[#ef0002]'
+                                : ''
+                            }`}>
+                              <CardContent className="p-4">
+                                <div className="flex justify-between items-start mb-2">
+                                  <Badge variant="outline" className="bg-green-50">
+                                    {action.tag}
+                                  </Badge>
+                                  <Badge variant="outline" className="bg-gray-50">
+                                    {action.timeframe}
+                                  </Badge>
+                                </div>
+                                <h5 className="font-medium mb-2">{action.content}</h5>
+                                <div className="flex items-center text-sm text-gray-500 mt-4">
+                                  <span>Esforço: {action.effort}</span>
+                                </div>
+                              </CardContent>
+                              <CardFooter className="bg-gray-50 p-2 flex justify-end">
+                                <Button 
+                                  variant={priorityActions.includes(action.id) ? "secondary" : "outline"} 
+                                  size="sm"
+                                  onClick={() => togglePriorityAction(action.id)}
+                                  className={priorityActions.includes(action.id) ? "bg-[#ef0002] text-white" : ""}
+                                >
+                                  {priorityActions.includes(action.id) 
+                                    ? "Remover Prioridade" 
+                                    : "Marcar como Prioridade"}
+                                </Button>
+                              </CardFooter>
+                            </Card>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Rota B Content */}
+            <TabsContent value="rotaB">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-blue-700">{strategicPlans.rotaB.title}</CardTitle>
+                  <CardDescription>Balanceamento entre investimento e resultados de curto prazo</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-8">
+                    {Object.entries(actionsByAreaB).map(([area, actions]) => (
+                      <div key={area} className="border-b pb-6 last:border-0">
+                        <h4 className="text-lg font-medium text-blue-800 mb-4">{area}</h4>
+                        <div className="grid gap-4 md:grid-cols-2">
+                          {actions.map((action) => (
+                            <Card key={action.id} className={`overflow-hidden ${
+                              priorityActions.includes(action.id) 
+                                ? 'border-2 border-[#ef0002] ring-1 ring-[#ef0002]'
+                                : ''
+                            }`}>
+                              <CardContent className="p-4">
+                                <div className="flex justify-between items-start mb-2">
+                                  <Badge variant="outline" className="bg-blue-50">
+                                    {action.tag}
+                                  </Badge>
+                                  <Badge variant="outline" className="bg-gray-50">
+                                    {action.timeframe}
+                                  </Badge>
+                                </div>
+                                <h5 className="font-medium mb-2">{action.content}</h5>
+                                <div className="flex items-center text-sm text-gray-500 mt-4">
+                                  <span>Esforço: {action.effort}</span>
+                                </div>
+                              </CardContent>
+                              <CardFooter className="bg-gray-50 p-2 flex justify-end">
+                                <Button 
+                                  variant={priorityActions.includes(action.id) ? "secondary" : "outline"} 
+                                  size="sm"
+                                  onClick={() => togglePriorityAction(action.id)}
+                                  className={priorityActions.includes(action.id) ? "bg-[#ef0002] text-white" : ""}
+                                >
+                                  {priorityActions.includes(action.id) 
+                                    ? "Remover Prioridade" 
+                                    : "Marcar como Prioridade"}
+                                </Button>
+                              </CardFooter>
+                            </Card>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Rota C Content */}
+            <TabsContent value="rotaC">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-amber-700">{strategicPlans.rotaC.title}</CardTitle>
+                  <CardDescription>Abordagem criativa para maximizar resultados com recursos limitados</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-8">
+                    {Object.entries(actionsByAreaC).map(([area, actions]) => (
+                      <div key={area} className="border-b pb-6 last:border-0">
+                        <h4 className="text-lg font-medium text-amber-800 mb-4">{area}</h4>
+                        <div className="grid gap-4 md:grid-cols-2">
+                          {actions.map((action) => (
+                            <Card key={action.id} className={`overflow-hidden ${
+                              priorityActions.includes(action.id) 
+                                ? 'border-2 border-[#ef0002] ring-1 ring-[#ef0002]'
+                                : ''
+                            }`}>
+                              <CardContent className="p-4">
+                                <div className="flex justify-between items-start mb-2">
+                                  <Badge variant="outline" className="bg-amber-50">
+                                    {action.tag}
+                                  </Badge>
+                                  <Badge variant="outline" className="bg-gray-50">
+                                    {action.timeframe}
+                                  </Badge>
+                                </div>
+                                <h5 className="font-medium mb-2">{action.content}</h5>
+                                <div className="flex items-center text-sm text-gray-500 mt-4">
+                                  <span>Esforço: {action.effort}</span>
+                                </div>
+                              </CardContent>
+                              <CardFooter className="bg-gray-50 p-2 flex justify-end">
+                                <Button 
+                                  variant={priorityActions.includes(action.id) ? "secondary" : "outline"} 
+                                  size="sm"
+                                  onClick={() => togglePriorityAction(action.id)}
+                                  className={priorityActions.includes(action.id) ? "bg-[#ef0002] text-white" : ""}
+                                >
+                                  {priorityActions.includes(action.id) 
+                                    ? "Remover Prioridade" 
+                                    : "Marcar como Prioridade"}
+                                </Button>
+                              </CardFooter>
+                            </Card>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        </div>
+
+        {/* NEW BLOCK 4B: Funnel Visualization */}
+        <div id="bloco_funil_gargalos" className="mb-16">
+          <div className="text-center mb-8">
+            <h2 className="text-2xl font-bold text-[#560005] mb-2">
+              Funil Estratégico da Empresa: Gargalos e Alertas
+            </h2>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              Veja como sua empresa se comporta nas 4 fases críticas e onde estão os pontos 
+              de atenção que podem comprometer toda a operação.
+            </p>
+          </div>
+
+          <div className="max-w-4xl mx-auto">
+            {/* Funnel Visualization */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-6 relative animate-fade-in">
+              {funnelStages.map((stage, index) => (
+                <div key={stage.id} className="relative">
+                  <Card className={`h-full ${getStatusColor(stage.status)}`}>
+                    <CardHeader className="pb-2">
+                      <div className="flex justify-between items-center">
+                        <div className="flex items-center">
+                          {stage.icon}
+                          <CardTitle className="text-base ml-2">{stage.name}</CardTitle>
+                        </div>
+                        {getStatusIcon(stage.status)}
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <ul className="text-sm space-y-1">
+                        {stage.issues.map((issue, i) => (
+                          <li key={i} className="flex items-start">
+                            <span className="mr-1">•</span>
+                            <span>{issue}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </CardContent>
+                  </Card>
+                  
+                  {/* Add arrows between stages */}
+                  {index < funnelStages.length - 1 && (
+                    <div className="hidden md:flex absolute top-1/2 -right-2 transform -translate-y-1/2 z-10">
+                      <div className="w-4 h-4 rotate-45 border-t-2 border-r-2 border-gray-300"></div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* Cascade Effects */}
+            {cascadeEffects.length > 0 && (
+              <div className="mb-8">
+                {cascadeEffects.map((effect, index) => {
+                  const fromStage = funnelStages.find(s => s.id === effect.from);
+                  const toStage = funnelStages.find(s => s.id === effect.to);
+                  
+                  return (
+                    <div key={index} className="bg-yellow-50 border border-yellow-200 rounded-md p-3 mb-2 flex items-center">
+                      <AlertTriangle className="h-5 w-5 text-yellow-600 mr-2 flex-shrink-0" />
+                      <p className="text-sm text-yellow-800">
+                        <strong>{fromStage?.name}:</strong> {effect.message}
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Alert Warning */}
+            <div className="bg-[#ffebeb] border border-[#ef0002] rounded-md p-4 text-red-800 flex items-start">
+              <AlertTriangle className="h-5 w-5 text-[#ef0002] mr-2 flex-shrink-0 mt-1" />
+              <p>
+                <strong>Atenção:</strong> gargalos não resolvidos nessa etapa tendem a causar efeito 
+                cascata e impactar toda a empresa. Inicie sua correção pela etapa mais crítica.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Set the flag for next prompt */}
+        <div className="hidden">
+          {/* This is just a placeholder to indicate the flag is set */}
+          {(() => {
+            if (formData.resultadoFinal) {
+              formData.resultadoFinal.resultados_bloco5_e_4b_ok = true;
+            }
+            return null;
+          })()}
         </div>
       </div>
     </div>
