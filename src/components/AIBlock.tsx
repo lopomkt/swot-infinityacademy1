@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Loader } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -16,6 +17,7 @@ const AIBlock: React.FC<AIBlockProps> = ({ formData, onRestart, onAIComplete }) 
     matriz_swot: "",
     diagnostico_textual: "",
     planos_acao: "",
+    acoes_priorizadas: [] // Added the missing required property with empty array as default
   });
   const { toast } = useToast();
 
@@ -76,7 +78,8 @@ Use os seguintes delimitadores para separar cada seção da sua resposta:
       return {
         matriz_swot: sections[1].trim(),
         diagnostico_textual: sections[2].trim(),
-        planos_acao: sections[3].trim()
+        planos_acao: sections[3].trim(),
+        acoes_priorizadas: [] // Added missing property
       };
     }
     
@@ -84,7 +87,8 @@ Use os seguintes delimitadores para separar cada seção da sua resposta:
     return {
       matriz_swot: "Erro ao processar a matriz SWOT.",
       diagnostico_textual: "Erro ao processar o diagnóstico consultivo.",
-      planos_acao: "Erro ao processar o plano de ação."
+      planos_acao: "Erro ao processar o plano de ação.",
+      acoes_priorizadas: [] // Added missing property
     };
   };
 
