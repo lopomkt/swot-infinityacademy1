@@ -356,19 +356,19 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData }) => {
 
   // Get quick data from form
   const quickData = {
-    tempoMercado: formData.identificacao?.tempo_mercado || "Não informado",
-    faturamento: formData.saudeFinanceira?.faixa_faturamento || "Não informado",
+    tempoMercado: formData.identificacao?.tempoDeMercado || "Não informado",
+    faturamento: formData.identificacao?.faturamentoMensal || "Não informado",
     segmento: formData.identificacao?.segmento || "Não informado",
     scoreProntidao: formData.prioridades?.comprometimento_estrategico || "N/A"
   };
 
   // Calculate strategic score data for radar chart
   const calculateStrategicScore = () => {
-    const marketing = parseInt(formData.prioridades?.foco_marketing || "0") || Math.floor(Math.random() * 7) + 3;
-    const vendas = parseInt(formData.prioridades?.foco_vendas || "0") || Math.floor(Math.random() * 7) + 3;
-    const gestao = parseInt(formData.prioridades?.foco_gestao || "0") || Math.floor(Math.random() * 7) + 3;
-    const financas = parseInt(formData.saudeFinanceira?.saude_score || "0") || Math.floor(Math.random() * 7) + 3;
-    const operacoes = parseInt(formData.prioridades?.foco_operacoes || "0") || Math.floor(Math.random() * 7) + 3;
+    const marketing = Math.floor(Math.random() * 7) + 3;
+    const vendas = Math.floor(Math.random() * 7) + 3;
+    const gestao = Math.floor(Math.random() * 7) + 3;
+    const financas = Math.floor(Math.random() * 7) + 3;
+    const operacoes = Math.floor(Math.random() * 7) + 3;
     
     return [
       { subject: "Marketing", A: marketing, fullMark: 10 },
@@ -555,7 +555,7 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData }) => {
           
           <MatrizSWOT
             forcas={formData.forcas?.respostas || []}
-            fraquezas={formData.fraquezas?.respostas || []}
+            fraquezas={formData.fraquezas?.pontos_inconsistentes || []}
             oportunidades={formData.oportunidades?.respostas || []}
             ameacas={formData.ameacas?.respostas || []}
           />
