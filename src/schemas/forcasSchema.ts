@@ -1,13 +1,17 @@
 
-import { z } from 'zod';
+import { z } from "zod";
 
-// Define the string schema for each response item with proper validation
-const respostaString = z.string().min(1, 'Preencha todas as forças listadas');
-
-// Define the array schema with explicit typing as string[]
-export const forcasSchema = z.object({
-  respostas: z.array(respostaString)
-    .min(5, 'Informe pelo menos 5 pontos fortes para prosseguir'),
+// Define a schema for a single strength response (string)
+export const respostaString = z.string().min(1, {
+  message: "Campo obrigatório",
 });
 
-export type ForcasSchema = z.infer<typeof forcasSchema>;
+// Define the schema for the forcas step
+export const forcasSchema = z.object({
+  respostas: z.array(respostaString).min(1, {
+    message: "É necessário informar pelo menos uma força",
+  }),
+});
+
+// Infer the type from the schema
+export type ForcasData = z.infer<typeof forcasSchema>;

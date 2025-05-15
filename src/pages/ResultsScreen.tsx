@@ -43,6 +43,8 @@ import { toast } from "@/hooks/use-toast";
 import html2pdf from "html2pdf.js";
 import { ResultadoFinalData } from "@/types/formData";
 import HeaderSection from '@/components/Results/HeaderSection';
+import QuickDataCards from '@/components/Results/QuickDataCards';
+import DiagnosticoTextual from '@/components/Results/DiagnosticoTextual';
 
 // Define types for better TypeScript support
 interface ActionItem {
@@ -546,34 +548,12 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData }) => {
         </div>
 
         {/* Quick Data Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
-          <Card className="bg-white shadow-sm">
-            <CardContent className="pt-4">
-              <p className="text-sm text-gray-500">Tempo de mercado</p>
-              <p className="text-lg font-medium">{quickData.tempoMercado}</p>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-white shadow-sm">
-            <CardContent className="pt-4">
-              <p className="text-sm text-gray-500">Faturamento</p>
-              <p className="text-lg font-medium">{quickData.faturamento}</p>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-white shadow-sm">
-            <CardContent className="pt-4">
-              <p className="text-sm text-gray-500">Segmento</p>
-              <p className="text-lg font-medium">{quickData.segmento}</p>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-white shadow-sm">
-            <CardContent className="pt-4">
-              <p className="text-sm text-gray-500">Score de prontidão</p>
-              <p className="text-lg font-medium">{quickData.scoreProntidao}/10</p>
-            </CardContent>
-          </Card>
+        <div className="mb-12">
+          <QuickDataCards
+            tempoDeMercado={formData.identificacao?.tempoDeMercado || "Não informado"}
+            faturamentoMensal={formData.identificacao?.faturamentoMensal || "Não informado"}
+            segmento={formData.identificacao?.segmento || "Não informado"}
+          />
         </div>
 
         {/* SWOT Matrix */}
@@ -747,9 +727,9 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData }) => {
           <Card className="max-w-3xl mx-auto border border-[#ef0002]">
             <CardContent className="p-6">
               <ScrollArea className="max-h-[400px]">
-                <div className="text-base leading-relaxed text-gray-800 whitespace-pre-line">
-                  {formData.resultadoFinal.diagnostico_textual}
-                </div>
+                <DiagnosticoTextual
+                  texto={formData.resultadoFinal?.diagnostico_textual || ''}
+                />
               </ScrollArea>
             </CardContent>
           </Card>
