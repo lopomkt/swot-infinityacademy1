@@ -47,6 +47,8 @@ import QuickDataCards from '@/components/Results/QuickDataCards';
 import DiagnosticoTextual from '@/components/Results/DiagnosticoTextual';
 import MatrizSWOT from '@/components/Results/MatrizSWOT';
 import ScoreEstrategico from '@/components/Results/ScoreEstrategico';
+import PlanosEstrategicosABC from '@/components/Results/PlanosEstrategicosABC';
+import FunilEstrategico from '@/components/Results/FunilEstrategico';
 
 // Define types for better TypeScript support
 interface ActionItem {
@@ -101,7 +103,7 @@ interface CascadeEffect {
 }
 
 interface ResultsScreenProps {
-  formData: FormData; // Updated to use the FormData type which includes all required fields
+  formData: FormData;
 }
 
 const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData }) => {
@@ -166,7 +168,7 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData }) => {
   };
 
   // Extract and format SWOT data
-  const formatSwotData = (): SwotData => {
+  const formatSwotData = () => {
     try {
       const swotText = formData.resultadoFinal.matriz_swot;
 
@@ -224,7 +226,7 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData }) => {
   };
 
   // Format the strategic plans from the results
-  const formatStrategicPlans = (): StrategicPlans => {
+  const formatStrategicPlans = () => {
     try {
       const plansText = formData.resultadoFinal.planos_acao || "";
       
@@ -707,184 +709,13 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData }) => {
             </p>
           </div>
 
-          <Tabs defaultValue="rotaA" className="max-w-4xl mx-auto">
-            <TabsList className="grid grid-cols-3 mb-8">
-              <TabsTrigger value="rotaA" className="data-[state=active]:bg-green-100 data-[state=active]:text-green-900">
-                🎯 Rota A – Investimento Robusto
-              </TabsTrigger>
-              <TabsTrigger value="rotaB" className="data-[state=active]:bg-blue-100 data-[state=active]:text-blue-900">
-                ⚙️ Rota B – Recursos Limitados
-              </TabsTrigger>
-              <TabsTrigger value="rotaC" className="data-[state=active]:bg-amber-100 data-[state=active]:text-amber-900">
-                💡 Rota C – Orçamento Mínimo
-              </TabsTrigger>
-            </TabsList>
-
-            {/* Rota A Content */}
-            <TabsContent value="rotaA">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-green-700">{strategicPlans.rotaA.title}</CardTitle>
-                  <CardDescription>Investimento direcionado para crescimento acelerado</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-8">
-                    {Object.entries(actionsByAreaA).map(([area, actions]) => (
-                      <div key={area} className="border-b pb-6 last:border-0">
-                        <h4 className="text-lg font-medium text-green-800 mb-4">{area}</h4>
-                        <div className="grid gap-4 md:grid-cols-2">
-                          {actions.map((action) => (
-                            <Card key={action.id} className={`overflow-hidden ${
-                              priorityActions.includes(action.id) 
-                                ? 'border-2 border-[#ef0002] ring-1 ring-[#ef0002]'
-                                : ''
-                            }`}>
-                              <CardContent className="p-4">
-                                <div className="flex justify-between items-start mb-2">
-                                  <Badge variant="outline" className="bg-green-50">
-                                    {action.tag}
-                                  </Badge>
-                                  <Badge variant="outline" className="bg-gray-50">
-                                    {action.timeframe}
-                                  </Badge>
-                                </div>
-                                <h5 className="font-medium mb-2">{action.content}</h5>
-                                <div className="flex items-center text-sm text-gray-500 mt-4">
-                                  <span>Esforço: {action.effort}</span>
-                                </div>
-                              </CardContent>
-                              <CardFooter className="bg-gray-50 p-2 flex justify-end">
-                                <Button 
-                                  variant={priorityActions.includes(action.id) ? "secondary" : "outline"} 
-                                  size="sm"
-                                  onClick={() => togglePriorityAction(action.id)}
-                                  className={priorityActions.includes(action.id) ? "bg-[#ef0002] text-white" : ""}
-                                >
-                                  {priorityActions.includes(action.id) 
-                                    ? "Remover Prioridade" 
-                                    : "Marcar como Prioridade"}
-                                </Button>
-                              </CardFooter>
-                            </Card>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            {/* Rota B Content */}
-            <TabsContent value="rotaB">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-blue-700">{strategicPlans.rotaB.title}</CardTitle>
-                  <CardDescription>Balanceamento entre investimento e resultados de curto prazo</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-8">
-                    {Object.entries(actionsByAreaB).map(([area, actions]) => (
-                      <div key={area} className="border-b pb-6 last:border-0">
-                        <h4 className="text-lg font-medium text-blue-800 mb-4">{area}</h4>
-                        <div className="grid gap-4 md:grid-cols-2">
-                          {actions.map((action) => (
-                            <Card key={action.id} className={`overflow-hidden ${
-                              priorityActions.includes(action.id) 
-                                ? 'border-2 border-[#ef0002] ring-1 ring-[#ef0002]'
-                                : ''
-                            }`}>
-                              <CardContent className="p-4">
-                                <div className="flex justify-between items-start mb-2">
-                                  <Badge variant="outline" className="bg-blue-50">
-                                    {action.tag}
-                                  </Badge>
-                                  <Badge variant="outline" className="bg-gray-50">
-                                    {action.timeframe}
-                                  </Badge>
-                                </div>
-                                <h5 className="font-medium mb-2">{action.content}</h5>
-                                <div className="flex items-center text-sm text-gray-500 mt-4">
-                                  <span>Esforço: {action.effort}</span>
-                                </div>
-                              </CardContent>
-                              <CardFooter className="bg-gray-50 p-2 flex justify-end">
-                                <Button 
-                                  variant={priorityActions.includes(action.id) ? "secondary" : "outline"} 
-                                  size="sm"
-                                  onClick={() => togglePriorityAction(action.id)}
-                                  className={priorityActions.includes(action.id) ? "bg-[#ef0002] text-white" : ""}
-                                >
-                                  {priorityActions.includes(action.id) 
-                                    ? "Remover Prioridade" 
-                                    : "Marcar como Prioridade"}
-                                </Button>
-                              </CardFooter>
-                            </Card>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            {/* Rota C Content */}
-            <TabsContent value="rotaC">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-amber-700">{strategicPlans.rotaC.title}</CardTitle>
-                  <CardDescription>Abordagem criativa para maximizar resultados com recursos limitados</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-8">
-                    {Object.entries(actionsByAreaC).map(([area, actions]) => (
-                      <div key={area} className="border-b pb-6 last:border-0">
-                        <h4 className="text-lg font-medium text-amber-800 mb-4">{area}</h4>
-                        <div className="grid gap-4 md:grid-cols-2">
-                          {actions.map((action) => (
-                            <Card key={action.id} className={`overflow-hidden ${
-                              priorityActions.includes(action.id) 
-                                ? 'border-2 border-[#ef0002] ring-1 ring-[#ef0002]'
-                                : ''
-                            }`}>
-                              <CardContent className="p-4">
-                                <div className="flex justify-between items-start mb-2">
-                                  <Badge variant="outline" className="bg-amber-50">
-                                    {action.tag}
-                                  </Badge>
-                                  <Badge variant="outline" className="bg-gray-50">
-                                    {action.timeframe}
-                                  </Badge>
-                                </div>
-                                <h5 className="font-medium mb-2">{action.content}</h5>
-                                <div className="flex items-center text-sm text-gray-500 mt-4">
-                                  <span>Esforço: {action.effort}</span>
-                                </div>
-                              </CardContent>
-                              <CardFooter className="bg-gray-50 p-2 flex justify-end">
-                                <Button 
-                                  variant={priorityActions.includes(action.id) ? "secondary" : "outline"} 
-                                  size="sm"
-                                  onClick={() => togglePriorityAction(action.id)}
-                                  className={priorityActions.includes(action.id) ? "bg-[#ef0002] text-white" : ""}
-                                >
-                                  {priorityActions.includes(action.id) 
-                                    ? "Remover Prioridade" 
-                                    : "Marcar como Prioridade"}
-                                </Button>
-                              </CardFooter>
-                            </Card>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
+          <PlanosEstrategicosABC
+            planos={{
+              planoA: formData.resultadoFinal?.planos_acao?.split('\n').filter(line => line.trim()) || [],
+              planoB: formData.resultadoFinal?.planoB?.filter(line => line.trim()) || [],
+              planoC: formData.resultadoFinal?.planoC?.filter(line => line.trim()) || [],
+            }}
+          />
         </div>
 
         {/* NEW BLOCK 4B: Funnel Visualization */}
@@ -900,69 +731,10 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData }) => {
           </div>
 
           <div className="max-w-4xl mx-auto">
-            {/* Funnel Visualization */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-6 relative animate-fade-in">
-              {funnelStages.map((stage, index) => (
-                <div key={stage.id} className="relative">
-                  <Card className={`h-full ${getStatusColor(stage.status)}`}>
-                    <CardHeader className="pb-2">
-                      <div className="flex justify-between items-center">
-                        <div className="flex items-center">
-                          {stage.icon}
-                          <CardTitle className="text-base ml-2">{stage.name}</CardTitle>
-                        </div>
-                        {getStatusIcon(stage.status)}
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <ul className="text-sm space-y-1">
-                        {stage.issues.map((issue, i) => (
-                          <li key={i} className="flex items-start">
-                            <span className="mr-1">•</span>
-                            <span>{issue}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </CardContent>
-                  </Card>
-                  
-                  {/* Add arrows between stages */}
-                  {index < funnelStages.length - 1 && (
-                    <div className="hidden md:flex absolute top-1/2 -right-2 transform -translate-y-1/2 z-10">
-                      <div className="w-4 h-4 rotate-45 border-t-2 border-r-2 border-gray-300"></div>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-
-            {/* Cascade Effects */}
-            {cascadeEffects.length > 0 && (
-              <div className="mb-8">
-                {cascadeEffects.map((effect, index) => {
-                  const fromStage = funnelStages.find(s => s.id === effect.from);
-                  const toStage = funnelStages.find(s => s.id === effect.to);
-                  
-                  return (
-                    <div key={index} className="bg-yellow-50 border border-yellow-200 rounded-md p-3 mb-2 flex items-center">
-                      <AlertTriangle className="h-5 w-5 text-yellow-600 mr-2 flex-shrink-0" />
-                      <p className="text-sm text-yellow-800">
-                        <strong>{fromStage?.name}:</strong> {effect.message}
-                      </p>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-
-            {/* Alert Warning */}
-            <div className="bg-[#ffebeb] border border-[#ef0002] rounded-md p-4 text-red-800 flex items-start">
-              <AlertTriangle className="h-5 w-5 text-[#ef0002] mr-2 flex-shrink-0 mt-1" />
-              <p>
-                <strong>Atenção:</strong> gargalos não resolvidos nessa etapa tendem a causar efeito 
-                cascata e impactar toda a empresa. Inicie sua correção pela etapa mais crítica.
-              </p>
-            </div>
+            <FunilEstrategico
+              gargalos={formData.resultadoFinal?.gargalos || []}
+              alertasCascata={formData.resultadoFinal?.alertasCascata || []}
+            />
           </div>
         </div>
 
@@ -1029,6 +801,7 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData }) => {
 
           {/* Tag for tracking refactoring progress */}
           {/* refatoracao_swot_score_ok = true */}
+          {/* refatoracao_planos_funil_ok = true */}
         </div>
       </div>
     </div>
