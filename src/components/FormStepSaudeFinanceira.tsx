@@ -1,6 +1,10 @@
-import React, { useState } from "react";
+
+import React from "react";
 import { Button } from "@/components/ui/button";
 import { SaudeFinanceiraData } from "@/types/formData";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { saudeFinanceiraSchema, SaudeFinanceiraSchema } from "@/schemas/saudeFinanceiraSchema";
 
 interface Props {
   defaultValues?: Partial<SaudeFinanceiraData>;
@@ -69,72 +73,55 @@ const opcoesMaturidade = [
   "Avançada (indicadores, metas, projeções)"
 ];
 
-const getFieldsCount = (form: SaudeFinanceiraData) => {
-  let count = 0;
-  if (form.caixa_disponivel) count++;
-  if (form.autonomia_caixa) count++;
-  if (form.controle_financeiro) count++;
-  if (form.fluxo_frequencia) count++;
-  if (form.endividamento_nivel) count++;
-  if (form.inadimplencia_clientes) count++;
-  if (form.custos_fixos && form.custos_fixos.trim().length > 0) count++;
-  if (form.cac_estimado_conhecimento) count++;
-  if (
-    (form.cac_estimado_conhecimento === "Sim" || form.cac_estimado_conhecimento === "Tenho uma estimativa") &&
-    form.cac_estimado && form.cac_estimado.trim().length > 0
-  ) count++;
-  if (form.orcamento_planejado) count++;
-  if (form.orcamento_planejado === "Ainda não tenho recursos" && form.intencao_investimento) count++;
-  if (form.maturidade_financeira) count++;
-  return count;
-};
-
 export default function FormStepSaudeFinanceira({ defaultValues, onComplete }: Props) {
-  const [form, setForm] = useState<SaudeFinanceiraData>({
-    caixa_disponivel: "",
-    autonomia_caixa: "",
-    controle_financeiro: "",
-    fluxo_frequencia: "",
-    endividamento_nivel: "",
-    inadimplencia_clientes: "",
-    custos_fixos: "",
-    cac_estimado_conhecimento: "",
-    cac_estimado: "",
-    orcamento_planejado: "",
-    intencao_investimento: "",
-    maturidade_financeira: "",
-    step_financas_ok: false,
-    ...defaultValues
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors, isValid }
+  } = useForm<SaudeFinanceiraSchema>({
+    resolver: zodResolver(saudeFinanceiraSchema),
+    defaultValues: {
+      caixa_disponivel: defaultValues?.caixa_disponivel || "",
+      autonomia_caixa: defaultValues?.autonomia_caixa || "",
+      controle_financeiro: defaultValues?.controle_financeiro || "",
+      fluxo_frequencia: defaultValues?.fluxo_frequencia || "",
+      endividamento_nivel: defaultValues?.endividamento_nivel || "",
+      inadimplencia_clientes: defaultValues?.inadimplencia_clientes || "",
+      custos_fixos: defaultValues?.custos_fixos || "",
+      cac_estimado_conhecimento: defaultValues?.cac_estimado_conhecimento || "",
+      cac_estimado: defaultValues?.cac_estimado || "",
+      orcamento_planejado: defaultValues?.orcamento_planejado || "",
+      intencao_investimento: defaultValues?.intencao_investimento || "",
+      maturidade_financeira: defaultValues?.maturidade_financeira || "",
+      step_financas_ok: defaultValues?.step_financas_ok || false,
+    },
+    mode: "onChange"
   });
 
-  const handleChange = <K extends keyof SaudeFinanceiraData>(key: K, value: SaudeFinanceiraData[K]) => {
-    setForm((prev) => ({
-      ...prev,
-      [key]: value,
-    }));
+  const cac_conhecimento = watch("cac_estimado_conhecimento");
+  const orcamento_planejado = watch("orcamento_planejado");
+  
+  const onSubmit = (data: SaudeFinanceiraSchema) => {
+    const finalData: SaudeFinanceiraData = {
+      ...data,
+      step_financas_ok: true,
+      cac_estimado: (data.cac_estimado_conhecimento === "Sim" || data.cac_estimado_conhecimento === "Tenho uma estimativa") ? data.cac_estimado || "" : "",
+      intencao_investimento: data.orcamento_planejado === "Ainda não tenho recursos" ? data.intencao_investimento : undefined,
+    };
+    
+    // Auto-save para Supabase poderia ser implementado aqui
+    onComplete(finalData);
   };
 
-  const filled = getFieldsCount(form);
-  const isValid = filled >= 9;
-
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (isValid) {
-      const finalData: SaudeFinanceiraData = {
-        ...form,
-        step_financas_ok: true,
-        cac_estimado: (form.cac_estimado_conhecimento === "Sim" || form.cac_estimado_conhecimento === "Tenho uma estimativa") ? form.cac_estimado : "",
-        intencao_investimento: form.orcamento_planejado === "Ainda não tenho recursos" ? form.intencao_investimento : undefined,
-      };
-      // TODO: Auto-save para Supabase aqui.
-      onComplete(finalData);
-    }
-  }
+  const ErrorMessage = ({ message }: { message?: string }) => {
+    return message ? <p className="text-red-600 text-xs mt-1">{message}</p> : null;
+  };
 
   return (
     <form
       className="w-full bg-white rounded-xl p-1 sm:p-6 shadow-sm border border-[#f1eaea] max-w-lg animate-fade-in"
-      onSubmit={handleSubmit}
+      onSubmit={handleSubmit(onSubmit)}
       autoComplete="off"
     >
       <h2 className="font-bold text-2xl text-[#560005] mb-3">Etapa 6 – SAÚDE FINANCEIRA</h2>
@@ -150,235 +137,233 @@ export default function FormStepSaudeFinanceira({ defaultValues, onComplete }: P
         Sua empresa possui caixa hoje para investir em melhorias?
       </label>
       <select
-        className="w-full border border-gray-300 rounded px-3 py-2 mb-4 font-medium focus:border-[#b70001] focus:outline-none"
-        value={form.caixa_disponivel}
-        onChange={e => handleChange("caixa_disponivel", e.target.value)}
+        className={`w-full border ${errors.caixa_disponivel ? 'border-red-500' : 'border-gray-300'} rounded px-3 py-2 mb-1 font-medium focus:border-[#b70001] focus:outline-none`}
+        {...register("caixa_disponivel")}
       >
         <option value="">Selecione...</option>
         {opcoesSelectCaixa.map(opt => (
           <option key={opt} value={opt}>{opt}</option>
         ))}
       </select>
+      <ErrorMessage message={errors.caixa_disponivel?.message} />
 
       {/* autonomia_caixa */}
-      <label className="block mb-2 font-medium">
+      <label className="block mb-2 mt-3 font-medium">
         Quanto tempo esse caixa cobre a operação sem novas receitas?
       </label>
       <select
-        className="w-full border border-gray-300 rounded px-3 py-2 mb-4 font-medium focus:border-[#b70001] focus:outline-none"
-        value={form.autonomia_caixa}
-        onChange={e => handleChange("autonomia_caixa", e.target.value)}
+        className={`w-full border ${errors.autonomia_caixa ? 'border-red-500' : 'border-gray-300'} rounded px-3 py-2 mb-1 font-medium focus:border-[#b70001] focus:outline-none`}
+        {...register("autonomia_caixa")}
       >
         <option value="">Selecione...</option>
         {opcoesAutonomia.map(opt => (
           <option key={opt} value={opt}>{opt}</option>
         ))}
       </select>
+      <ErrorMessage message={errors.autonomia_caixa?.message} />
 
       {/* controle_financeiro */}
-      <label className="block mb-2 font-medium">
+      <label className="block mb-2 mt-3 font-medium">
         Existe controle financeiro estruturado na empresa?
       </label>
-      <div className="flex gap-3 mb-4">
+      <div className="flex gap-3 mb-1">
         {opcoesControle.map(opt => (
           <label key={opt}
             className={`px-4 py-2 rounded cursor-pointer border transition ${
-              form.controle_financeiro === opt
+              watch("controle_financeiro") === opt
                 ? "bg-[#b70001] text-white font-semibold border-[#b70001]"
                 : "bg-gray-100 border-gray-300"
             }`}
           >
             <input
               type="radio"
-              name="controle_financeiro"
               className="hidden"
               value={opt}
-              checked={form.controle_financeiro === opt}
-              onChange={() => handleChange("controle_financeiro", opt)}
+              {...register("controle_financeiro")}
             />
             {opt}
           </label>
         ))}
       </div>
+      <ErrorMessage message={errors.controle_financeiro?.message} />
 
       {/* fluxo_frequencia */}
-      <label className="block mb-2 font-medium">
+      <label className="block mb-2 mt-3 font-medium">
         Como o fluxo de caixa é acompanhado?
       </label>
       <select
-        className="w-full border border-gray-300 rounded px-3 py-2 mb-4 font-medium focus:border-[#b70001] focus:outline-none"
-        value={form.fluxo_frequencia}
-        onChange={e => handleChange("fluxo_frequencia", e.target.value)}
+        className={`w-full border ${errors.fluxo_frequencia ? 'border-red-500' : 'border-gray-300'} rounded px-3 py-2 mb-1 font-medium focus:border-[#b70001] focus:outline-none`}
+        {...register("fluxo_frequencia")}
       >
         <option value="">Selecione...</option>
         {opcoesFluxo.map(opt => (
           <option key={opt} value={opt}>{opt}</option>
         ))}
       </select>
+      <ErrorMessage message={errors.fluxo_frequencia?.message} />
 
       {/* endividamento_nivel */}
-      <label className="block mb-2 font-medium">
+      <label className="block mb-2 mt-3 font-medium">
         Qual seu nível atual de endividamento?
       </label>
       <select
-        className="w-full border border-gray-300 rounded px-3 py-2 mb-4 font-medium focus:border-[#b70001] focus:outline-none"
-        value={form.endividamento_nivel}
-        onChange={e => handleChange("endividamento_nivel", e.target.value)}
+        className={`w-full border ${errors.endividamento_nivel ? 'border-red-500' : 'border-gray-300'} rounded px-3 py-2 mb-1 font-medium focus:border-[#b70001] focus:outline-none`}
+        {...register("endividamento_nivel")}
       >
         <option value="">Selecione...</option>
         {opcoesEndividamento.map(opt => (
           <option key={opt} value={opt}>{opt}</option>
         ))}
       </select>
+      <ErrorMessage message={errors.endividamento_nivel?.message} />
 
       {/* inadimplencia_clientes */}
-      <label className="block mb-2 font-medium">
+      <label className="block mb-2 mt-3 font-medium">
         Sua empresa possui inadimplência alta de clientes?
       </label>
-      <div className="flex gap-3 mb-4">
+      <div className="flex gap-3 mb-1">
         {opcoesInadimplencia.map(opt => (
           <label key={opt}
             className={`px-4 py-2 rounded cursor-pointer border transition ${
-              form.inadimplencia_clientes === opt
+              watch("inadimplencia_clientes") === opt
                 ? "bg-[#b70001] text-white font-semibold border-[#b70001]"
                 : "bg-gray-100 border-gray-300"
             }`}
           >
             <input
               type="radio"
-              name="inadimplencia_clientes"
               className="hidden"
               value={opt}
-              checked={form.inadimplencia_clientes === opt}
-              onChange={() => handleChange("inadimplencia_clientes", opt)}
+              {...register("inadimplencia_clientes")}
             />
             {opt}
           </label>
         ))}
       </div>
+      <ErrorMessage message={errors.inadimplencia_clientes?.message} />
 
       {/* custos_fixos */}
-      <label className="block mb-2 font-medium">
+      <label className="block mb-2 mt-3 font-medium">
         Quais são os maiores custos fixos mensais da empresa?
       </label>
       <input
         type="text"
-        className="w-full border border-gray-300 rounded px-3 py-2 mb-4 font-medium focus:border-[#b70001] focus:outline-none"
+        className={`w-full border ${errors.custos_fixos ? 'border-red-500' : 'border-gray-300'} rounded px-3 py-2 mb-1 font-medium focus:border-[#b70001] focus:outline-none`}
         placeholder="Ex: folha de pagamento, aluguel, fornecedores…"
-        value={form.custos_fixos}
-        onChange={e => handleChange("custos_fixos", e.target.value)}
+        {...register("custos_fixos")}
       />
+      <ErrorMessage message={errors.custos_fixos?.message} />
 
       {/* cac_estimado_conhecimento */}
-      <label className="block mb-2 font-medium">
+      <label className="block mb-2 mt-3 font-medium">
         Você conhece o custo de aquisição de cliente (CAC) médio?
       </label>
-      <div className="flex gap-3 mb-4">
+      <div className="flex gap-3 mb-1">
         {opcoesCAC.map(opt => (
           <label key={opt}
             className={`px-4 py-2 rounded cursor-pointer border transition ${
-              form.cac_estimado_conhecimento === opt
+              watch("cac_estimado_conhecimento") === opt
                 ? "bg-[#b70001] text-white font-semibold border-[#b70001]"
                 : "bg-gray-100 border-gray-300"
             }`}
           >
             <input
               type="radio"
-              name="cac_estimado_conhecimento"
               className="hidden"
               value={opt}
-              checked={form.cac_estimado_conhecimento === opt}
-              onChange={() => handleChange("cac_estimado_conhecimento", opt)}
+              {...register("cac_estimado_conhecimento")}
             />
             {opt}
           </label>
         ))}
       </div>
+      <ErrorMessage message={errors.cac_estimado_conhecimento?.message} />
 
       {/* cac_estimado - conditional */}
-      {(form.cac_estimado_conhecimento === "Sim" || form.cac_estimado_conhecimento === "Tenho uma estimativa") && (
+      {(cac_conhecimento === "Sim" || cac_conhecimento === "Tenho uma estimativa") && (
         <>
-          <label className="block mb-2 font-medium">
+          <label className="block mb-2 mt-3 font-medium">
             Qual valor estimado?
           </label>
           <input
             type="text"
-            className="w-full border border-gray-300 rounded px-3 py-2 mb-4 font-medium focus:border-[#b70001] focus:outline-none"
-            value={form.cac_estimado}
-            onChange={e => handleChange("cac_estimado", e.target.value)}
+            className={`w-full border ${errors.cac_estimado ? 'border-red-500' : 'border-gray-300'} rounded px-3 py-2 mb-1 font-medium focus:border-[#b70001] focus:outline-none`}
+            {...register("cac_estimado")}
           />
+          <ErrorMessage message={errors.cac_estimado?.message} />
         </>
       )}
 
       {/* orcamento_planejado */}
-      <label className="block mb-2 font-medium">
+      <label className="block mb-2 mt-3 font-medium">
         Existe orçamento reservado para implementar ações estratégicas?
       </label>
       <select
-        className="w-full border border-gray-300 rounded px-3 py-2 mb-4 font-medium focus:border-[#b70001] focus:outline-none"
-        value={form.orcamento_planejado}
-        onChange={e => handleChange("orcamento_planejado", e.target.value)}
+        className={`w-full border ${errors.orcamento_planejado ? 'border-red-500' : 'border-gray-300'} rounded px-3 py-2 mb-1 font-medium focus:border-[#b70001] focus:outline-none`}
+        {...register("orcamento_planejado")}
       >
         <option value="">Selecione...</option>
         {opcoesOrcamento.map(opt => (
           <option key={opt} value={opt}>{opt}</option>
         ))}
       </select>
+      <ErrorMessage message={errors.orcamento_planejado?.message} />
 
       {/* intencao_investimento - condicional */}
-      {form.orcamento_planejado === "Ainda não tenho recursos" && (
+      {orcamento_planejado === "Ainda não tenho recursos" && (
         <>
-          <label className="block mb-2 font-medium">
+          <label className="block mb-2 mt-3 font-medium">
             Caso surja uma solução viável e de alto impacto, você consideraria investimento?
           </label>
-          <div className="flex gap-3 mb-4">
+          <div className="flex gap-3 mb-1">
             {opcoesIntencaoInvestimento.map(opt => (
               <label key={opt}
                 className={`px-4 py-2 rounded cursor-pointer border transition ${
-                  form.intencao_investimento === opt
+                  watch("intencao_investimento") === opt
                     ? "bg-[#b70001] text-white font-semibold border-[#b70001]"
                     : "bg-gray-100 border-gray-300"
                 }`}
               >
                 <input
                   type="radio"
-                  name="intencao_investimento"
                   className="hidden"
                   value={opt}
-                  checked={form.intencao_investimento === opt}
-                  onChange={() => handleChange("intencao_investimento", opt)}
+                  {...register("intencao_investimento")}
                 />
                 {opt}
               </label>
             ))}
           </div>
+          <ErrorMessage message={errors.intencao_investimento?.message} />
         </>
       )}
 
       {/* maturidade_financeira */}
-      <label className="block mb-2 font-medium">
+      <label className="block mb-2 mt-3 font-medium">
         Como você classificaria a maturidade financeira da empresa?
       </label>
       <select
-        className="w-full border border-gray-300 rounded px-3 py-2 mb-4 font-medium focus:border-[#b70001] focus:outline-none"
-        value={form.maturidade_financeira}
-        onChange={e => handleChange("maturidade_financeira", e.target.value)}
+        className={`w-full border ${errors.maturidade_financeira ? 'border-red-500' : 'border-gray-300'} rounded px-3 py-2 mb-1 font-medium focus:border-[#b70001] focus:outline-none`}
+        {...register("maturidade_financeira")}
       >
         <option value="">Selecione...</option>
         {opcoesMaturidade.map(opt => (
           <option key={opt} value={opt}>{opt}</option>
         ))}
       </select>
+      <ErrorMessage message={errors.maturidade_financeira?.message} />
 
       <div className="flex justify-end">
         <Button
           type="submit"
           className="bg-[#ef0002] text-white font-bold px-8 py-2 mt-6 rounded"
-          disabled={!isValid}
         >
           Avançar para Prioridades
         </Button>
       </div>
+
+      {/* Flag de validação */}
+      {isValid && <input type="hidden" name="validacao_financeira_ok" value="true" />}
     </form>
   );
 }
