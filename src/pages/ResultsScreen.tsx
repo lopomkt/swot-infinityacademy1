@@ -42,6 +42,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
 import html2pdf from "html2pdf.js";
 import { ResultadoFinalData } from "@/types/formData";
+import HeaderSection from '@/components/Results/HeaderSection';
 
 // Define types for better TypeScript support
 interface ActionItem {
@@ -527,13 +528,21 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData }) => {
             </div>
           </div>
           <h1 className="text-3xl md:text-4xl font-bold text-[#560005] mb-4">
-            Análise Estratégica de {formData.identificacao?.nome_empresa || "Sua Empresa"}
+            Análise Estratégica de {formData.identificacao?.nomeEmpresa || "Sua Empresa"}
           </h1>
           <p className="text-gray-600 max-w-3xl mx-auto">
             Este diagnóstico foi gerado com base nas informações fornecidas e analisado por 
             inteligência artificial estratégica. Prepare-se para entender os verdadeiros 
             caminhos da sua empresa.
           </p>
+          <div id="print-header">
+            <HeaderSection
+              nomeEmpresa={formData.identificacao?.nomeEmpresa || ""}
+              segmento={formData.identificacao?.segmento || ""}
+              faturamentoMensal={formData.identificacao?.faturamentoMensal || ""}
+              tempoDeMercado={formData.identificacao?.tempoDeMercado || ""}
+            />
+          </div>
         </div>
 
         {/* Quick Data Cards */}
