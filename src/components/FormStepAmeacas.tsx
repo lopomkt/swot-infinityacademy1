@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ameacasSchema, AmeacasSchema } from "@/schemas/ameacasSchema";
@@ -105,7 +104,7 @@ const FormStepAmeacas = ({
       perdas_externas: data.perdas_externas,
       ...(data.perdas_externas === "Sim" && { detalhe_perda: data.detalhePerda }),
       impacto_ameacas: data.impacto_ameacas,
-      ...(data.impacto_ameacas && data.impacto_ameacas >= 7 && { estrategia_defesa: data.estrategia_defesa }),
+      ...(data.impacto_ameacas !== undefined && data.impacto_ameacas >= 7 && { estrategia_defesa: data.estrategia_defesa }),
       step_ameacas_ok: true,
       // Tag técnica de conclusão
       validacao_ameacas_ok: true
@@ -356,14 +355,14 @@ const FormStepAmeacas = ({
               min={0}
               max={10}
               step={1}
-              value={[impacto_ameacas]}
+              value={[impacto_ameacas || 0]}
               onValueChange={([val]) => setValue("impacto_ameacas", val)}
               className="w-4/5"
               style={{ accentColor: "#ef0002" }}
             />
-            <span className="w-[40px] text-center font-bold text-red-600">{impacto_ameacas}</span>
+            <span className="w-[40px] text-center font-bold text-red-600">{impacto_ameacas || 0}</span>
           </div>
-          {impacto_ameacas >= 7 && (
+          {impacto_ameacas !== undefined && impacto_ameacas >= 7 && (
             <Textarea
               {...register("estrategia_defesa")}
               placeholder="Você já planejou alguma forma de defesa ou contingência?"
@@ -381,9 +380,9 @@ const FormStepAmeacas = ({
         </div>
 
         {/* Erro geral (não preencheu 8 campos mínimos) */}
-        {hasGeneralErrors && (
+        {errors.root && (
           <p className="text-red-600 text-sm p-2 bg-red-50 border border-red-200 rounded-md">
-            {errors._errors?.[0]}
+            {errors.root.message}
           </p>
         )}
 
