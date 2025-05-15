@@ -1,9 +1,9 @@
 
 import React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
 import { useForm } from "react-hook-form";
 import { PrioridadesData } from "@/types/formData";
+import { prioridadesSchema, PrioridadesSchema } from "@/schemas/prioridadesSchema";
 import {
   Form,
   FormControl,
@@ -40,47 +40,14 @@ const areaOptions = [
   { id: "atendimento", label: "Atendimento" },
 ];
 
-const formSchema = z.object({
-  meta_90_dias: z.string().min(1, {
-    message: "Por favor, informe sua meta principal para os próximos 90 dias.",
-  }),
-  top3_desafios: z.string().min(1, {
-    message: "Por favor, informe seus principais desafios.",
-  }),
-  areas_fraqueza: z.array(z.string()).min(1, {
-    message: "Selecione pelo menos uma área frágil.",
-  }),
-  areas_potenciais: z.array(z.string()).min(1, {
-    message: "Selecione pelo menos uma área promissora.",
-  }),
-  ajuda_externa_urgente: z.string().min(1, {
-    message: "Por favor, informe onde precisa de ajuda externa.",
-  }),
-  acao_unica_desejada: z.string().min(1, {
-    message: "Por favor, informe qual problema único gostaria de resolver.",
-  }),
-  engajamento_equipe: z.number().min(0).max(10),
-  distribuicao_tempo: z.enum(["Sim", "Parcialmente", "Estou sobrecarregado"]),
-  comprometimento_estrategico: z.number().min(0).max(10),
-  estilo_decisao: z.enum([
-    "Analítico",
-    "Rápido e objetivo",
-    "Intuitivo",
-    "Compartilhado com sócios / equipe",
-  ]),
-  prontidao_execucao: z.enum(["Sim", "Com adaptações", "Ainda não"]).optional(),
-});
-
-type FormValues = z.infer<typeof formSchema>;
-
 interface Props {
-  defaultValues?: Partial<FormValues>;
+  defaultValues?: Partial<PrioridadesSchema>;
   onComplete: (data: PrioridadesData) => void;
 }
 
 const FormStepPrioridades: React.FC<Props> = ({ defaultValues, onComplete }) => {
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<PrioridadesSchema>({
+    resolver: zodResolver(prioridadesSchema),
     defaultValues: defaultValues || {
       meta_90_dias: "",
       top3_desafios: "",
@@ -98,11 +65,13 @@ const FormStepPrioridades: React.FC<Props> = ({ defaultValues, onComplete }) => 
   const comprometimentoValue = form.watch("comprometimento_estrategico");
   const mostrarProntidao = comprometimentoValue >= 8;
 
-  function onSubmit(data: FormValues) {
+  function onSubmit(data: PrioridadesSchema) {
     toast({
       title: "Diagnóstico finalizado!",
       description: "Preparando análise estratégica...",
     });
+    // Flag de validação concluída
+    const validacao_prioridades_ok = true;
     onComplete(data as PrioridadesData);
   }
 
