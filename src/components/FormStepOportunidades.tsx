@@ -1,6 +1,6 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { OportunidadesData } from "@/types/formData";
 
 const tendenciasOpcoes = [
   "Digitalização",
@@ -38,6 +38,7 @@ interface OportunidadesData {
   nivel_disposicao: number;
   acao_inicial_oportunidade?: string;
   step_oportunidades_ok: boolean;
+  respostas: []; // Adding the required respostas field from the interface
 }
 
 interface Props {
@@ -61,6 +62,7 @@ export default function FormStepOportunidades({ defaultValues, onComplete }: Pro
     nivel_disposicao: 0,
     acao_inicial_oportunidade: "",
     step_oportunidades_ok: false,
+    respostas: [], // Adding the required respostas field from the interface
     ...defaultValues,
   });
 

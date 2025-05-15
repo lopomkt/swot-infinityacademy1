@@ -1,6 +1,3 @@
-
-
-
 // Tipagem central do projeto SWOT INSIGHTS – Infinity Academy
 // Cada etapa do formulário possui sua interface específica
 // Essa tipagem será usada progressivamente no projeto para substituir o uso de any
@@ -33,6 +30,20 @@ export interface FraquezasData {
 
 export interface OportunidadesData {
   respostas: string[];
+  nova_demanda_cliente: string;
+  situacao_mercado: string;
+  nichos_ocultos: string;
+  concorrentes_enfraquecendo: string;
+  tendencias_aproveitaveis: string[];
+  tendencias_outro?: string;
+  demanda_nao_atendida: string;
+  parcerias_possiveis: string;
+  recurso_ocioso: string;
+  canais_potenciais: string[];
+  canais_outro?: string;
+  nivel_disposicao: number;
+  acao_inicial_oportunidade?: string;
+  step_oportunidades_ok: boolean;
 }
 
 export interface AmeacasData {
@@ -82,6 +93,7 @@ export interface ResultadoFinalData {
 
 // Flag interna para controlar a tipagem
 // tipagem_resultado_final_ok = true
+// tipagem_oportunidades_ok = true
 
 export interface FormData {
   identificacao: IdentificacaoData;
@@ -93,4 +105,3 @@ export interface FormData {
   prioridades: PrioridadesData;
   resultadoFinal?: ResultadoFinalData;
 }
-
