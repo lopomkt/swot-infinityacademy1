@@ -1,11 +1,6 @@
-import { z } from "zod";
 
-// Define a schema for a single strength response (string)
-export const respostaString = z.string().min(1, {
-  message: "Campo obrigatório",
-}).optional();
+import { z } from 'zod';
 
-// Define the schema for the forcas step
 export const forcasSchema = z.object({
   cultura_forte: z.string().optional(),
   equipe_qualificada: z.string().optional(),
@@ -21,10 +16,6 @@ export const forcasSchema = z.object({
   lideranca_setorial: z.string().optional(),
   atendimento_diferenciado: z.string().optional(),
   outros: z.string().optional(),
-  
-  // Keep backward compatibility with the old format
-  respostas: z.array(respostaString).optional(),
 });
 
-// Infer the type from the schema
-export type ForcasData = z.infer<typeof forcasSchema>;
+export type ForcasFormData = z.infer<typeof forcasSchema>;
