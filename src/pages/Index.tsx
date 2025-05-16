@@ -39,6 +39,7 @@ const Index = () => {
     tipagem_index_ok: true,
     fase5_transicoes_ok: true,
     fase5_voltar_ok: true, // Tag for back button implementation
+    fase5_gamificacao_ok: true, // Tag for gamification implementation
   });
 
   const handleBackButtonClick = (previousStep: number) => {
@@ -51,6 +52,7 @@ const Index = () => {
       tipagem_index_ok: true,
       fase5_transicoes_ok: true,
       fase5_voltar_ok: true,
+      fase5_gamificacao_ok: true,
     });
     setStep(0);
   };
