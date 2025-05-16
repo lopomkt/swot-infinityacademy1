@@ -1,4 +1,3 @@
-
 // Tipagem central do projeto SWOT INSIGHTS – Infinity Academy
 // Cada etapa do formulário possui sua interface específica
 // Essa tipagem será usada progressivamente no projeto para substituir o uso de any
@@ -97,6 +96,8 @@ export interface AmeacasData {
   estrategia_defesa?: string;
   step_ameacas_ok?: boolean;
   validacao_ameacas_ok?: boolean;
+  // Add the respostas field that's being used in ResultsScreen.tsx
+  respostas?: string[];
 }
 
 export interface SaudeFinanceiraData {

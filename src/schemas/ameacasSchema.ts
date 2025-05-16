@@ -17,6 +17,7 @@ export const ameacasSchema = z.object({
     .refine(val => val !== undefined || true, { message: "Por favor, forneça detalhes sobre as perdas" }),
   impacto_ameacas: z.number().min(0, { message: "Por favor, selecione um valor" }),
   estrategia_defesa: z.string().optional(),
+  // Note: We don't need to add respostas to the schema as it's derived from other fields
 });
 
 export type AmeacasSchema = z.infer<typeof ameacasSchema>;

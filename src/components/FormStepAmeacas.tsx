@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -91,6 +90,19 @@ const FormStepAmeacas = ({
   
   // Submission handler
   const onSubmit = (data: AmeacasSchema) => {
+    // Collect and transform responses into an array format for the matrix view
+    const responses = [
+      data.fator_preocupante,
+      `Concorrente em ascensão: ${data.concorrente_em_ascensao}`,
+      `Dependência de parceiros: ${data.dependencia_parceiros}`,
+      `Ameaça legislativa: ${data.ameaca_legislativa}`,
+      data.sazonalidade_negocio === "Sim" ? `Sazonalidade: ${data.detalheSazonalidade}` : "Sem sazonalidade",
+      `Dependência de plataformas: ${data.dependencia_plataformas.join(", ")}`,
+      `Mudanças comportamentais: ${data.mudanca_comportamental}`,
+      `Resiliência a crises: ${data.resiliencia_crise}`,
+      data.perdas_externas === "Sim" ? `Perdas externas: ${data.detalhePerda}` : "Sem perdas externas significativas",
+    ].filter(item => item && item.trim() !== '');
+
     // Estrutura os dados para a próxima etapa
     const payload = {
       fator_preocupante: data.fator_preocupante,
@@ -107,6 +119,8 @@ const FormStepAmeacas = ({
       impacto_ameacas: data.impacto_ameacas,
       ...(data.impacto_ameacas !== undefined && data.impacto_ameacas >= 7 && { estrategia_defesa: data.estrategia_defesa }),
       step_ameacas_ok: true,
+      // Add the responses array for the matrix view
+      respostas: responses,
       // Tag técnica de conclusão
       validacao_ameacas_ok: true
     };
