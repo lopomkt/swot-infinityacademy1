@@ -20,7 +20,7 @@ const PrintableResults = React.memo(function PrintableResults({ children }: Prin
       
       <motion.div 
         id="container_resultado_pdf" 
-        className="max-w-5xl mx-auto px-4 sm:px-6 overflow-x-hidden" 
+        className="max-w-5xl mx-auto px-4 sm:px-6 overflow-visible bg-white print:block" 
         role="region" 
         aria-label="Relatório completo do diagnóstico SWOT"
         initial={prefersReducedMotion ? {} : { opacity: 0 }}

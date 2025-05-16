@@ -17,6 +17,11 @@ const FinalizacaoStep: React.FC<FinalizacaoStepProps> = ({
 }) => {
   const [showAiBlock, setShowAiBlock] = React.useState(false);
 
+  React.useEffect(() => {
+    // Scroll to top when component mounts
+    window.scrollTo(0, 0);
+  }, []);
+
   if (showAiBlock) {
     return <AIBlock 
       formData={formData} 
@@ -68,13 +73,12 @@ const FinalizacaoStep: React.FC<FinalizacaoStepProps> = ({
           </Button>
         </div>
         
-        <Button 
-          variant="outline" 
-          onClick={onRestart}
-          className="border-gray-300 text-gray-700 hover:bg-gray-100"
-        >
-          Iniciar Novo Diagnóstico
-        </Button>
+        {/* Removed the "Iniciar Novo Diagnóstico" button as requested */}
+      </div>
+      
+      {/* Hidden tracking tag */}
+      <div className="hidden">
+        {/* fase5_finalizacao_ok = true */}
       </div>
     </div>
   );

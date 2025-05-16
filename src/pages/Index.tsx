@@ -38,8 +38,9 @@ const Index = () => {
   const [formData, setFormData] = useState<FormData>({
     tipagem_index_ok: true,
     fase5_transicoes_ok: true,
-    fase5_voltar_ok: true, // Tag for back button implementation
-    fase5_gamificacao_ok: true, // Tag for gamification implementation
+    fase5_voltar_ok: true,
+    fase5_gamificacao_ok: true,
+    fase5_finalizacao_ok: true,
   });
 
   const handleBackButtonClick = (previousStep: number) => {
@@ -53,13 +54,14 @@ const Index = () => {
       fase5_transicoes_ok: true,
       fase5_voltar_ok: true,
       fase5_gamificacao_ok: true,
+      fase5_finalizacao_ok: true,
     });
     setStep(0);
   };
 
   // Check if AI results are ready to show results screen
   const areResultsReady = () => {
-    return formData.resultadoFinal?.ai_block_pronto && formData.resultadoFinal?.gpt_prompt_ok;
+    return formData.resultadoFinal?.ai_block_pronto === true && formData.resultadoFinal?.gpt_prompt_ok === true;
   };
 
   // Helper function to determine the current visual step for the progress bar
@@ -216,7 +218,8 @@ const Index = () => {
             onAIComplete={(resultadoFinal) => {
               setFormData(prev => ({
                 ...prev,
-                resultadoFinal
+                resultadoFinal,
+                fase5_finalizacao_ok: true
               }));
               setStep(9);
             }}

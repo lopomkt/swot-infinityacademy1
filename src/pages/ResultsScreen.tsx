@@ -1,4 +1,4 @@
-import React, { useState, lazy, Suspense } from "react";
+import React, { useState, lazy, Suspense, useEffect } from "react";
 import { 
   Check, 
   X, 
@@ -112,13 +112,22 @@ interface ResultsScreenProps {
 const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData }) => {
   const [priorityActions, setPriorityActions] = useState<string[]>([]);
   
-  const scrollToSection = (id: string) => {
-    const element = document.getElementById(id);
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth" });
-    }
-  };
-
+  // Check if results exist and are properly formatted
+  if (!formData || !formData.resultadoFinal || Object.keys(formData.resultadoFinal).length === 0) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-center p-8 text-gray-600">
+          Relatório ainda não gerado corretamente. Por favor, conclua todas as etapas anteriores.
+        </p>
+      </div>
+    );
+  }
+  
+  // Scroll to top when component mounts
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+  
   // Function to toggle priority status of an action
   const togglePriorityAction = (actionId: string) => {
     setPriorityActions(prev => {
@@ -478,21 +487,29 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData }) => {
       description: "Seu diagnóstico está sendo preparado para download."
     });
     
+    // Add class to prepare for print
+    document.body.classList.add('print-mode');
+    
     const opt = {
       margin: 1,
-      filename: 'Diagnostico_SWOT_Insights.pdf',
+      filename: `Diagnostico_SWOT_${formData.identificacao?.nomeEmpresa || "Insights"}.pdf`,
       image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2 },
+      html2canvas: { scale: 2, useCORS: true },
       jsPDF: { unit: 'cm', format: 'a4', orientation: 'portrait' }
     };
     
     html2pdf().set(opt).from(element).save().then(() => {
+      // Remove print class
+      document.body.classList.remove('print-mode');
+      
       toast({
         title: "PDF Gerado com Sucesso",
         description: "Seu diagnóstico foi salvo em seu dispositivo."
       });
     }).catch(err => {
+      document.body.classList.remove('print-mode');
       console.error("Erro ao gerar PDF:", err);
+      
       toast({
         title: "Erro ao gerar PDF",
         description: "Ocorreu um problema durante a exportação. Tente novamente.",
@@ -518,7 +535,7 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData }) => {
   }
 
   return (
-    <>
+    <section className="min-h-screen bg-white py-12 px-4 sm:px-6">
       <PrintableResults>
         {/* Header Section */}
         <div className="text-center mb-12">
@@ -781,6 +798,7 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData }) => {
           {/* refatoracao_planos_funil_ok = true */}
           {/* refatoracao_pdf_finalizacao_ok = true */}
           {/* ux_performance_memo_lazy_ok = true */}
+          {/* fase5_finalizacao_ok = true */}
         </div>
       </PrintableResults>
       
@@ -788,7 +806,7 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData }) => {
       {allSectionsReady && (
         <ExportacaoPDF onExport={generatePDF} />
       )}
-    </>
+    </section>
   );
 };
 

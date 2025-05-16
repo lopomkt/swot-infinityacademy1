@@ -188,4 +188,6 @@ export interface FormData {
   fase5_voltar_ok?: boolean;
   // Add gamification tracking tag
   fase5_gamificacao_ok?: boolean;
+  // Add finalization tracking tag
+  fase5_finalizacao_ok?: boolean;
 }
