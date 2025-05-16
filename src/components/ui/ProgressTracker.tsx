@@ -22,7 +22,7 @@ export function ProgressTracker({ currentStep, totalSteps, labels }: ProgressTra
         </div>
       </div>
       
-      <div className="flex justify-between items-center max-w-5xl mx-auto mt-1">
+      <div className="flex flex-wrap justify-around gap-2 sm:gap-4 items-center max-w-5xl mx-auto mt-1">
         {labels.map((label, index) => {
           // Determine if this step is completed, current, or future
           const isCompleted = index < currentStep;
@@ -35,7 +35,7 @@ export function ProgressTracker({ currentStep, totalSteps, labels }: ProgressTra
               className={`flex flex-col items-center ${isFuture ? 'opacity-70' : ''}`}
             >
               <div
-                className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold 
+                className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center text-xs font-bold 
                   ${isCompleted ? 'bg-[#b70001] text-white' : isCurrent ? 'border-2 border-[#b70001] text-[#b70001]' : 'bg-gray-200 text-gray-600'} 
                   transition-all duration-300`}
               >
@@ -47,8 +47,8 @@ export function ProgressTracker({ currentStep, totalSteps, labels }: ProgressTra
                   index + 1
                 )}
               </div>
-              <span className="mt-1 text-xs sm:text-sm text-center hidden sm:block">{label}</span>
-              <span className="mt-1 text-[10px] text-center sm:hidden">{label.split(' ')[0]}</span>
+              <span className="mt-1 text-xs sm:text-sm hidden sm:block">{label}</span>
+              <span className="mt-1 text-[10px] text-center sm:hidden">{index + 1}</span>
             </div>
           );
         })}

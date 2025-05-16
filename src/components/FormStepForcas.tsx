@@ -87,7 +87,7 @@ export default function FormStepForcas({ onSubmit, onComplete, defaultValues, on
       animate="show"
       variants={containerAnimation}
     >
-      <Card className="bg-white">
+      <Card className="bg-white p-6 text-black">
         <CardHeader>
           <CardTitle className="text-2xl flex items-center gap-2">
             <RedBullet />Forças da Empresa
@@ -110,7 +110,7 @@ export default function FormStepForcas({ onSubmit, onComplete, defaultValues, on
                         <FormItem>
                           <FormLabel className="text-base font-medium">1. A empresa possui uma cultura organizacional forte e bem definida?</FormLabel>
                           <FormControl>
-                            <Input placeholder="Descreva os valores e práticas que formam a cultura da empresa" {...field} />
+                            <Input placeholder="Descreva os valores e práticas que formam a cultura da empresa" className="text-black placeholder-gray-400" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -126,7 +126,7 @@ export default function FormStepForcas({ onSubmit, onComplete, defaultValues, on
                         <FormItem>
                           <FormLabel className="text-base font-medium">2. A equipe possui qualificações ou competências especiais?</FormLabel>
                           <FormControl>
-                            <Input placeholder="Ex: Equipe com certificações especializadas, conhecimento técnico diferenciado" {...field} />
+                            <Input placeholder="Ex: Equipe com certificações especializadas, conhecimento técnico diferenciado" className="text-black placeholder-gray-400" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -142,7 +142,7 @@ export default function FormStepForcas({ onSubmit, onComplete, defaultValues, on
                         <FormItem>
                           <FormLabel className="text-base font-medium">3. Sua marca tem reconhecimento no mercado?</FormLabel>
                           <FormControl>
-                            <Input placeholder="Descreva o nível de reconhecimento e reputação da marca" {...field} />
+                            <Input placeholder="Descreva o nível de reconhecimento e reputação da marca" className="text-black placeholder-gray-400" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -158,7 +158,7 @@ export default function FormStepForcas({ onSubmit, onComplete, defaultValues, on
                         <FormItem>
                           <FormLabel className="text-base font-medium">4. A empresa possui tecnologia própria ou diferenciada?</FormLabel>
                           <FormControl>
-                            <Input placeholder="Ex: Software próprio, método exclusivo, patente" {...field} />
+                            <Input placeholder="Ex: Software próprio, método exclusivo, patente" className="text-black placeholder-gray-400" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -174,7 +174,7 @@ export default function FormStepForcas({ onSubmit, onComplete, defaultValues, on
                         <FormItem>
                           <FormLabel className="text-base font-medium">5. A empresa tem uma carteira de clientes fiel?</FormLabel>
                           <FormControl>
-                            <Input placeholder="Descreva a fidelidade dos clientes e taxa de retenção" {...field} />
+                            <Input placeholder="Descreva a fidelidade dos clientes e taxa de retenção" className="text-black placeholder-gray-400" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -344,6 +344,7 @@ export default function FormStepForcas({ onSubmit, onComplete, defaultValues, on
       </Card>
       {/* Tag de rastreamento da execução */}
       {/* fase5_forcas_ok = true */}
+      {/* fase5_bugfixes_finais_ok = true */}
     </motion.div>
   );
 }

@@ -20,7 +20,7 @@ const PrintableResults = React.memo(function PrintableResults({ children }: Prin
       
       <motion.div 
         id="container_resultado_pdf" 
-        className="max-w-5xl mx-auto px-4 sm:px-6 overflow-visible bg-white print:block" 
+        className="max-w-5xl mx-auto px-4 sm:px-6 overflow-visible bg-white p-6 text-black print:block" 
         role="region" 
         aria-label="Relatório completo do diagnóstico SWOT"
         initial={prefersReducedMotion ? {} : { opacity: 0 }}
@@ -40,6 +40,7 @@ const PrintableResults = React.memo(function PrintableResults({ children }: Prin
         <div className="hidden">
           {/* ux_performance_memo_lazy_ok = true */}
           {/* ux_micro_animacoes_ok = true */}
+          {/* fase5_bugfixes_finais_ok = true */}
         </div>
       </motion.div>
     </>

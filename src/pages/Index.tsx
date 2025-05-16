@@ -253,12 +253,19 @@ const Index = () => {
             }}
           />
         )}
-        {step === 9 && areResultsReady() && (
+        {step === 9 && formData.resultadoFinal?.ai_block_pronto && formData.resultadoFinal?.gpt_prompt_ok && (
           <ResultsScreen 
             formData={formData}
           />
         )}
+        
+        {step === 9 && !formData.resultadoFinal?.gpt_prompt_ok && (
+          <p className="text-center text-red-600 mt-10">⏳ Seu relatório ainda está sendo processado.</p>
+        )}
       </main>
+
+      {/* Tag de rastreamento - não remover */}
+      {/* fase5_bugfixes_finais_ok = true */}
     </div>
   );
 };

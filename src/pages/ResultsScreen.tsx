@@ -1,3 +1,5 @@
+
+// Adding fallback message at the top of the component
 import React, { useState, lazy, Suspense, useEffect } from "react";
 import { 
   Check, 
@@ -110,6 +112,11 @@ interface ResultsScreenProps {
 }
 
 const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData }) => {
+  // Add fallback message if resultadoFinal is not available
+  if (!formData?.resultadoFinal) {
+    return <p className="text-center text-gray-600 mt-12">Relatório ainda não disponível. Tente novamente em instantes.</p>;
+  }
+
   const [priorityActions, setPriorityActions] = useState<string[]>([]);
   
   // Function to scroll to a section by its ID
