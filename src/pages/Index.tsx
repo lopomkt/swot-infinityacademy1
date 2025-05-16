@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import ProgressBar from "@/components/ProgressBar";
 import WelcomeStep from "@/components/WelcomeStep";
@@ -46,6 +47,7 @@ const Index = () => {
     fase6_1_welcome_transicoes_premium_ok: true,
     fase6_2_resultado_premium_visual_ok: true,
     fase6_3_design_final_pdf_ok: true,
+    fase7_1_ui_ux_gamificada_ok: true,
   });
 
   // Save form data to localStorage whenever it changes
@@ -79,6 +81,7 @@ const Index = () => {
       fase6_1_welcome_transicoes_premium_ok: true,
       fase6_2_resultado_premium_visual_ok: true,
       fase6_3_design_final_pdf_ok: true,
+      fase7_1_ui_ux_gamificada_ok: true,
     });
     setStep(0);
   };
@@ -104,7 +107,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-white text-black font-manrope flex flex-col items-center justify-start">
       <ProgressBar currentStep={getCurrentProgressStep()} stepsCount={STEPS.length} />
-      <main className="w-full max-w-5xl p-4 flex-1 flex flex-col items-center justify-center animate-fade-in">
+      <main className="w-full max-w-5xl py-10 px-4 md:px-12 flex-1 flex flex-col items-center justify-center animate-fade-in">
         {step === 0 && (
           <WelcomeStep
             onStart={() => setStep(1)}
@@ -124,7 +127,7 @@ const Index = () => {
           <TransitionStep
             title="Vamos identificar as forças do seu negócio"
             description="Agora vamos analisar os pontos fortes da sua empresa - aqueles diferenciais competitivos que você já possui e que podem ser potencializados."
-            fraseMotivacional="Seus diferenciais competitivos são a base do seu crescimento!"
+            fraseMotivacional="Você está prestes a reconhecer seu diferencial no mercado!"
             iconeEtapa={<Star className="h-10 w-10" />}
             onContinue={() => setStep(2)}
             currentStep={currentMainStep}
@@ -151,7 +154,7 @@ const Index = () => {
           <TransitionStep
             title="Vamos analisar os pontos de melhoria"
             description="Identificar fraquezas não é sinal de fracasso - é um passo essencial para fortalecer seu negócio e transformar vulnerabilidades em oportunidades de crescimento."
-            fraseMotivacional="Conhecer suas fraquezas é o primeiro passo para superá-las!"
+            fraseMotivacional="É com a verdade que a evolução começa!"
             iconeEtapa={<TrendingDown className="h-10 w-10" />}
             onContinue={() => setStep(3)}
             currentStep={currentMainStep}
@@ -214,7 +217,7 @@ const Index = () => {
           <TransitionStep
             title="Avaliando a saúde financeira"
             description="Agora vamos analisar a situação financeira da sua empresa para fundamentar recomendações alinhadas à sua realidade econômica."
-            fraseMotivacional="Números saudáveis refletem estratégias inteligentes!"
+            fraseMotivacional="Entender seus números é o primeiro passo para escalar!"
             iconeEtapa={<TrendingUp className="h-10 w-10" />}
             onContinue={() => setStep(6)}
             currentStep={currentMainStep}
@@ -265,7 +268,8 @@ const Index = () => {
                 ...prev,
                 resultadoFinal,
                 fase5_finalizacao_ok: true,
-                fase6_3_design_final_pdf_ok: true
+                fase6_3_design_final_pdf_ok: true,
+                fase7_1_ui_ux_gamificada_ok: true
               }));
               setStep(9);
             }}
@@ -289,6 +293,7 @@ const Index = () => {
         {/* fase6_1_welcome_transicoes_premium_ok = true */}
         {/* fase6_2_resultado_premium_visual_ok = true */}
         {/* fase6_3_design_final_pdf_ok = true */}
+        {/* fase7_1_ui_ux_gamificada_ok = true */}
       </div>
     </div>
   );

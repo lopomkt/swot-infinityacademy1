@@ -196,6 +196,8 @@ export interface FormData {
   fase6_2_resultado_premium_visual_ok?: boolean;
   // Add the final design PDF tag
   fase6_3_design_final_pdf_ok?: boolean;
+  // Add UI UX gamification tag
+  fase7_1_ui_ux_gamificada_ok?: boolean;
   // Add the missing property
   fase5_transicoes_ok?: boolean;
 }
