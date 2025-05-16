@@ -8,7 +8,7 @@ interface HeaderSectionProps {
   tempoDeMercado: string;
 }
 
-export default function HeaderSection({
+const HeaderSection = React.memo(function HeaderSection({
   nomeEmpresa,
   segmento,
   faturamentoMensal,
@@ -28,4 +28,6 @@ export default function HeaderSection({
       </p>
     </div>
   );
-}
+});
+
+export default HeaderSection;

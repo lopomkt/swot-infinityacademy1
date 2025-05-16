@@ -7,7 +7,7 @@ interface ScoreEstrategicoProps {
   pontuacao: number;
 }
 
-export default function ScoreEstrategico({ scoreLabel, pontuacao }: ScoreEstrategicoProps) {
+const ScoreEstrategico = React.memo(function ScoreEstrategico({ scoreLabel, pontuacao }: ScoreEstrategicoProps) {
   return (
     <div 
       className={`${cardBase} bg-gray-50 mt-10 p-4 sm:p-6 md:p-8 scroll-mt-20 mb-8 sm:mb-10 md:mb-16`}
@@ -30,4 +30,6 @@ export default function ScoreEstrategico({ scoreLabel, pontuacao }: ScoreEstrate
       </div>
     </div>
   );
-}
+});
+
+export default ScoreEstrategico;

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, lazy, Suspense } from "react";
 import { 
   Check, 
   X, 
@@ -42,13 +42,16 @@ import html2pdf from "html2pdf.js";
 import { ResultadoFinalData, FormData } from "@/types/formData";
 import HeaderSection from '@/components/Results/HeaderSection';
 import QuickDataCards from '@/components/Results/QuickDataCards';
-import DiagnosticoTextual from '@/components/Results/DiagnosticoTextual';
-import MatrizSWOT from '@/components/Results/MatrizSWOT';
-import ScoreEstrategico from '@/components/Results/ScoreEstrategico';
-import PlanosEstrategicosABC from '@/components/Results/PlanosEstrategicosABC';
-import FunilEstrategico from '@/components/Results/FunilEstrategico';
-import ExportacaoPDF from '@/components/Results/ExportacaoPDF';
+import { Skeleton } from '@/components/ui/skeleton';
 import PrintableResults from '@/components/Results/PrintableResults';
+import ExportacaoPDF from '@/components/Results/ExportacaoPDF';
+
+// Lazy-loaded components
+const DiagnosticoTextual = lazy(() => import('@/components/Results/DiagnosticoTextual'));
+const MatrizSWOT = lazy(() => import('@/components/Results/MatrizSWOT'));
+const ScoreEstrategico = lazy(() => import('@/components/Results/ScoreEstrategico'));
+const PlanosEstrategicosABC = lazy(() => import('@/components/Results/PlanosEstrategicosABC'));
+const FunilEstrategico = lazy(() => import('@/components/Results/FunilEstrategico'));
 
 // Define types for better TypeScript support
 interface ActionItem {
@@ -555,12 +558,14 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData }) => {
         <div id="bloco_mapa_swot" className="mb-12">
           <h2 className="text-2xl font-bold text-[#560005] mb-6">Matriz SWOT</h2>
           
-          <MatrizSWOT
-            forcas={formData.forcas?.respostas || []}
-            fraquezas={formData.fraquezas?.pontos_inconsistentes || []}
-            oportunidades={formData.oportunidades?.respostas || []}
-            ameacas={formData.ameacas?.respostas || []}
-          />
+          <Suspense fallback={<Skeleton className="h-[300px] w-full rounded-xl" />}>
+            <MatrizSWOT
+              forcas={formData.forcas?.respostas || []}
+              fraquezas={formData.fraquezas?.pontos_inconsistentes || []}
+              oportunidades={formData.oportunidades?.respostas || []}
+              ameacas={formData.ameacas?.respostas || []}
+            />
+          </Suspense>
 
           {/* Raw SWOT Text */}
           <div className="mt-6">
@@ -573,7 +578,9 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData }) => {
               <CollapsibleContent className="mt-4">
                 <div id="raw_matriz_texto" className="bg-gray-50 p-4 rounded-md max-h-96 overflow-y-auto">
                   <pre className="whitespace-pre-wrap text-sm">
-                    {formData.resultadoFinal?.matriz_swot}
+                    {formData.resultadoFinal?.matriz_swot || (
+                      <Skeleton className="h-32 w-full" />
+                    )}
                   </pre>
                 </div>
               </CollapsibleContent>
@@ -615,9 +622,15 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData }) => {
           <Card className="max-w-3xl mx-auto border border-[#ef0002]">
             <CardContent className="p-6">
               <ScrollArea className="max-h-[400px]">
-                <DiagnosticoTextual
-                  texto={formData.resultadoFinal?.diagnostico_textual || ''}
-                />
+                <Suspense fallback={<Skeleton className="h-32 w-full" />}>
+                  {formData.resultadoFinal?.diagnostico_textual ? (
+                    <DiagnosticoTextual
+                      texto={formData.resultadoFinal.diagnostico_textual}
+                    />
+                  ) : (
+                    <Skeleton className="h-40 w-full" />
+                  )}
+                </Suspense>
               </ScrollArea>
             </CardContent>
           </Card>
@@ -653,7 +666,7 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData }) => {
                   },
                 }}
               >
-                <RadarChart outerRadius={90} data={strategicScoreData}>
+                <RadarChart outerRadius={90} data={calculateStrategicScore()}>
                   <PolarGrid stroke="#ccc" />
                   <PolarAngleAxis dataKey="subject" />
                   <PolarRadiusAxis angle={30} domain={[0, 10]} />
@@ -673,10 +686,12 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData }) => {
 
             {/* Maturity Badge */}
             <div>
-              <ScoreEstrategico
-                scoreLabel={maturityLevel.title || "N/A"}
-                pontuacao={Math.round(averageScore * 10)}
-              />
+              <Suspense fallback={<Skeleton className="h-[200px] w-full rounded-xl" />}>
+                <ScoreEstrategico
+                  scoreLabel={getMaturityLevel().title || "N/A"}
+                  pontuacao={Math.round(averageScore * 10)}
+                />
+              </Suspense>
               
               <div className="mt-8 flex justify-center">
                 <Button 
@@ -709,13 +724,15 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData }) => {
             </p>
           </div>
 
-          <PlanosEstrategicosABC
-            planos={{
-              planoA: (formData.resultadoFinal?.planos_acao?.split('\n').filter(line => line.trim()) || []),
-              planoB: (formData.resultadoFinal?.planoB?.filter(item => item && item.trim()) || []),
-              planoC: (formData.resultadoFinal?.planoC?.filter(item => item && item.trim()) || []),
-            }}
-          />
+          <Suspense fallback={<Skeleton className="h-[300px] w-full rounded-xl" />}>
+            <PlanosEstrategicosABC
+              planos={{
+                planoA: (formData.resultadoFinal?.planos_acao?.split('\n').filter(line => line.trim()) || []),
+                planoB: (formData.resultadoFinal?.planoB?.filter(item => item && item.trim()) || []),
+                planoC: (formData.resultadoFinal?.planoC?.filter(item => item && item.trim()) || []),
+              }}
+            />
+          </Suspense>
         </div>
 
         {/* NEW BLOCK 4B: Funnel Visualization */}
@@ -731,10 +748,12 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData }) => {
           </div>
 
           <div className="max-w-4xl mx-auto">
-            <FunilEstrategico
-              gargalos={formData.resultadoFinal?.gargalos || []}
-              alertasCascata={formData.resultadoFinal?.alertasCascata || []}
-            />
+            <Suspense fallback={<Skeleton className="h-[300px] w-full rounded-xl" />}>
+              <FunilEstrategico
+                gargalos={formData.resultadoFinal?.gargalos || []}
+                alertasCascata={formData.resultadoFinal?.alertasCascata || []}
+              />
+            </Suspense>
           </div>
         </div>
 
@@ -761,6 +780,7 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData }) => {
           {/* refatoracao_swot_score_ok = true */}
           {/* refatoracao_planos_funil_ok = true */}
           {/* refatoracao_pdf_finalizacao_ok = true */}
+          {/* ux_performance_memo_lazy_ok = true */}
         </div>
       </PrintableResults>
       

@@ -10,7 +10,7 @@ interface MatrizSWOTProps {
   ameacas: string[];
 }
 
-export default function MatrizSWOT({ forcas, fraquezas, oportunidades, ameacas }: MatrizSWOTProps) {
+const MatrizSWOT = React.memo(function MatrizSWOT({ forcas, fraquezas, oportunidades, ameacas }: MatrizSWOTProps) {
   const isMobile = useIsMobile();
   
   const renderMatrizContent = () => (
@@ -80,4 +80,6 @@ export default function MatrizSWOT({ forcas, fraquezas, oportunidades, ameacas }
       )}
     </div>
   );
-}
+});
+
+export default MatrizSWOT;

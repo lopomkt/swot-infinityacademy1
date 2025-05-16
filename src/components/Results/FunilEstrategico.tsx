@@ -1,4 +1,5 @@
 
+import React from "react";
 import { AlertTriangle } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -8,7 +9,7 @@ interface FunilEstrategicoProps {
   alertasCascata: string[];
 }
 
-export default function FunilEstrategico({ gargalos, alertasCascata }: FunilEstrategicoProps) {
+const FunilEstrategico = React.memo(function FunilEstrategico({ gargalos, alertasCascata }: FunilEstrategicoProps) {
   const isMobile = useIsMobile();
   
   const renderFunilContent = () => (
@@ -67,4 +68,6 @@ export default function FunilEstrategico({ gargalos, alertasCascata }: FunilEstr
       )}
     </div>
   );
-}
+});
+
+export default FunilEstrategico;

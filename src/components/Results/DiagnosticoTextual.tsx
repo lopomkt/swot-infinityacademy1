@@ -7,7 +7,7 @@ interface DiagnosticoTextualProps {
   texto: string;
 }
 
-export default function DiagnosticoTextual({ texto }: DiagnosticoTextualProps) {
+const DiagnosticoTextual = React.memo(function DiagnosticoTextual({ texto }: DiagnosticoTextualProps) {
   const isMobile = useIsMobile();
 
   const renderDiagnosticoContent = () => (
@@ -40,4 +40,6 @@ export default function DiagnosticoTextual({ texto }: DiagnosticoTextualProps) {
       )}
     </div>
   );
-}
+});
+
+export default DiagnosticoTextual;

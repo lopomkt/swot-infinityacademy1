@@ -1,4 +1,5 @@
 
+import React from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 
@@ -10,7 +11,7 @@ interface PlanosEstrategicosABCProps {
   };
 }
 
-export default function PlanosEstrategicosABC({ planos }: PlanosEstrategicosABCProps) {
+const PlanosEstrategicosABC = React.memo(function PlanosEstrategicosABC({ planos }: PlanosEstrategicosABCProps) {
   return (
     <div className="mt-10 scroll-mt-20 mb-8 sm:mb-10 md:mb-16" role="region" aria-labelledby="planos-estrategicos-title">
       <h2 id="planos-estrategicos-title" className="text-2xl font-bold text-[#560005] mb-4">Planos Estratégicos</h2>
@@ -102,4 +103,6 @@ export default function PlanosEstrategicosABC({ planos }: PlanosEstrategicosABCP
       </Tabs>
     </div>
   );
-}
+});
+
+export default PlanosEstrategicosABC;
