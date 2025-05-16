@@ -2,76 +2,21 @@
 import { z } from 'zod';
 
 export const ameacasSchema = z.object({
-  fator_preocupante: z.string().optional(),
-  concorrente_em_ascensao: z.string().optional(),
-  dependencia_parceiros: z.string().optional(),
-  ameaca_legislativa: z.string().optional(),
-  sazonalidade_negocio: z.string().optional(),
-  detalheSazonalidade: z.string().optional(),
-  dependencia_plataformas: z.array(z.string()).optional(),
-  mudanca_comportamental: z.string().optional(),
-  resiliencia_crise: z.string().optional(),
-  perdas_externas: z.string().optional(),
-  detalhePerda: z.string().optional(),
-  impacto_ameacas: z.number().optional(),
+  fator_preocupante: z.string().min(1, { message: "Por favor, informe o fator externo que mais preocupa" }),
+  concorrente_em_ascensao: z.string().min(1, { message: "Por favor, selecione uma opção" }),
+  dependencia_parceiros: z.string().min(1, { message: "Por favor, selecione uma opção" }),
+  ameaca_legislativa: z.string().min(1, { message: "Por favor, selecione uma opção" }),
+  sazonalidade_negocio: z.string().min(1, { message: "Por favor, selecione uma opção" }),
+  detalheSazonalidade: z.string().optional()
+    .refine(val => val !== undefined || true, { message: "Por favor, forneça detalhes sobre a sazonalidade" }),
+  dependencia_plataformas: z.array(z.string()).min(1, { message: "Selecione pelo menos uma opção" }),
+  mudanca_comportamental: z.string().min(1, { message: "Por favor, selecione uma opção" }),
+  resiliencia_crise: z.string().min(1, { message: "Por favor, selecione uma opção" }),
+  perdas_externas: z.string().min(1, { message: "Por favor, selecione uma opção" }),
+  detalhePerda: z.string().optional()
+    .refine(val => val !== undefined || true, { message: "Por favor, forneça detalhes sobre as perdas" }),
+  impacto_ameacas: z.number().min(0, { message: "Por favor, selecione um valor" }),
   estrategia_defesa: z.string().optional(),
-}).superRefine((data, ctx) => {
-  // Condicional para detalheSazonalidade
-  if (data.sazonalidade_negocio === "Sim" && (!data.detalheSazonalidade || data.detalheSazonalidade.length === 0)) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: "Detalhe a sazonalidade do seu negócio",
-      path: ["detalheSazonalidade"]
-    });
-  }
-  
-  // Condicional para detalhePerda
-  if (data.perdas_externas === "Sim" && (!data.detalhePerda || data.detalhePerda.length === 0)) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: "Detalhe a perda sofrida",
-      path: ["detalhePerda"]
-    });
-  }
-  
-  // Condicional para estrategia_defesa
-  if (data.impacto_ameacas !== undefined && data.impacto_ameacas >= 7 && 
-      (!data.estrategia_defesa || data.estrategia_defesa.length === 0)) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: "Informe sua estratégia de defesa",
-      path: ["estrategia_defesa"]
-    });
-  }
-  
-  // Filtra valores preenchidos para validar mínimo de 8 respostas
-  const respostas = [
-    data.fator_preocupante,
-    data.concorrente_em_ascensao,
-    data.dependencia_parceiros,
-    data.ameaca_legislativa,
-    data.sazonalidade_negocio,
-    data.sazonalidade_negocio === "Sim" ? data.detalheSazonalidade : undefined,
-    data.dependencia_plataformas && data.dependencia_plataformas.length > 0 ? "preenchido" : undefined,
-    data.mudanca_comportamental,
-    data.resiliencia_crise,
-    data.perdas_externas,
-    data.perdas_externas === "Sim" ? data.detalhePerda : undefined,
-    data.impacto_ameacas !== undefined ? "preenchido" : undefined,
-    data.impacto_ameacas !== undefined && data.impacto_ameacas >= 7 ? data.estrategia_defesa : undefined
-  ];
-  
-  const preenchidas = respostas.filter(
-    (val) => val !== undefined && val !== ""
-  ).length;
-  
-  if (preenchidas < 8) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: "Você deve preencher pelo menos 8 campos para avançar",
-      path: []
-    });
-  }
 });
 
 export type AmeacasSchema = z.infer<typeof ameacasSchema>;

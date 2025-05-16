@@ -8,10 +8,34 @@ export interface IdentificacaoData {
   segmento: string;
   faturamentoMensal: string;
   tempoDeMercado: string;
+  // New fields
+  tipo_produto_servico?: string;
+  tempo_retencao_clientes?: string;
+  perfil_cliente_ideal?: string;
+  fonte_trafego_principal?: string;
+  nivel_automacao?: string;
+  canais_venda_atuais?: string;
+  numero_colaboradores?: string;
+  modelo_precificacao?: string;
+  tipagem_identificacao_ok?: boolean;
 }
 
 export interface ForcasData {
-  respostas: string[]; // mínimo 8 respostas esperadas
+  cultura_forte?: string;
+  equipe_qualificada?: string;
+  marca_reconhecida?: string;
+  tecnologia_propria?: string;
+  carteira_fiel?: string;
+  diferencial_mercado?: string;
+  reputacao_regional?: string;
+  canais_distribuicao?: string;
+  estrutura_financeira?: string;
+  velocidade_entrega?: string;
+  processos_otimizados?: string;
+  lideranca_setorial?: string;
+  atendimento_diferenciado?: string;
+  outros?: string;
+  respostas?: string[]; // For backward compatibility
 }
 
 export interface FraquezasData {
@@ -26,11 +50,15 @@ export interface FraquezasData {
   ferramentas_utilizadas: string;
   tentativas_resolucao: string;
   tentativa_falha_motivo?: string;
+  // New fields
+  capacidade_inovacao?: string;
+  ausencia_dados_decisao?: string;
+  falta_treinamento?: string;
+  problemas_cultura?: string;
   step_fraquezas_ok: boolean;
 }
 
 export interface OportunidadesData {
-  respostas: string[];
   nova_demanda_cliente: string;
   situacao_mercado: string;
   nichos_ocultos: string;
@@ -45,10 +73,30 @@ export interface OportunidadesData {
   nivel_disposicao: number;
   acao_inicial_oportunidade?: string;
   step_oportunidades_ok: boolean;
+  respostas: string[]; // Required field from the OportunidadesData interface
+  // New fields
+  inovacao_tecnologica?: string;
+  tendencias_mercado?: string;
+  canais_digitais_novos?: string;
 }
 
 export interface AmeacasData {
-  respostas: string[];
+  // Properly mapped from schema
+  fator_preocupante: string;
+  concorrente_em_ascensao: string;
+  dependencia_parceiros: string;
+  ameaca_legislativa: string;
+  sazonalidade_negocio: string;
+  detalheSazonalidade?: string;
+  dependencia_plataformas: string[];
+  mudanca_comportamental: string;
+  resiliencia_crise: string;
+  perdas_externas: string;
+  detalhePerda?: string;
+  impacto_ameacas: number;
+  estrategia_defesa?: string;
+  step_ameacas_ok?: boolean;
+  validacao_ameacas_ok?: boolean;
 }
 
 export interface SaudeFinanceiraData {
@@ -64,6 +112,10 @@ export interface SaudeFinanceiraData {
   orcamento_planejado: string;
   intencao_investimento?: string;
   maturidade_financeira: string;
+  // New fields
+  margem_lucro_liquida?: string;
+  previsao_orcamentaria?: string;
+  grau_endividamento?: string;
   step_financas_ok: boolean;
 }
 
@@ -79,6 +131,11 @@ export interface PrioridadesData {
   comprometimento_estrategico: number;
   estilo_decisao: "Analítico" | "Rápido e objetivo" | "Intuitivo" | "Compartilhado com sócios / equipe";
   prontidao_execucao?: "Sim" | "Com adaptações" | "Ainda não";
+  // New fields
+  meta_crescimento_6_meses?: string;
+  meta_crescimento_12_meses?: string;
+  tipo_investimento?: string;
+  maior_gargalo?: string;
 }
 
 export interface ResultadoFinalData {
@@ -104,77 +161,13 @@ export interface ResultadoFinalData {
 // tipagem_oportunidades_ok = true
 
 export interface FormData {
-  identificacao?: {
-    nomeEmpresa: string;
-    segmento: string;
-    faturamentoMensal: string;
-    tempoDeMercado: string;
-  };
-  forcas?: {
-    respostas: string[];
-  };
-  fraquezas?: {
-    pontos_inconsistentes: string[];
-    fraqueza_critica: string;
-    bloqueio_estrategico: string;
-    centralizacao_gestao: string;
-    retrabalho_frequente: string;
-    clareza_funcoes: number;
-    documentacao_processos: string;
-    indicadores_ativos: string;
-    ferramentas_utilizadas: string;
-    tentativas_resolucao: string;
-    tentativa_falha_motivo?: string;
-    step_fraquezas_ok: boolean;
-  };
-  oportunidades?: {
-    nova_demanda_cliente: string;
-    situacao_mercado: string;
-    nichos_ocultos: string;
-    concorrentes_enfraquecendo: string;
-    tendencias_aproveitaveis: string[];
-    tendencias_outro?: string;
-    demanda_nao_atendida: string;
-    parcerias_possiveis: string;
-    recurso_ocioso: string;
-    canais_potenciais: string[];
-    canais_outro?: string;
-    nivel_disposicao: number;
-    acao_inicial_oportunidade?: string;
-    step_oportunidades_ok: boolean;
-    respostas: string[];
-  };
-  ameacas?: {
-    respostas: string[];
-  };
-  saudeFinanceira?: {
-    caixa_disponivel: string;
-    autonomia_caixa: string;
-    controle_financeiro: string;
-    fluxo_frequencia: string;
-    endividamento_nivel: string;
-    inadimplencia_clientes: string;
-    custos_fixos: string;
-    cac_estimado_conhecimento: string;
-    cac_estimado: string;
-    orcamento_planejado: string;
-    intencao_investimento?: string;
-    maturidade_financeira: string;
-    step_financas_ok: boolean;
-  };
-  prioridades?: {
-    meta_90_dias: string;
-    top3_desafios: string;
-    areas_fraqueza: string[];
-    areas_potenciais: string[];
-    ajuda_externa_urgente: string;
-    acao_unica_desejada: string;
-    engajamento_equipe: number;
-    distribuicao_tempo: "Sim" | "Parcialmente" | "Estou sobrecarregado";
-    comprometimento_estrategico: number;
-    estilo_decisao: "Analítico" | "Rápido e objetivo" | "Intuitivo" | "Compartilhado com sócios / equipe";
-    prontidao_execucao?: "Sim" | "Com adaptações" | "Ainda não";
-  };
+  identificacao?: IdentificacaoData;
+  forcas?: ForcasData;
+  fraquezas?: FraquezasData;
+  oportunidades?: OportunidadesData;
+  ameacas?: AmeacasData;
+  saudeFinanceira?: SaudeFinanceiraData;
+  prioridades?: PrioridadesData;
   resultadoFinal?: ResultadoFinalData;
   // Control flags at root level
   step_prioridades_ok?: boolean;
@@ -185,4 +178,6 @@ export interface FormData {
   step_forcas_ok?: boolean;
   step_resultado_ok?: boolean;
   tipagem_index_ok?: boolean;
+  // New tracking tag
+  fase5_perguntas_expandidas_ok?: boolean;
 }

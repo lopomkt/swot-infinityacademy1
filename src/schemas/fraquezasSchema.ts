@@ -27,6 +27,11 @@ export const fraquezasSchema = z.object({
     .refine(val => val !== "" || true, { 
       message: "Informe o motivo da falha na tentativa de resolução" 
     }),
+  // New fields
+  capacidade_inovacao: z.string().optional(),
+  ausencia_dados_decisao: z.string().optional(),
+  falta_treinamento: z.string().optional(),
+  problemas_cultura: z.string().optional(),
   step_fraquezas_ok: z.boolean().optional(),
 })
 .refine((data) => {

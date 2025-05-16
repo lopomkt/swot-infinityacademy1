@@ -34,6 +34,11 @@ export const prioridadesSchema = z.object({
     required_error: "Por favor, selecione seu estilo de decisão.",
   }),
   prontidao_execucao: z.enum(["Sim", "Com adaptações", "Ainda não"]).optional(),
+  // New fields
+  meta_crescimento_6_meses: z.string().optional(),
+  meta_crescimento_12_meses: z.string().optional(),
+  tipo_investimento: z.string().optional(),
+  maior_gargalo: z.string().optional(),
 });
 
 export type PrioridadesSchema = z.infer<typeof prioridadesSchema>;

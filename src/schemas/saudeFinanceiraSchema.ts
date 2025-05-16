@@ -14,6 +14,10 @@ export const saudeFinanceiraSchema = z.object({
   orcamento_planejado: z.string().min(1, 'Selecione uma opção'),
   intencao_investimento: z.string().optional(),
   maturidade_financeira: z.string().min(1, 'Selecione uma opção'),
+  // New fields
+  margem_lucro_liquida: z.string().optional(),
+  previsao_orcamentaria: z.string().optional(),
+  grau_endividamento: z.string().optional(),
   step_financas_ok: z.boolean().optional(),
 });
 
