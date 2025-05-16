@@ -194,6 +194,8 @@ export interface FormData {
   fase6_1_welcome_transicoes_premium_ok?: boolean;
   // Add premium visual result tag
   fase6_2_resultado_premium_visual_ok?: boolean;
+  // Add the final design PDF tag
+  fase6_3_design_final_pdf_ok?: boolean;
   // Add the missing property
   fase5_transicoes_ok?: boolean;
 }

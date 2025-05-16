@@ -18,7 +18,6 @@ const PrintableResults = React.memo(function PrintableResults({ children }: Prin
       </a>
       
       <motion.div 
-        id="container_resultado_pdf" 
         className="max-w-5xl mx-auto px-8 py-12 bg-white text-black print:block font-sans" 
         role="region" 
         aria-label="Relatório completo do diagnóstico SWOT"
