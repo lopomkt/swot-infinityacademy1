@@ -7,27 +7,24 @@ interface TransitionStepProps {
   title: string;
   description: string;
   onContinue: () => void;
+  currentStep?: number;
+  totalSteps?: number;
 }
 
-export default function TransitionStep({ title, description, onContinue }: TransitionStepProps) {
+export default function TransitionStep({ 
+  title, 
+  description, 
+  onContinue,
+  currentStep = 1,
+  totalSteps = 8
+}: TransitionStepProps) {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
 
-  // We'll add a relative progress indicator
-  // This is an estimate based on the current state
-  const calculateProgress = () => {
-    // Based on the title, we can roughly estimate where we are in the process
-    if (title.includes("forças")) return 25;
-    if (title.includes("fraquezas") || title.includes("melhoria")) return 40;
-    if (title.includes("oportunidades")) return 55;
-    if (title.includes("ameaças")) return 70;
-    if (title.includes("saúde financeira") || title.includes("financeira")) return 85;
-    if (title.includes("prioridades") || title.includes("estratégicas")) return 95;
-    return 50; // Default value
-  };
-
-  const remainingProgress = 100 - calculateProgress();
+  // Calculate progress based on current step and total steps
+  const percentComplete = Math.floor((currentStep / totalSteps) * 100);
+  const remainingProgress = 100 - percentComplete;
 
   return (
     <motion.div

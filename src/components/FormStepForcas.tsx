@@ -1,4 +1,3 @@
-
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { forcasSchema, ForcasData } from "@/schemas/forcasSchema";
@@ -88,7 +87,7 @@ export default function FormStepForcas({ onSubmit, onComplete, defaultValues, on
       animate="show"
       variants={containerAnimation}
     >
-      <Card>
+      <Card className="bg-white">
         <CardHeader>
           <CardTitle className="text-2xl flex items-center gap-2">
             <RedBullet />Forças da Empresa

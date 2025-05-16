@@ -1,3 +1,4 @@
+
 import { z } from "zod";
 
 // Define a schema for a single strength response (string)
@@ -24,6 +25,18 @@ export const forcasSchema = z.object({
   
   // Keep backward compatibility with the old format
   respostas: z.array(respostaString).optional(),
+})
+// Refine validation to ensure at least one strength is provided
+.refine((data) => {
+  const values = Object.values(data).filter(val => 
+    val !== undefined && 
+    val !== null && 
+    (typeof val === 'string' ? val.trim() !== '' : true)
+  );
+  return values.length > 0;
+}, {
+  message: "Informe pelo menos uma força da empresa",
+  path: ["cultura_forte"] // Point to the first field for error display
 });
 
 // Infer the type from the schema

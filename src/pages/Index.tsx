@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import ProgressBar from "@/components/ProgressBar";
 import WelcomeStep from "@/components/WelcomeStep";
@@ -13,6 +12,7 @@ import FinalizacaoStep from "@/components/FinalizacaoStep";
 import ResultsScreen from "@/pages/ResultsScreen";
 import TransitionStep from "@/components/TransitionStep";
 import { FormData } from "@/types/formData";
+import { saveState, loadState } from "@/lib/persistence";
 
 const STEPS = [
   { label: "Boas-vindas" },
@@ -34,14 +34,24 @@ const STEPS = [
 ];
 
 const Index = () => {
-  const [step, setStep] = useState(0);
-  const [formData, setFormData] = useState<FormData>({
+  const [step, setStep] = useState<number>(loadState<number>('swotStep') || 0);
+  const [formData, setFormData] = useState<FormData>(loadState<FormData>('swotForm') || {
     tipagem_index_ok: true,
     fase5_transicoes_ok: true,
     fase5_voltar_ok: true,
     fase5_gamificacao_ok: true,
     fase5_finalizacao_ok: true,
   });
+
+  // Save form data to localStorage whenever it changes
+  useEffect(() => {
+    saveState('swotForm', formData);
+  }, [formData]);
+
+  // Save step to localStorage whenever it changes
+  useEffect(() => {
+    saveState('swotStep', step);
+  }, [step]);
 
   const handleBackButtonClick = (previousStep: number) => {
     window.scrollTo(0, 0);
@@ -73,6 +83,10 @@ const Index = () => {
     return step;
   };
 
+  // Count actual visible steps for progress calculation (excluding transitions)
+  const totalMainSteps = STEPS.filter(s => !s.label.includes('Transição')).length;
+  const currentMainStep = Math.min(Math.ceil(getCurrentProgressStep() / 2), totalMainSteps);
+
   return (
     <div className="min-h-screen bg-white text-black font-manrope flex flex-col items-center justify-start">
       <ProgressBar currentStep={getCurrentProgressStep()} stepsCount={STEPS.length} />
@@ -97,6 +111,8 @@ const Index = () => {
             title="Vamos identificar as forças do seu negócio"
             description="Agora vamos analisar os pontos fortes da sua empresa - aqueles diferenciais competitivos que você já possui e que podem ser potencializados."
             onContinue={() => setStep(2)}
+            currentStep={currentMainStep}
+            totalSteps={totalMainSteps}
           />
         )}
         {step === 2 && (
@@ -120,6 +136,8 @@ const Index = () => {
             title="Vamos analisar os pontos de melhoria"
             description="Identificar fraquezas não é sinal de fracasso - é um passo essencial para fortalecer seu negócio e transformar vulnerabilidades em oportunidades de crescimento."
             onContinue={() => setStep(3)}
+            currentStep={currentMainStep}
+            totalSteps={totalMainSteps}
           />
         )}
         {step === 3 && (
@@ -137,6 +155,8 @@ const Index = () => {
             title="Explorando oportunidades de mercado"
             description="Vamos identificar as oportunidades externas que podem impulsionar seu negócio - tendências, nichos inexplorados e demandas emergentes que podem ser aproveitadas."
             onContinue={() => setStep(4)}
+            currentStep={currentMainStep}
+            totalSteps={totalMainSteps}
           />
         )}
         {step === 4 && (
@@ -154,6 +174,8 @@ const Index = () => {
             title="Identificando ameaças e desafios"
             description="Por último, vamos mapear as ameaças externas que podem impactar seu negócio, preparando estratégias defensivas e de mitigação de riscos."
             onContinue={() => setStep(5)}
+            currentStep={currentMainStep}
+            totalSteps={totalMainSteps}
           />
         )}
         {step === 5 && (
@@ -171,6 +193,8 @@ const Index = () => {
             title="Avaliando a saúde financeira"
             description="Agora vamos analisar a situação financeira da sua empresa para fundamentar recomendações alinhadas à sua realidade econômica."
             onContinue={() => setStep(6)}
+            currentStep={currentMainStep}
+            totalSteps={totalMainSteps}
           />
         )}
         {step === 6 && (
@@ -188,6 +212,8 @@ const Index = () => {
             title="Definindo prioridades estratégicas"
             description="Para finalizar, vamos estabelecer prioridades claras e entender suas metas de curto e longo prazo para direcionar as recomendações estratégicas."
             onContinue={() => setStep(7)}
+            currentStep={currentMainStep}
+            totalSteps={totalMainSteps}
           />
         )}
         {step === 7 && (
@@ -209,6 +235,8 @@ const Index = () => {
             title="Finalizando sua análise SWOT"
             description="Parabéns! Você completou todas as etapas do diagnóstico. Agora vamos processar suas informações e gerar seu relatório estratégico personalizado."
             onContinue={() => setStep(8)}
+            currentStep={currentMainStep}
+            totalSteps={totalMainSteps}
           />
         )}
         {step === 8 && (
