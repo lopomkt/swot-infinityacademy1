@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { FraquezasData } from "@/types/formData";
@@ -112,7 +113,7 @@ export default function FormStepFraquezas({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="w-full max-w-2xl bg-white rounded-xl p-6 shadow-md mx-auto animate-fade-in">
+    <form onSubmit={handleSubmit(onSubmit)} className="w-full max-w-2xl bg-white rounded-xl p-6 shadow-md mx-auto animate-fade-in">
       <h2 className="text-2xl font-bold text-[#560005] mb-4">
         Diagnóstico dos Pontos de Melhoria
       </h2>
