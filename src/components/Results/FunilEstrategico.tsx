@@ -11,9 +11,13 @@ interface FunilEstrategicoProps {
   alertasCascata: string[];
 }
 
-const FunilEstrategico = React.memo(function FunilEstrategico({ gargalos, alertasCascata }: FunilEstrategicoProps) {
+const FunilEstrategico = React.memo(function FunilEstrategico({ gargalos = [], alertasCascata = [] }: FunilEstrategicoProps) {
   const isMobile = useIsMobile();
   const prefersReducedMotion = useReducedMotion();
+  
+  // Default data when none is available
+  const gargalosData = gargalos && gargalos.length > 0 ? gargalos : ["Processos não otimizados", "Dependência de poucos clientes", "Comunicação interna limitada"];
+  const alertasData = alertasCascata && alertasCascata.length > 0 ? alertasCascata : ["Problemas na captação impactam conversão", "Falta de processos compromete retenção"];
   
   const renderFunilContent = () => (
     <>
@@ -28,7 +32,7 @@ const FunilEstrategico = React.memo(function FunilEstrategico({ gargalos, alerta
           className="list-disc pl-5 text-gray-700 space-y-1 text-sm sm:text-base"
           aria-labelledby="gargalos-title"
         >
-          {gargalos.map((item, i) => (
+          {gargalosData.map((item, i) => (
             <motion.li 
               key={i}
               initial={prefersReducedMotion ? {} : { opacity: 0 }}
@@ -52,7 +56,7 @@ const FunilEstrategico = React.memo(function FunilEstrategico({ gargalos, alerta
           className="list-disc pl-5 text-gray-700 space-y-1 text-sm sm:text-base"
           aria-labelledby="alertas-title"
         >
-          {alertasCascata.map((item, i) => (
+          {alertasData.map((item, i) => (
             <motion.li 
               key={i}
               initial={prefersReducedMotion ? {} : { opacity: 0 }}

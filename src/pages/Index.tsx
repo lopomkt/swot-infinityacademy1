@@ -41,6 +41,7 @@ const Index = () => {
     fase5_voltar_ok: true,
     fase5_gamificacao_ok: true,
     fase5_finalizacao_ok: true,
+    fase5_resultado_final_ok: true, // Added the new tracking tag
   });
 
   // Save form data to localStorage whenever it changes
@@ -65,6 +66,7 @@ const Index = () => {
       fase5_voltar_ok: true,
       fase5_gamificacao_ok: true,
       fase5_finalizacao_ok: true,
+      fase5_resultado_final_ok: true, // Added the new tracking tag
     });
     setStep(0);
   };
@@ -259,13 +261,14 @@ const Index = () => {
           />
         )}
         
-        {step === 9 && !formData.resultadoFinal?.gpt_prompt_ok && (
+        {step === 9 && (!formData.resultadoFinal?.ai_block_pronto || !formData.resultadoFinal?.gpt_prompt_ok) && (
           <p className="text-center text-red-600 mt-10">⏳ Seu relatório ainda está sendo processado.</p>
         )}
       </main>
 
       {/* Tag de rastreamento - não remover */}
       {/* fase5_bugfixes_finais_ok = true */}
+      {/* fase5_resultado_final_ok = true */}
     </div>
   );
 };

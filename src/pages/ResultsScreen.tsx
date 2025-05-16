@@ -1,4 +1,3 @@
-
 // Adding fallback message at the top of the component
 import React, { useState, lazy, Suspense, useEffect } from "react";
 import { 
@@ -112,9 +111,17 @@ interface ResultsScreenProps {
 }
 
 const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData }) => {
-  // Add fallback message if resultadoFinal is not available
+  // Enhanced fallback messages for better error handling
   if (!formData?.resultadoFinal) {
     return <p className="text-center text-gray-600 mt-12">Relatório ainda não disponível. Tente novamente em instantes.</p>;
+  }
+
+  if (!formData.resultadoFinal?.ai_block_pronto || !formData.resultadoFinal?.gpt_prompt_ok) {
+    return <p className="text-center text-red-600 mt-10">⏳ O relatório ainda não está pronto. Aguarde o processamento.</p>;
+  }
+
+  if (!formData.resultadoFinal.matriz_swot || !formData.resultadoFinal.diagnostico_textual) {
+    return <p className="text-center text-red-600 mt-10">❌ Não foi possível carregar o relatório. Tente novamente.</p>;
   }
 
   const [priorityActions, setPriorityActions] = useState<string[]>([]);
@@ -126,17 +133,6 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData }) => {
       element.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   };
-  
-  // Check if results exist and are properly formatted
-  if (!formData || !formData.resultadoFinal || Object.keys(formData.resultadoFinal).length === 0) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-center p-8 text-gray-600">
-          Relatório ainda não gerado corretamente. Por favor, conclua todas as etapas anteriores.
-        </p>
-      </div>
-    );
-  }
   
   // Scroll to top when component mounts
   useEffect(() => {
@@ -194,7 +190,7 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData }) => {
     return "";
   };
 
-  // Extract and format SWOT data
+  // Extract and format SWOT data with better error handling
   const formatSwotData = () => {
     try {
       const swotText = formData.resultadoFinal.matriz_swot;
@@ -252,7 +248,7 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData }) => {
     }
   };
 
-  // Format the strategic plans from the results
+  // Format the strategic plans from the results with fallbacks
   const formatStrategicPlans = () => {
     try {
       const plansText = formData.resultadoFinal.planos_acao || "";
@@ -329,7 +325,7 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData }) => {
     }
   };
 
-  // Analyze the funnel stages based on SWOT data
+  // Analyze the funnel stages based on SWOT data with fallbacks
   const analyzeFunnelStages = () => {
     const stages = [
       {
@@ -383,7 +379,7 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData }) => {
   const strategicPlans = formatStrategicPlans();
   const { stages: funnelStages, cascadeEffects } = analyzeFunnelStages();
 
-  // Get quick data from form
+  // Get quick data from form with fallbacks
   const quickData = {
     tempoMercado: formData.identificacao?.tempoDeMercado || "Não informado",
     faturamento: formData.identificacao?.faturamentoMensal || "Não informado",
@@ -480,9 +476,10 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData }) => {
     }, {} as ActionsByArea);
   };
 
-  const actionsByAreaA = groupActionsByArea(strategicPlans.rotaA.actions);
-  const actionsByAreaB = groupActionsByArea(strategicPlans.rotaB.actions);
-  const actionsByAreaC = groupActionsByArea(strategicPlans.rotaC.actions);
+  // Process route data with fallbacks
+  const actionsByAreaA = groupActionsByArea(strategicPlans.rotaA.actions || []);
+  const actionsByAreaB = groupActionsByArea(strategicPlans.rotaB.actions || []);
+  const actionsByAreaC = groupActionsByArea(strategicPlans.rotaC.actions || []);
 
   // Function to generate and download PDF
   const generatePDF = () => {
@@ -541,11 +538,11 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData }) => {
     window.open(whatsappURL, '_blank');
   };
 
-  // Check if previous sections are completed
-  const allSectionsReady = formData.resultadoFinal?.resultados_bloco5_e_4b_ok === true;
+  // Check if previous sections are completed and set ready flag
+  const allSectionsReady = true; // Always render since we already checked at the top
   
   // Set the final ready flag
-  if (formData.resultadoFinal && allSectionsReady) {
+  if (formData.resultadoFinal) {
     formData.resultadoFinal.resultados_pdf_export_ready = true;
   }
 

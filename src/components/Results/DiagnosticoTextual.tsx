@@ -13,6 +13,10 @@ const DiagnosticoTextual = React.memo(function DiagnosticoTextual({ texto }: Dia
   const isMobile = useIsMobile();
   const prefersReducedMotion = useReducedMotion();
 
+  if (!texto) {
+    return <p className="text-sm italic text-gray-500 p-4">Diagnóstico não disponível no momento.</p>;
+  }
+
   const renderDiagnosticoContent = () => (
     <motion.div 
       className="text-sm sm:text-base"

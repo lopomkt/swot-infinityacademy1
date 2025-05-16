@@ -41,10 +41,11 @@ const PrintableResults = React.memo(function PrintableResults({ children }: Prin
           {/* ux_performance_memo_lazy_ok = true */}
           {/* ux_micro_animacoes_ok = true */}
           {/* fase5_bugfixes_finais_ok = true */}
+          {/* fase5_resultado_final_ok = true */}
         </div>
       </motion.div>
     </>
   );
-})
+});
 
 export default PrintableResults;

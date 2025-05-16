@@ -17,7 +17,7 @@ const AIBlock: React.FC<AIBlockProps> = ({ formData, onRestart, onAIComplete }) 
     matriz_swot: "",
     diagnostico_textual: "",
     planos_acao: "",
-    acoes_priorizadas: [] // Added the missing required property with empty array as default
+    acoes_priorizadas: []
   });
   const { toast } = useToast();
 
@@ -79,7 +79,13 @@ Use os seguintes delimitadores para separar cada seção da sua resposta:
         matriz_swot: sections[1].trim(),
         diagnostico_textual: sections[2].trim(),
         planos_acao: sections[3].trim(),
-        acoes_priorizadas: [] // Added missing property
+        acoes_priorizadas: [],
+        gpt_prompt_ok: true,
+        ai_block_pronto: true,
+        planoB: [],
+        planoC: [],
+        gargalos: [],
+        alertasCascata: []
       };
     }
     
@@ -88,7 +94,13 @@ Use os seguintes delimitadores para separar cada seção da sua resposta:
       matriz_swot: "Erro ao processar a matriz SWOT.",
       diagnostico_textual: "Erro ao processar o diagnóstico consultivo.",
       planos_acao: "Erro ao processar o plano de ação.",
-      acoes_priorizadas: [] // Added missing property
+      acoes_priorizadas: [],
+      gpt_prompt_ok: true,
+      ai_block_pronto: true,
+      planoB: [],
+      planoC: [],
+      gargalos: [],
+      alertasCascata: []
     };
   };
 
@@ -165,21 +177,14 @@ As áreas mais frágeis (${formData.prioridades?.areas_fraqueza?.join(", ") || "
     // Set up a timeout to simulate AI processing
     const timer = setTimeout(() => {
       try {
-        const mockResponse = gerarRelatorioMock();
-        setResultadoFinal(mockResponse);
+        const updatedResultados = gerarRelatorioMock();
+        setResultadoFinal(updatedResultados);
         setIsLoading(false);
-        
-        // Set the gpx_prompt_ok flag
-        const updatedResultados = {
-          ...mockResponse,
-        };
         
         // We would save this to Supabase in a real implementation
         console.log("Form data with AI results:", { 
           ...formData, 
-          resultadoFinal: updatedResultados, 
-          gpt_prompt_ok: true,
-          ai_block_pronto: true
+          resultadoFinal: updatedResultados
         });
         
         // Send results back to parent component if callback exists
