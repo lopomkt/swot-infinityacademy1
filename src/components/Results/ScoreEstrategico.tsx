@@ -31,7 +31,7 @@ const ScoreEstrategico = React.memo(function ScoreEstrategico({ scoreLabel, pont
     >
       <motion.h2 
         id="score-strategic-title" 
-        className={`${headingBase} mb-4 text-xl sm:text-2xl font-bold text-black`}
+        className={`${headingBase} mb-4 text-xl sm:text-2xl font-bold text-black border-b pb-2`}
         initial={prefersReducedMotion ? {} : { opacity: 0 }}
         animate={prefersReducedMotion ? {} : { opacity: 1 }}
         transition={{ duration: 0.3, delay: 0.1 }}
@@ -81,6 +81,12 @@ const ScoreEstrategico = React.memo(function ScoreEstrategico({ scoreLabel, pont
           Empresas com pontuação acima de 70 estão prontas para escalar crescimento com consistência.
         </p>
       </motion.div>
+      
+      {/* Maturity level indicator */}
+      <div className="mt-6 text-center">
+        <p className="text-sm text-gray-600 mb-1">Nível de Maturidade Estratégica:</p>
+        <span className="text-xl font-bold text-[#ef0002]">{scoreLabel || "Não Avaliado"}</span>
+      </div>
       
       <div aria-hidden="true" className="sr-only">
         Este score representa o nível de maturidade estratégica da sua empresa, baseado nas respostas fornecidas na análise SWOT.

@@ -38,7 +38,7 @@ const PlanosEstrategicosABC = React.memo(function PlanosEstrategicosABC({ planos
     >
       <motion.h2 
         id="planos-estrategicos-title" 
-        className="text-2xl font-bold text-black mb-4"
+        className="text-2xl font-bold text-[#000] border-b pb-2 mb-6"
         initial={prefersReducedMotion ? {} : { opacity: 0 }}
         animate={prefersReducedMotion ? {} : { opacity: 1 }}
         transition={{ duration: 0.3, delay: 0.1 }}
@@ -113,28 +113,32 @@ const PlanosEstrategicosABC = React.memo(function PlanosEstrategicosABC({ planos
             animate={prefersReducedMotion ? {} : { opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
           >
-            <Card className="bg-white rounded-xl shadow-sm">
+            <Card className="bg-white rounded-xl shadow-sm border-l-4 border-[#00b894]">
               <CardHeader>
                 <div className="flex items-center gap-2">
                   <span className="text-2xl" aria-hidden="true">📌</span>
-                  <CardTitle className="text-green-700 text-sm sm:text-base lg:text-lg">Rota A – Estratégia ideal com investimento robusto</CardTitle>
+                  <CardTitle className="text-[#00b894] text-sm sm:text-base lg:text-lg">Rota A – Estratégia ideal com investimento robusto</CardTitle>
                 </div>
                 <CardDescription>Investimento direcionado para crescimento acelerado</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="overflow-x-auto max-w-full">
-                  <ul className="list-disc pl-6 text-gray-700 space-y-2 text-sm sm:text-base">
-                    {planoA.map((item, i) => (
-                      <motion.li 
-                        key={i}
-                        initial={prefersReducedMotion ? {} : { opacity: 0, x: -5 }}
-                        animate={prefersReducedMotion ? {} : { opacity: 1, x: 0 }}
-                        transition={{ duration: 0.2, delay: 0.05 * i }}
-                      >
-                        {item}
-                      </motion.li>
-                    ))}
-                  </ul>
+                  {planoA.length > 0 ? (
+                    <ul className="list-disc pl-6 text-gray-700 space-y-2 text-sm sm:text-base">
+                      {planoA.map((item, i) => (
+                        <motion.li 
+                          key={i}
+                          initial={prefersReducedMotion ? {} : { opacity: 0, x: -5 }}
+                          animate={prefersReducedMotion ? {} : { opacity: 1, x: 0 }}
+                          transition={{ duration: 0.2, delay: 0.05 * i }}
+                        >
+                          {item}
+                        </motion.li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-sm italic text-gray-500">Sem dados para o Plano A.</p>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -147,28 +151,32 @@ const PlanosEstrategicosABC = React.memo(function PlanosEstrategicosABC({ planos
             animate={prefersReducedMotion ? {} : { opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
           >
-            <Card className="bg-white rounded-xl shadow-sm">
+            <Card className="bg-white rounded-xl shadow-sm border-l-4 border-[#f39c12]">
               <CardHeader>
                 <div className="flex items-center gap-2">
                   <span className="text-2xl" aria-hidden="true">🧩</span>
-                  <CardTitle className="text-blue-700 text-sm sm:text-base lg:text-lg">Rota B – Estratégia viável com recursos limitados</CardTitle>
+                  <CardTitle className="text-[#f39c12] text-sm sm:text-base lg:text-lg">Rota B – Estratégia viável com recursos limitados</CardTitle>
                 </div>
                 <CardDescription>Balanceamento entre investimento e resultados de curto prazo</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="overflow-x-auto max-w-full">
-                  <ul className="list-disc pl-6 text-gray-700 space-y-2 text-sm sm:text-base">
-                    {planoB.map((item, i) => (
-                      <motion.li 
-                        key={i}
-                        initial={prefersReducedMotion ? {} : { opacity: 0, x: -5 }}
-                        animate={prefersReducedMotion ? {} : { opacity: 1, x: 0 }}
-                        transition={{ duration: 0.2, delay: 0.05 * i }}
-                      >
-                        {item}
-                      </motion.li>
-                    ))}
-                  </ul>
+                  {planoB.length > 0 ? (
+                    <ul className="list-disc pl-6 text-gray-700 space-y-2 text-sm sm:text-base">
+                      {planoB.map((item, i) => (
+                        <motion.li 
+                          key={i}
+                          initial={prefersReducedMotion ? {} : { opacity: 0, x: -5 }}
+                          animate={prefersReducedMotion ? {} : { opacity: 1, x: 0 }}
+                          transition={{ duration: 0.2, delay: 0.05 * i }}
+                        >
+                          {item}
+                        </motion.li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-sm italic text-gray-500">Sem dados para o Plano B.</p>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -181,28 +189,32 @@ const PlanosEstrategicosABC = React.memo(function PlanosEstrategicosABC({ planos
             animate={prefersReducedMotion ? {} : { opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
           >
-            <Card className="bg-white rounded-xl shadow-sm">
+            <Card className="bg-white rounded-xl shadow-sm border-l-4 border-[#d63031]">
               <CardHeader>
                 <div className="flex items-center gap-2">
                   <span className="text-2xl" aria-hidden="true">🛠️</span>
-                  <CardTitle className="text-amber-700 text-sm sm:text-base lg:text-lg">Rota C – Estratégia criativa com orçamento mínimo</CardTitle>
+                  <CardTitle className="text-[#d63031] text-sm sm:text-base lg:text-lg">Rota C – Estratégia criativa com orçamento mínimo</CardTitle>
                 </div>
                 <CardDescription>Abordagem criativa para maximizar resultados com recursos limitados</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="overflow-x-auto max-w-full">
-                  <ul className="list-disc pl-6 text-gray-700 space-y-2 text-sm sm:text-base">
-                    {planoC.map((item, i) => (
-                      <motion.li 
-                        key={i}
-                        initial={prefersReducedMotion ? {} : { opacity: 0, x: -5 }}
-                        animate={prefersReducedMotion ? {} : { opacity: 1, x: 0 }}
-                        transition={{ duration: 0.2, delay: 0.05 * i }}
-                      >
-                        {item}
-                      </motion.li>
-                    ))}
-                  </ul>
+                  {planoC.length > 0 ? (
+                    <ul className="list-disc pl-6 text-gray-700 space-y-2 text-sm sm:text-base">
+                      {planoC.map((item, i) => (
+                        <motion.li 
+                          key={i}
+                          initial={prefersReducedMotion ? {} : { opacity: 0, x: -5 }}
+                          animate={prefersReducedMotion ? {} : { opacity: 1, x: 0 }}
+                          transition={{ duration: 0.2, delay: 0.05 * i }}
+                        >
+                          {item}
+                        </motion.li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-sm italic text-gray-500">Sem dados para o Plano C.</p>
+                  )}
                 </div>
               </CardContent>
             </Card>

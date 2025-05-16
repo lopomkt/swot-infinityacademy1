@@ -1,4 +1,3 @@
-
 // Tipagem central do projeto SWOT INSIGHTS – Infinity Academy
 // Cada etapa do formulário possui sua interface específica
 // Essa tipagem será usada progressivamente no projeto para substituir o uso de any
@@ -141,21 +140,24 @@ export interface PrioridadesData {
 }
 
 export interface ResultadoFinalData {
-  matriz_swot: string;
-  diagnostico_textual: string;
-  planos_acao: string;
-  acoes_priorizadas: string[];
-  scoreLabel?: string;  // Added for ScoreEstrategico component
-  pontuacao?: number;   // Added for ScoreEstrategico component
-  resultados_pdf_export_ready?: boolean;
-  resultados_bloco5_e_4b_ok?: boolean;
-  gpt_prompt_ok?: boolean;
   ai_block_pronto?: boolean;
-  // Adding the missing properties that caused the TypeScript errors
+  gpt_prompt_ok?: boolean;
+  diagnostico_textual?: string;
+  matriz_swot?: string;
+  planos_acao?: string;
+  planoA?: string[];
   planoB?: string[];
   planoC?: string[];
+  scoreLabel?: string;
+  pontuacao?: number;
+  resultados_pdf_export_ready?: boolean;
+  resultados_bloco5_e_4b_ok?: boolean;
   gargalos?: string[];
   alertasCascata?: string[];
+  acoes_priorizadas?: string[];
+  fase6_3_design_final_pdf_ok?: boolean;
+  fase7_1_ui_ux_gamificada_ok?: boolean;
+  fase7_2_consultivo_avancado_ok?: boolean;
 }
 
 // Flag interna para controlar a tipagem

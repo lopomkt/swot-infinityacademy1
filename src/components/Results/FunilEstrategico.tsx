@@ -30,7 +30,7 @@ const FunilEstrategico = React.memo(function FunilEstrategico({ gargalos = [], a
   const getStatusColor = (status) => {
     switch(status) {
       case "healthy": return "bg-[#00b894]";
-      case "warning": return "bg-[#fdcb6e]";
+      case "warning": return "bg-[#f1c40f]";
       case "bottleneck": return "bg-[#d63031]";
       default: return "bg-gray-400";
     }
@@ -65,13 +65,29 @@ const FunilEstrategico = React.memo(function FunilEstrategico({ gargalos = [], a
                 </div>
               )}
               {stage.status === "warning" && (
-                <div className="flex items-center justify-center text-xs text-[#fdcb6e]">
+                <div className="flex items-center justify-center text-xs text-[#f1c40f]">
                   <AlertTriangle className="h-3 w-3 mr-1" />
                   <span>Área de atenção</span>
                 </div>
               )}
             </div>
           ))}
+        </div>
+        
+        {/* Color legend */}
+        <div className="flex items-center justify-center gap-4 text-xs mt-4 flex-wrap">
+          <div className="flex items-center gap-1">
+            <div className="w-4 h-4 bg-[#00b894] rounded"></div>
+            <span>Saudável</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="w-4 h-4 bg-[#f1c40f] rounded"></div>
+            <span>Atenção</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="w-4 h-4 bg-[#d63031] rounded"></div>
+            <span>Gargalo</span>
+          </div>
         </div>
       </motion.div>
 
@@ -149,7 +165,7 @@ const FunilEstrategico = React.memo(function FunilEstrategico({ gargalos = [], a
     >
       <motion.h2 
         id="funil-estrategico-title" 
-        className="text-2xl font-bold text-black mb-4"
+        className="text-2xl font-bold text-[#000] border-b pb-2 mb-6"
         initial={prefersReducedMotion ? {} : { opacity: 0 }}
         animate={prefersReducedMotion ? {} : { opacity: 1 }}
         transition={{ duration: 0.3, delay: 0.1 }}

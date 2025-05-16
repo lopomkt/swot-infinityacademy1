@@ -13,9 +13,77 @@ const DiagnosticoTextual = React.memo(function DiagnosticoTextual({ texto }: Dia
   const isMobile = useIsMobile();
   const prefersReducedMotion = useReducedMotion();
 
+  // Function to format diagnostic text into sections
+  const formatDiagnosticSections = (text: string) => {
+    if (!text) return <p className="text-sm italic text-gray-500">Diagnóstico não disponível no momento.</p>;
+    
+    // Define section categories with icons
+    const sections = [
+      { title: "Estrutura Interna", icon: "📊", indicativePhrases: ["estrutura", "interna", "processos", "equipe"] },
+      { title: "Mercado", icon: "🧭", indicativePhrases: ["mercado", "concorrência", "posicionamento", "setor"] },
+      { title: "Riscos", icon: "⚠️", indicativePhrases: ["risco", "ameaça", "vulnerabilidade", "perigo"] },
+      { title: "Financeiro", icon: "💰", indicativePhrases: ["financeiro", "custo", "receita", "investimento", "dinheiro"] },
+      { title: "Oportunidades", icon: "🚀", indicativePhrases: ["oportunidade", "crescimento", "expansão", "potencial"] },
+      { title: "Operacional", icon: "🛠️", indicativePhrases: ["operação", "produção", "entrega", "eficiência"] }
+    ];
+    
+    // Split text into paragraphs
+    const paragraphs = text.split('\n').filter(p => p.trim().length > 0);
+    
+    // Categorize paragraphs
+    const categorizedContent = {};
+    let uncategorized = [];
+    
+    paragraphs.forEach(paragraph => {
+      // Find matching section
+      let matched = false;
+      for (const section of sections) {
+        if (section.indicativePhrases.some(phrase => 
+          paragraph.toLowerCase().includes(phrase.toLowerCase()))) {
+          if (!categorizedContent[section.title]) {
+            categorizedContent[section.title] = {
+              icon: section.icon,
+              paragraphs: []
+            };
+          }
+          categorizedContent[section.title].paragraphs.push(paragraph);
+          matched = true;
+          break;
+        }
+      }
+      
+      // If no section matched, add to uncategorized
+      if (!matched) {
+        uncategorized.push(paragraph);
+      }
+    });
+    
+    // Add "Geral" section for uncategorized paragraphs
+    if (uncategorized.length > 0) {
+      categorizedContent["Geral"] = {
+        icon: "💡",
+        paragraphs: uncategorized
+      };
+    }
+    
+    // Render sections
+    return Object.entries(categorizedContent).map(([title, content]: [string, any], index) => (
+      <div key={index} className="mb-6">
+        <h4 className="text-base font-semibold text-[#000] mt-6 mb-1">
+          {content.icon} {title}
+        </h4>
+        {content.paragraphs.map((paragraph, pIndex) => (
+          <p key={pIndex} className="text-sm text-gray-700 mb-3 leading-relaxed">
+            {highlightKeyPhrases(paragraph)}
+          </p>
+        ))}
+      </div>
+    ));
+  };
+
   // Function to highlight key phrases in the text
   const highlightKeyPhrases = (text: string) => {
-    if (!text) return <p className="text-sm italic text-gray-500">Diagnóstico não disponível no momento.</p>;
+    if (!text) return text;
     
     // List of keywords to highlight
     const keywords = [
@@ -25,25 +93,14 @@ const DiagnosticoTextual = React.memo(function DiagnosticoTextual({ texto }: Dia
       "potencial", "crescimento", "expansão", "consolidação"
     ];
     
-    // Split text into paragraphs
-    return text.split('\n').map((paragraph, idx) => {
-      if (!paragraph.trim()) return null;
-      
-      // Check for keywords and wrap them in highlight span
-      let highlightedText = paragraph;
-      keywords.forEach(keyword => {
-        const regex = new RegExp(`(${keyword})`, 'gi');
-        highlightedText = highlightedText.replace(regex, '<span class="font-semibold text-[#560005]">$1</span>');
-      });
-      
-      return (
-        <p 
-          key={idx} 
-          className="text-base text-gray-800 leading-relaxed font-sans mb-6"
-          dangerouslySetInnerHTML={{ __html: highlightedText }}
-        />
-      );
+    // Check for keywords and wrap them in highlight span
+    let highlightedText = text;
+    keywords.forEach(keyword => {
+      const regex = new RegExp(`(${keyword})`, 'gi');
+      highlightedText = highlightedText.replace(regex, '<span class="font-semibold text-[#560005]">$1</span>');
     });
+    
+    return <span dangerouslySetInnerHTML={{ __html: highlightedText }} />;
   };
 
   const renderDiagnosticoContent = () => (
@@ -54,7 +111,7 @@ const DiagnosticoTextual = React.memo(function DiagnosticoTextual({ texto }: Dia
       transition={{ duration: 0.3 }}
     >
       <div className="text-base overflow-x-auto max-w-full">
-        {highlightKeyPhrases(texto)}
+        {formatDiagnosticSections(texto)}
       </div>
     </motion.div>
   );
@@ -70,7 +127,7 @@ const DiagnosticoTextual = React.memo(function DiagnosticoTextual({ texto }: Dia
     >
       <motion.h2 
         id="diagnostico-title" 
-        className="text-2xl font-bold text-black mb-4"
+        className="text-2xl font-bold text-[#000] border-b pb-2 mb-6"
         initial={prefersReducedMotion ? {} : { opacity: 0 }}
         animate={prefersReducedMotion ? {} : { opacity: 1 }}
         transition={{ duration: 0.3, delay: 0.1 }}

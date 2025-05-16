@@ -46,6 +46,7 @@ import QuickDataCards from '@/components/Results/QuickDataCards';
 import { Skeleton } from '@/components/ui/skeleton';
 import PrintableResults from '@/components/Results/PrintableResults';
 import ExportacaoPDF from '@/components/Results/ExportacaoPDF';
+import { useIsMobile } from '@/hooks/use-mobile'; 
 
 // Lazy-loaded components
 const DiagnosticoTextual = lazy(() => import('@/components/Results/DiagnosticoTextual'));
@@ -53,6 +54,9 @@ const MatrizSWOT = lazy(() => import('@/components/Results/MatrizSWOT'));
 const ScoreEstrategico = lazy(() => import('@/components/Results/ScoreEstrategico'));
 const PlanosEstrategicosABC = lazy(() => import('@/components/Results/PlanosEstrategicosABC'));
 const FunilEstrategico = lazy(() => import('@/components/Results/FunilEstrategico'));
+const ConsultiveInsight = lazy(() => import('@/components/Results/ConsultiveInsight'));
+const StrategicSuggestions = lazy(() => import('@/components/Results/StrategicSuggestions'));
+const StrategicCTA = lazy(() => import('@/components/Results/StrategicCTA'));
 
 // Define types for better TypeScript support
 interface ActionItem {
@@ -546,6 +550,8 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData }) => {
     formData.resultadoFinal.resultados_pdf_export_ready = true;
   }
 
+  const isMobile = useIsMobile();
+
   return (
     <section className="min-h-screen bg-white py-12 px-4 sm:px-6">
       <PrintableResults>
@@ -585,7 +591,7 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData }) => {
 
         {/* SWOT Matrix */}
         <div id="bloco_mapa_swot" className="mb-12">
-          <h2 className="text-2xl font-bold text-[#560005] mb-6">Matriz SWOT</h2>
+          <h2 className="text-2xl font-bold text-[#000] border-b pb-2 mb-6">Matriz SWOT</h2>
           
           <Suspense fallback={<Skeleton className="h-[300px] w-full rounded-xl" />}>
             <MatrizSWOT
@@ -594,6 +600,18 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData }) => {
               oportunidades={formData.oportunidades?.respostas || []}
               ameacas={formData.ameacas?.respostas || []}
             />
+          </Suspense>
+          
+          {/* New Quick Scenario Reading section */}
+          <Suspense fallback={<Skeleton className="h-[100px] w-full rounded-xl mt-10" />}>
+            <ConsultiveInsight
+              title="Leitura Rápida do Cenário"
+              icon="📌"
+            >
+              <p className="text-sm text-gray-700 leading-relaxed">
+                A combinação entre suas forças e oportunidades indica que sua empresa está posicionada para <span className="font-semibold text-[#b70001]">acelerar o crescimento</span>. Porém, as fraquezas e ameaças revelam pontos de atenção que <span className="font-semibold text-[#d63031]">precisam de ação imediata</span>.
+              </p>
+            </ConsultiveInsight>
           </Suspense>
 
           {/* Raw SWOT Text */}
@@ -639,7 +657,7 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData }) => {
             <div className="flex justify-center mb-3">
               <BrainIcon className="h-8 w-8 text-[#ef0002]" />
             </div>
-            <h2 className="text-2xl font-bold text-[#560005] mb-2">
+            <h2 className="text-2xl font-bold text-[#560005] border-b pb-2 mb-4 inline-block px-8">
               Análise Profunda do Seu Negócio
             </h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
@@ -673,7 +691,7 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData }) => {
             <div className="flex justify-center mb-3">
               <ChartBarIcon className="h-8 w-8 text-[#ef0002]" />
             </div>
-            <h2 className="text-2xl font-bold text-[#560005] mb-2">
+            <h2 className="text-2xl font-bold text-[#560005] border-b pb-2 mb-4 inline-block px-8">
               Nível de Maturidade e Prontidão Estratégica
             </h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
@@ -695,21 +713,23 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData }) => {
                   },
                 }}
               >
-                <RadarChart outerRadius={90} data={calculateStrategicScore()}>
-                  <PolarGrid stroke="#ccc" />
-                  <PolarAngleAxis dataKey="subject" />
-                  <PolarRadiusAxis angle={30} domain={[0, 10]} />
-                  <Radar
-                    name="Sua Empresa"
-                    dataKey="A"
-                    stroke="#ef0002"
-                    fill="#ef0002"
-                    fillOpacity={0.3}
-                  />
-                  <ChartLegend>
-                    <ChartLegendContent />
-                  </ChartLegend>
-                </RadarChart>
+                <ResponsiveContainer width="100%" height="100%">
+                  <RadarChart outerRadius={90} data={calculateStrategicScore()}>
+                    <PolarGrid stroke="#ccc" />
+                    <PolarAngleAxis dataKey="subject" />
+                    <PolarRadiusAxis angle={30} domain={[0, 10]} />
+                    <Radar
+                      name="Sua Empresa"
+                      dataKey="A"
+                      stroke="#ef0002"
+                      fill="#ef0002"
+                      fillOpacity={0.3}
+                    />
+                    <ChartLegend>
+                      <ChartLegendContent />
+                    </ChartLegend>
+                  </RadarChart>
+                </ResponsiveContainer>
               </ChartContainer>
             </div>
 
@@ -744,7 +764,7 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData }) => {
         {/* NEW BLOCK 5: Strategic Action Plan A/B/C */}
         <div id="bloco_planos_abc" className="mb-16">
           <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold text-[#560005] mb-2">
+            <h2 className="text-2xl font-bold text-[#560005] border-b pb-2 mb-4 inline-block px-8">
               Plano de Ação Estratégico: Escolha sua Rota
             </h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
@@ -764,10 +784,17 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData }) => {
           </Suspense>
         </div>
 
-        {/* NEW BLOCK 4B: Funnel Visualization */}
+        {/* NEW BLOCK: Strategic Suggestions */}
+        <div id="bloco_sugestoes_estrategicas" className="mb-16">
+          <Suspense fallback={<Skeleton className="h-[300px] w-full rounded-xl" />}>
+            <StrategicSuggestions suggestions={strategicSuggestions} />
+          </Suspense>
+        </div>
+
+        {/* BLOCK: Funnel Visualization */}
         <div id="bloco_funil_gargalos" className="mb-16">
           <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold text-[#560005] mb-2">
+            <h2 className="text-2xl font-bold text-[#560005] border-b pb-2 mb-4 inline-block px-8">
               Funil Estratégico da Empresa: Gargalos e Alertas
             </h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
@@ -786,12 +813,16 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData }) => {
           </div>
         </div>
 
-        {/* FINAL BLOCK: Conclusion & CTA */}
+        {/* FINAL BLOCK: CTA Section */}
         {allSectionsReady && (
           <>
             <div id="ancora_final">
               <Separator className="mb-12" />
             </div>
+            
+            <Suspense fallback={<Skeleton className="h-[150px] w-full rounded-xl" />}>
+              <StrategicCTA />
+            </Suspense>
           </>
         )}
 
@@ -801,6 +832,7 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData }) => {
           {(() => {
             if (formData.resultadoFinal) {
               formData.resultadoFinal.resultados_bloco5_e_4b_ok = true;
+              formData.resultadoFinal.fase7_2_consultivo_avancado_ok = true;
             }
             return null;
           })()}
@@ -811,6 +843,7 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData }) => {
           {/* refatoracao_pdf_finalizacao_ok = true */}
           {/* ux_performance_memo_lazy_ok = true */}
           {/* fase5_finalizacao_ok = true */}
+          {/* fase7_2_consultivo_avancado_ok = true */}
         </div>
       </PrintableResults>
       
