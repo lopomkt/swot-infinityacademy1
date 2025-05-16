@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import ProgressBar from "@/components/ProgressBar";
 import WelcomeStep from "@/components/WelcomeStep";
@@ -41,7 +42,7 @@ const Index = () => {
     fase5_voltar_ok: true,
     fase5_gamificacao_ok: true,
     fase5_finalizacao_ok: true,
-    fase5_resultado_final_ok: true, // Added the new tracking tag
+    fase5_resultado_final_ok: true,
   });
 
   // Save form data to localStorage whenever it changes
@@ -66,7 +67,7 @@ const Index = () => {
       fase5_voltar_ok: true,
       fase5_gamificacao_ok: true,
       fase5_finalizacao_ok: true,
-      fase5_resultado_final_ok: true, // Added the new tracking tag
+      fase5_resultado_final_ok: true,
     });
     setStep(0);
   };

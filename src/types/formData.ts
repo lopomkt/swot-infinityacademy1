@@ -190,4 +190,6 @@ export interface FormData {
   fase5_gamificacao_ok?: boolean;
   // Add finalization tracking tag
   fase5_finalizacao_ok?: boolean;
+  // Add resultado final tracking tag
+  fase5_resultado_final_ok?: boolean; // Added this missing property
 }
