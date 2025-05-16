@@ -112,6 +112,14 @@ interface ResultsScreenProps {
 const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData }) => {
   const [priorityActions, setPriorityActions] = useState<string[]>([]);
   
+  // Function to scroll to a section by its ID
+  const scrollToSection = (sectionId: string) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+  
   // Check if results exist and are properly formatted
   if (!formData || !formData.resultadoFinal || Object.keys(formData.resultadoFinal).length === 0) {
     return (
