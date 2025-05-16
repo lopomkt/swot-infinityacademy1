@@ -11,16 +11,23 @@ import FormStepSaudeFinanceira from "@/components/FormStepSaudeFinanceira";
 import FormStepPrioridades from "@/components/FormStepPrioridades";
 import FinalizacaoStep from "@/components/FinalizacaoStep";
 import ResultsScreen from "@/pages/ResultsScreen";
+import TransitionStep from "@/components/TransitionStep";
 import { FormData } from "@/types/formData";
 
 const STEPS = [
   { label: "Boas-vindas" },
   { label: "Identificação & Contexto Empresarial" },
+  { label: "Transição" },
   { label: "Forças" },
+  { label: "Transição" },
   { label: "Fraquezas" },
+  { label: "Transição" },
   { label: "Oportunidades" },
+  { label: "Transição" },
   { label: "Ameaças" },
+  { label: "Transição" },
   { label: "Saúde Financeira" },
+  { label: "Transição" },
   { label: "Prioridades e Maturidade" },
   { label: "Finalização" },
   { label: "Resultados" },
@@ -29,7 +36,8 @@ const STEPS = [
 const Index = () => {
   const [step, setStep] = useState(0);
   const [formData, setFormData] = useState<FormData>({
-    tipagem_index_ok: true
+    tipagem_index_ok: true,
+    fase5_transicoes_ok: true, // Tag de rastreamento
   });
 
   const resetForm = () => {
@@ -42,9 +50,18 @@ const Index = () => {
     return formData.resultadoFinal?.ai_block_pronto && formData.resultadoFinal?.gpt_prompt_ok;
   };
 
+  // Helper function to determine the current visual step for the progress bar
+  const getCurrentProgressStep = () => {
+    // Map decimal steps (transitions) to their integer counterparts for the progress bar
+    if (step % 1 !== 0) {
+      return Math.floor(step);
+    }
+    return step;
+  };
+
   return (
     <div className="min-h-screen bg-white text-black font-manrope flex flex-col items-center justify-start">
-      <ProgressBar currentStep={step} stepsCount={STEPS.length} />
+      <ProgressBar currentStep={getCurrentProgressStep()} stepsCount={STEPS.length} />
       <main className="w-full max-w-5xl p-4 flex-1 flex flex-col items-center justify-center animate-fade-in">
         {step === 0 && (
           <WelcomeStep
@@ -56,8 +73,15 @@ const Index = () => {
             defaultValues={formData.identificacao}
             onComplete={(identificacao) => {
               setFormData((prev) => ({ ...prev, identificacao }));
-              setStep(2);
+              setStep(1.5);
             }}
+          />
+        )}
+        {step === 1.5 && (
+          <TransitionStep
+            title="Vamos identificar as forças do seu negócio"
+            description="Agora vamos analisar os pontos fortes da sua empresa - aqueles diferenciais competitivos que você já possui e que podem ser potencializados."
+            onContinue={() => setStep(2)}
           />
         )}
         {step === 2 && (
@@ -71,8 +95,15 @@ const Index = () => {
                 },
                 step_forcas_ok: true
               }));
-              setStep(3);
+              setStep(2.5);
             }}
+          />
+        )}
+        {step === 2.5 && (
+          <TransitionStep
+            title="Vamos analisar os pontos de melhoria"
+            description="Identificar fraquezas não é sinal de fracasso - é um passo essencial para fortalecer seu negócio e transformar vulnerabilidades em oportunidades de crescimento."
+            onContinue={() => setStep(3)}
           />
         )}
         {step === 3 && (
@@ -80,8 +111,15 @@ const Index = () => {
             defaultValues={formData.fraquezas}
             onComplete={(fraquezas) => {
               setFormData((prev) => ({ ...prev, fraquezas }));
-              setStep(4);
+              setStep(3.5);
             }}
+          />
+        )}
+        {step === 3.5 && (
+          <TransitionStep
+            title="Explorando oportunidades de mercado"
+            description="Vamos identificar as oportunidades externas que podem impulsionar seu negócio - tendências, nichos inexplorados e demandas emergentes que podem ser aproveitadas."
+            onContinue={() => setStep(4)}
           />
         )}
         {step === 4 && (
@@ -89,8 +127,15 @@ const Index = () => {
             defaultValues={formData.oportunidades}
             onComplete={(oportunidades) => {
               setFormData((prev) => ({ ...prev, oportunidades }));
-              setStep(5);
+              setStep(4.5);
             }}
+          />
+        )}
+        {step === 4.5 && (
+          <TransitionStep
+            title="Identificando ameaças e desafios"
+            description="Por último, vamos mapear as ameaças externas que podem impactar seu negócio, preparando estratégias defensivas e de mitigação de riscos."
+            onContinue={() => setStep(5)}
           />
         )}
         {step === 5 && (
@@ -98,8 +143,15 @@ const Index = () => {
             defaultValues={formData.ameacas}
             onComplete={(ameacas) => {
               setFormData((prev) => ({ ...prev, ameacas }));
-              setStep(6);
+              setStep(5.5);
             }}
+          />
+        )}
+        {step === 5.5 && (
+          <TransitionStep
+            title="Avaliando a saúde financeira"
+            description="Agora vamos analisar a situação financeira da sua empresa para fundamentar recomendações alinhadas à sua realidade econômica."
+            onContinue={() => setStep(6)}
           />
         )}
         {step === 6 && (
@@ -107,8 +159,15 @@ const Index = () => {
             defaultValues={formData.saudeFinanceira}
             onComplete={(saudeFinanceira) => {
               setFormData((prev) => ({ ...prev, saudeFinanceira }));
-              setStep(7);
+              setStep(6.5);
             }}
+          />
+        )}
+        {step === 6.5 && (
+          <TransitionStep
+            title="Definindo prioridades estratégicas"
+            description="Para finalizar, vamos estabelecer prioridades claras e entender suas metas de curto e longo prazo para direcionar as recomendações estratégicas."
+            onContinue={() => setStep(7)}
           />
         )}
         {step === 7 && (
@@ -120,8 +179,15 @@ const Index = () => {
                 prioridades,
                 step_prioridades_ok: true
               }));
-              setStep(8);
+              setStep(7.5);
             }}
+          />
+        )}
+        {step === 7.5 && (
+          <TransitionStep
+            title="Finalizando sua análise SWOT"
+            description="Parabéns! Você completou todas as etapas do diagnóstico. Agora vamos processar suas informações e gerar seu relatório estratégico personalizado."
+            onContinue={() => setStep(8)}
           />
         )}
         {step === 8 && (
