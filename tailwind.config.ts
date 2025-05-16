@@ -41,6 +41,8 @@ export default {
 					DEFAULT: '#b70001',
 					foreground: '#ffffff',
 				},
+				primaryDark: '#b70001',
+				darkRed: '#560005',
 				destructive: {
 					DEFAULT: 'hsl(var(--destructive))',
 					foreground: 'hsl(var(--destructive-foreground))'

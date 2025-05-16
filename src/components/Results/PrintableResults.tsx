@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { cardBase } from "@/styles/uiClasses";
 
 interface PrintableResultsProps {
   children: React.ReactNode;

@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Download, MessageCircle } from "lucide-react";
+import { buttonBase } from "@/styles/uiClasses";
 
 interface ExportacaoPDFProps {
   onExport: () => void;
@@ -18,7 +19,7 @@ export default function ExportacaoPDF({ onExport }: ExportacaoPDFProps) {
   return (
     <div className="mb-16">
       <div className="text-center mb-8">
-        <h2 className="text-2xl font-bold text-[#560005] mb-2">
+        <h2 className="text-2xl font-bold text-secondary mb-2">
           Seu Diagnóstico Está Pronto.
         </h2>
         <p className="text-gray-600 max-w-2xl mx-auto">
@@ -32,7 +33,7 @@ export default function ExportacaoPDF({ onExport }: ExportacaoPDFProps) {
       <div className="flex flex-col md:flex-row gap-4 justify-center mb-8">
         <button 
           onClick={onExport}
-          className="bg-[#ef0002] hover:bg-[#b70001] text-white px-4 py-2 rounded flex items-center justify-center"
+          className={`${buttonBase} bg-primary text-white hover:bg-primaryDark flex items-center justify-center`}
         >
           <Download className="mr-2 h-4 w-4" />
           Baixar Diagnóstico em PDF
@@ -40,7 +41,7 @@ export default function ExportacaoPDF({ onExport }: ExportacaoPDFProps) {
         
         <button 
           onClick={openWhatsApp}
-          className="bg-[#560005] hover:bg-[#3d0003] text-white px-4 py-2 rounded flex items-center justify-center"
+          className={`${buttonBase} bg-secondary hover:bg-opacity-80 text-white flex items-center justify-center`}
         >
           <MessageCircle className="mr-2 h-4 w-4" />
           Falar com a Equipe da INFINITY
@@ -53,7 +54,7 @@ export default function ExportacaoPDF({ onExport }: ExportacaoPDFProps) {
       </p>
       
       {/* Footer watermark */}
-      <div className="text-xs text-center text-[#b70001] mt-10">
+      <div className="text-xs text-center text-accent mt-10">
         SWOT INSIGHTS | Infinity Academy
       </div>
     </div>
