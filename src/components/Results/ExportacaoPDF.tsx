@@ -47,7 +47,7 @@ export default function ExportacaoPDF({ onExport }: ExportacaoPDFProps) {
       >
         <motion.h2 
           id="export-section-title" 
-          className="text-2xl font-bold text-secondary mb-2"
+          className="text-xl font-semibold text-[#1f1f1f] mb-2"
           initial={prefersReducedMotion ? {} : { opacity: 0, y: -5 }}
           animate={prefersReducedMotion ? {} : { opacity: 1, y: 0 }}
           transition={{ duration: 0.3, delay: 0.2 }}
@@ -55,7 +55,7 @@ export default function ExportacaoPDF({ onExport }: ExportacaoPDFProps) {
           Seu Diagnóstico Está Pronto.
         </motion.h2>
         <motion.p 
-          className="text-gray-600 max-w-2xl mx-auto text-sm sm:text-base"
+          className="text-[#1f1f1f] max-w-2xl mx-auto text-sm sm:text-base"
           initial={prefersReducedMotion ? {} : { opacity: 0 }}
           animate={prefersReducedMotion ? {} : { opacity: 1 }}
           transition={{ duration: 0.3, delay: 0.3 }}
@@ -68,7 +68,7 @@ export default function ExportacaoPDF({ onExport }: ExportacaoPDFProps) {
       
       {/* CTA Buttons */}
       <motion.div 
-        className="flex flex-col md:flex-row gap-4 justify-center mb-8"
+        className="flex flex-col md:flex-row gap-4 justify-center mt-10 mb-6"
         initial={prefersReducedMotion ? {} : { opacity: 0 }}
         animate={prefersReducedMotion ? {} : { opacity: 1 }}
         transition={{ duration: 0.3, delay: 0.4 }}
@@ -76,7 +76,7 @@ export default function ExportacaoPDF({ onExport }: ExportacaoPDFProps) {
         <motion.button 
           onClick={handleExport}
           disabled={gerando}
-          className={`${buttonBase} bg-primary text-white hover:bg-primaryDark flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 block w-full sm:w-auto text-center py-3 px-6 text-base ${gerando ? 'opacity-70 cursor-not-allowed' : ''}`}
+          className={`${buttonBase} bg-primary text-white hover:bg-primaryDark flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-[#ef0002] focus:ring-offset-2 block w-full sm:w-auto text-center py-3 px-6 text-base ${gerando ? 'opacity-70 cursor-not-allowed' : ''}`}
           aria-label="Baixar diagnóstico SWOT em formato PDF"
           variants={prefersReducedMotion ? {} : buttonVariants}
           whileHover={prefersReducedMotion ? {} : "hover"}
@@ -92,7 +92,7 @@ export default function ExportacaoPDF({ onExport }: ExportacaoPDFProps) {
           href={`https://wa.me/5567993146148?text=${encodeURIComponent("Olá! Acabei de concluir o SWOT INSIGHTS da INFINITY e quero conversar com a equipe sobre o meu diagnóstico.")}`}
           target="_blank"
           rel="noopener noreferrer"
-          className={`${buttonBase} bg-[#ef0002] hover:bg-[#b70001] text-white flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-secondary focus:ring-offset-2 block w-full sm:w-auto text-center py-3 px-6 text-base`}
+          className={`${buttonBase} bg-[#ef0002] hover:bg-[#b70001] text-white flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-[#ef0002] focus:ring-offset-2 block w-full sm:w-auto text-center py-3 px-6 text-base`}
           aria-label="Conversar com a equipe da INFINITY sobre o diagnóstico via WhatsApp"
           variants={prefersReducedMotion ? {} : buttonVariants}
           whileHover={prefersReducedMotion ? {} : "hover"}
@@ -107,7 +107,7 @@ export default function ExportacaoPDF({ onExport }: ExportacaoPDFProps) {
       
       {/* Reinforcement message */}
       <motion.p 
-        className="text-center text-gray-700 max-w-2xl mx-auto text-sm sm:text-base"
+        className="text-center text-[#1f1f1f] max-w-2xl mx-auto text-sm sm:text-base"
         initial={prefersReducedMotion ? {} : { opacity: 0 }}
         animate={prefersReducedMotion ? {} : { opacity: 1 }}
         transition={{ duration: 0.3, delay: 0.5 }}
@@ -117,7 +117,7 @@ export default function ExportacaoPDF({ onExport }: ExportacaoPDFProps) {
       
       {/* Footer watermark */}
       <motion.div 
-        className="text-xs text-center text-accent mt-10" 
+        className="text-xs text-center text-gray-400 mt-10" 
         aria-hidden="true"
         initial={prefersReducedMotion ? {} : { opacity: 0 }}
         animate={prefersReducedMotion ? {} : { opacity: 1 }}

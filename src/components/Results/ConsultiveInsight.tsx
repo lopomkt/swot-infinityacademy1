@@ -20,7 +20,7 @@ const ConsultiveInsight = React.memo(function ConsultiveInsight({
   
   return (
     <motion.div 
-      className={`bg-[#fefefe] p-6 rounded-xl shadow-md mt-10 border-l-4 ${borderColor}`}
+      className={`bg-white p-6 rounded-xl shadow-md mt-10 border-l-4 ${borderColor}`}
       role="region"
       aria-labelledby={`insight-${title.replace(/\s+/g, '-').toLowerCase()}`}
       initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
@@ -29,11 +29,11 @@ const ConsultiveInsight = React.memo(function ConsultiveInsight({
     >
       <h3 
         id={`insight-${title.replace(/\s+/g, '-').toLowerCase()}`}
-        className="text-lg font-bold text-[#560005] mb-2"
+        className="text-lg font-medium text-[#560005] mb-2"
       >
         {icon} {title}
       </h3>
-      <div className="text-sm text-gray-700 leading-relaxed">
+      <div className="text-sm text-[#1f1f1f] leading-relaxed">
         {children}
       </div>
     </motion.div>

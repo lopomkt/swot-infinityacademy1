@@ -53,7 +53,7 @@ const FunilEstrategico = React.memo(function FunilEstrategico({ gargalos = [], a
                   className={`h-12 ${getStatusColor(stage.status)} rounded-lg shadow-sm`}
                   style={{ width: stage.width }}
                 >
-                  <div className="flex items-center justify-center h-full text-white font-semibold">
+                  <div className="flex items-center justify-center h-full text-white font-medium">
                     {stage.name}
                   </div>
                 </div>
@@ -92,14 +92,14 @@ const FunilEstrategico = React.memo(function FunilEstrategico({ gargalos = [], a
       </motion.div>
 
       <motion.div 
-        className="bg-white p-4 sm:p-6 md:p-8 rounded-xl border-l-4 border-[#d63031] shadow-sm mb-6 overflow-x-auto max-w-full"
+        className="bg-white p-6 md:p-8 lg:p-10 rounded-xl border-l-4 border-[#d63031] shadow-sm mb-6 overflow-x-auto max-w-full"
         initial={prefersReducedMotion ? {} : { opacity: 0, y: 10 }}
         animate={prefersReducedMotion ? {} : { opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
       >
-        <h3 id="gargalos-title" className="font-semibold text-[#b70001] mb-2 text-sm sm:text-base">Gargalos Atuais</h3>
+        <h3 id="gargalos-title" className="font-medium text-[#560005] mb-2 text-lg">Gargalos Atuais</h3>
         <ul 
-          className="list-disc pl-5 text-gray-700 space-y-1 text-sm sm:text-base"
+          className="list-disc pl-5 text-[#1f1f1f] space-y-1 text-sm sm:text-base"
           aria-labelledby="gargalos-title"
         >
           {gargalosData.map((item, i) => (
@@ -116,14 +116,14 @@ const FunilEstrategico = React.memo(function FunilEstrategico({ gargalos = [], a
       </motion.div>
 
       <motion.div 
-        className="bg-white p-4 sm:p-6 md:p-8 rounded-xl border-l-4 border-[#560005] shadow-sm mb-6 overflow-x-auto max-w-full"
+        className="bg-white p-6 md:p-8 lg:p-10 rounded-xl border-l-4 border-[#560005] shadow-sm mb-6 overflow-x-auto max-w-full"
         initial={prefersReducedMotion ? {} : { opacity: 0, y: 10 }}
         animate={prefersReducedMotion ? {} : { opacity: 1, y: 0 }}
         transition={{ duration: 0.3, delay: 0.2 }}
       >
-        <h3 id="alertas-title" className="font-semibold text-[#b70001] mb-2 text-sm sm:text-base">Alertas em Efeito Cascata</h3>
+        <h3 id="alertas-title" className="font-medium text-[#560005] mb-2 text-lg">Alertas em Efeito Cascata</h3>
         <ul 
-          className="list-disc pl-5 text-gray-700 space-y-1 text-sm sm:text-base"
+          className="list-disc pl-5 text-[#1f1f1f] space-y-1 text-sm sm:text-base"
           aria-labelledby="alertas-title"
         >
           {alertasData.map((item, i) => (
@@ -140,7 +140,7 @@ const FunilEstrategico = React.memo(function FunilEstrategico({ gargalos = [], a
       </motion.div>
       
       <motion.div 
-        className="bg-[#ffebeb] border border-[#ef0002] rounded-md p-4 text-red-800 flex items-start text-sm sm:text-base" 
+        className="bg-white border border-[#ef0002] rounded-md p-6 md:p-8 lg:p-10 text-[#1f1f1f] flex items-start text-sm sm:text-base" 
         role="alert"
         initial={prefersReducedMotion ? {} : { opacity: 0 }}
         animate={prefersReducedMotion ? {} : { opacity: 1 }}
@@ -165,7 +165,7 @@ const FunilEstrategico = React.memo(function FunilEstrategico({ gargalos = [], a
     >
       <motion.h2 
         id="funil-estrategico-title" 
-        className="text-2xl font-bold text-[#000] border-b pb-2 mb-6"
+        className="text-xl font-semibold text-[#1f1f1f] border-b pb-2 mb-6"
         initial={prefersReducedMotion ? {} : { opacity: 0 }}
         animate={prefersReducedMotion ? {} : { opacity: 1 }}
         transition={{ duration: 0.3, delay: 0.1 }}
@@ -177,7 +177,7 @@ const FunilEstrategico = React.memo(function FunilEstrategico({ gargalos = [], a
         <Accordion type="single" collapsible>
           <AccordionItem value="funil-estrategico">
             <motion.div whileTap={{ scale: prefersReducedMotion ? 1 : 0.98 }}>
-              <AccordionTrigger className="text-[#560005] font-bold">
+              <AccordionTrigger className="text-[#560005] font-medium">
                 Ver detalhes do Funil Estratégico
               </AccordionTrigger>
             </motion.div>

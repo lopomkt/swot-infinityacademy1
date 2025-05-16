@@ -32,7 +32,7 @@ const MatrizSWOT = React.memo(function MatrizSWOT({ forcas, fraquezas, oportunid
       }}
     >      
       <motion.div 
-        className="bg-gray-50 border-l-4 border-[#00b894] p-4 rounded-xl shadow-sm"
+        className="bg-white border-l-4 border-[#00b894] p-6 md:p-8 lg:p-10 rounded-xl shadow-sm"
         variants={prefersReducedMotion ? {} : {
           hidden: { opacity: 0, y: 20 },
           visible: { opacity: 1, y: 0, transition: { duration: 0.3 } }
@@ -40,10 +40,10 @@ const MatrizSWOT = React.memo(function MatrizSWOT({ forcas, fraquezas, oportunid
       >
         <div className="flex items-center mb-2">
           <Star className="h-5 w-5 text-[#00b894] mr-2" />
-          <h3 id="forcas-title" className="font-bold text-black text-sm sm:text-base">FORÇAS</h3>
+          <h3 id="forcas-title" className="font-medium text-[#1f1f1f] text-lg">FORÇAS</h3>
         </div>
         <ul 
-          className="list-disc pl-5 text-gray-700 text-sm sm:text-base" 
+          className="list-disc pl-5 text-[#1f1f1f] text-sm sm:text-base" 
           aria-labelledby="forcas-title"
         >
           {forcas.map((item, idx) => (
@@ -60,7 +60,7 @@ const MatrizSWOT = React.memo(function MatrizSWOT({ forcas, fraquezas, oportunid
         </ul>
       </motion.div>
       <motion.div 
-        className="bg-gray-50 border-l-4 border-[#d63031] p-4 rounded-xl shadow-sm"
+        className="bg-white border-l-4 border-[#d63031] p-6 md:p-8 lg:p-10 rounded-xl shadow-sm"
         variants={prefersReducedMotion ? {} : {
           hidden: { opacity: 0, y: 20 },
           visible: { opacity: 1, y: 0, transition: { duration: 0.3, delay: 0.05 } }
@@ -68,10 +68,10 @@ const MatrizSWOT = React.memo(function MatrizSWOT({ forcas, fraquezas, oportunid
       >
         <div className="flex items-center mb-2">
           <TrendingDown className="h-5 w-5 text-[#d63031] mr-2" />
-          <h3 id="fraquezas-title" className="font-bold text-black text-sm sm:text-base">FRAQUEZAS</h3>
+          <h3 id="fraquezas-title" className="font-medium text-[#1f1f1f] text-lg">FRAQUEZAS</h3>
         </div>
         <ul 
-          className="list-disc pl-5 text-gray-700 text-sm sm:text-base"
+          className="list-disc pl-5 text-[#1f1f1f] text-sm sm:text-base"
           aria-labelledby="fraquezas-title"
         >
           {fraquezas.map((item, idx) => (
@@ -88,7 +88,7 @@ const MatrizSWOT = React.memo(function MatrizSWOT({ forcas, fraquezas, oportunid
         </ul>
       </motion.div>
       <motion.div 
-        className="bg-gray-50 border-l-4 border-[#0984e3] p-4 rounded-xl shadow-sm"
+        className="bg-white border-l-4 border-[#0984e3] p-6 md:p-8 lg:p-10 rounded-xl shadow-sm"
         variants={prefersReducedMotion ? {} : {
           hidden: { opacity: 0, y: 20 },
           visible: { opacity: 1, y: 0, transition: { duration: 0.3, delay: 0.1 } }
@@ -96,10 +96,10 @@ const MatrizSWOT = React.memo(function MatrizSWOT({ forcas, fraquezas, oportunid
       >
         <div className="flex items-center mb-2">
           <Lightbulb className="h-5 w-5 text-[#0984e3] mr-2" />
-          <h3 id="oportunidades-title" className="font-bold text-black text-sm sm:text-base">OPORTUNIDADES</h3>
+          <h3 id="oportunidades-title" className="font-medium text-[#1f1f1f] text-lg">OPORTUNIDADES</h3>
         </div>
         <ul 
-          className="list-disc pl-5 text-gray-700 text-sm sm:text-base"
+          className="list-disc pl-5 text-[#1f1f1f] text-sm sm:text-base"
           aria-labelledby="oportunidades-title"
         >
           {oportunidades.map((item, idx) => (
@@ -116,7 +116,7 @@ const MatrizSWOT = React.memo(function MatrizSWOT({ forcas, fraquezas, oportunid
         </ul>
       </motion.div>
       <motion.div 
-        className="bg-gray-50 border-l-4 border-[#fdcb6e] p-4 rounded-xl shadow-sm"
+        className="bg-white border-l-4 border-[#fdcb6e] p-6 md:p-8 lg:p-10 rounded-xl shadow-sm"
         variants={prefersReducedMotion ? {} : {
           hidden: { opacity: 0, y: 20 },
           visible: { opacity: 1, y: 0, transition: { duration: 0.3, delay: 0.15 } }
@@ -124,10 +124,10 @@ const MatrizSWOT = React.memo(function MatrizSWOT({ forcas, fraquezas, oportunid
       >
         <div className="flex items-center mb-2">
           <AlertTriangle className="h-5 w-5 text-[#fdcb6e] mr-2" />
-          <h3 id="ameacas-title" className="font-bold text-black text-sm sm:text-base">AMEAÇAS</h3>
+          <h3 id="ameacas-title" className="font-medium text-[#1f1f1f] text-lg">AMEAÇAS</h3>
         </div>
         <ul 
-          className="list-disc pl-5 text-gray-700 text-sm sm:text-base"
+          className="list-disc pl-5 text-[#1f1f1f] text-sm sm:text-base"
           aria-labelledby="ameacas-title"
         >
           {ameacas.map((item, idx) => (
@@ -161,7 +161,7 @@ const MatrizSWOT = React.memo(function MatrizSWOT({ forcas, fraquezas, oportunid
         <Accordion type="single" collapsible className="mb-8 sm:mb-10 md:mb-16">
           <AccordionItem value="matriz-swot">
             <motion.div whileTap={{ scale: prefersReducedMotion ? 1 : 0.98 }}>
-              <AccordionTrigger className="text-[#560005] font-bold">
+              <AccordionTrigger className="text-[#560005] font-medium">
                 Ver Matriz SWOT completa
               </AccordionTrigger>
             </motion.div>

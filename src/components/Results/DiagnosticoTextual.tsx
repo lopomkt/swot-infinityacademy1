@@ -68,12 +68,12 @@ const DiagnosticoTextual = React.memo(function DiagnosticoTextual({ texto }: Dia
     
     // Render sections
     return Object.entries(categorizedContent).map(([title, content]: [string, any], index) => (
-      <div key={index} className="mb-6">
-        <h4 className="text-base font-semibold text-[#000] mt-6 mb-1">
+      <div key={index} className="mb-6 p-6 md:p-8 lg:p-10">
+        <h4 className="text-base font-medium text-[#000] mt-6 mb-1">
           {content.icon} {title}
         </h4>
         {content.paragraphs.map((paragraph, pIndex) => (
-          <p key={pIndex} className="text-sm text-gray-700 mb-3 leading-relaxed">
+          <p key={pIndex} className="text-sm text-[#1f1f1f] mb-3 leading-relaxed">
             {highlightKeyPhrases(paragraph)}
           </p>
         ))}
@@ -127,7 +127,7 @@ const DiagnosticoTextual = React.memo(function DiagnosticoTextual({ texto }: Dia
     >
       <motion.h2 
         id="diagnostico-title" 
-        className="text-2xl font-bold text-[#000] border-b pb-2 mb-6"
+        className="text-xl font-semibold text-[#1f1f1f] border-b pb-2 mb-6"
         initial={prefersReducedMotion ? {} : { opacity: 0 }}
         animate={prefersReducedMotion ? {} : { opacity: 1 }}
         transition={{ duration: 0.3, delay: 0.1 }}
@@ -139,7 +139,7 @@ const DiagnosticoTextual = React.memo(function DiagnosticoTextual({ texto }: Dia
         <Accordion type="single" collapsible>
           <AccordionItem value="diagnostico">
             <motion.div whileTap={{ scale: prefersReducedMotion ? 1 : 0.98 }}>
-              <AccordionTrigger className="text-[#560005] font-bold">
+              <AccordionTrigger className="text-[#560005] font-medium">
                 Ver diagnóstico completo
               </AccordionTrigger>
             </motion.div>

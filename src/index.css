@@ -97,7 +97,23 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-[#1f1f1f] font-['Inter',system-ui,sans-serif];
+  }
+  
+  h1 {
+    @apply text-2xl font-bold text-[#000];
+  }
+  
+  h2 {
+    @apply text-xl font-semibold text-[#1f1f1f];
+  }
+  
+  h3 {
+    @apply text-lg font-medium text-[#560005];
+  }
+  
+  h4 {
+    @apply text-base font-medium text-[#ef0002];
   }
 }
 

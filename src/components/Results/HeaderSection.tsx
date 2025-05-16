@@ -28,7 +28,7 @@ const HeaderSection = React.memo(function HeaderSection({
       transition={{ duration: 0.3, ease: "easeOut" }}
     >
       <motion.h1 
-        className="text-2xl sm:text-3xl font-bold text-[#560005]"
+        className="text-2xl sm:text-3xl font-bold text-[#000]"
         initial={prefersReducedMotion ? {} : { opacity: 0 }}
         animate={prefersReducedMotion ? {} : { opacity: 1 }}
         transition={{ duration: 0.3, delay: 0.1 }}
@@ -36,7 +36,7 @@ const HeaderSection = React.memo(function HeaderSection({
         {nomeEmpresa}
       </motion.h1>
       <motion.p 
-        className="text-gray-700 text-sm sm:text-base overflow-x-auto max-w-full"
+        className="text-[#1f1f1f] text-sm sm:text-base overflow-x-auto max-w-full"
         initial={prefersReducedMotion ? {} : { opacity: 0 }}
         animate={prefersReducedMotion ? {} : { opacity: 1 }}
         transition={{ duration: 0.3, delay: 0.2 }}

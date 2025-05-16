@@ -25,12 +25,12 @@ const PrintableResults = React.memo(function PrintableResults({ children }: Prin
   return (
     <>
       {/* Skip to content link */}
-      <a href="#content" className="sr-only focus:not-sr-only absolute top-0 left-0 bg-white text-black p-2 z-50">
+      <a href="#content" className="sr-only focus:not-sr-only absolute top-0 left-0 bg-white text-[#1f1f1f] p-2 z-50">
         Pular para o conteúdo principal
       </a>
       
       <motion.div 
-        className="max-w-5xl mx-auto px-8 py-12 bg-white text-black print:block font-sans shadow-md" 
+        className="max-w-5xl mx-auto px-8 py-12 bg-white text-[#1f1f1f] print:block font-['Inter',system-ui,sans-serif] shadow-md text-[13px] leading-relaxed" 
         role="region" 
         aria-label="Relatório completo do diagnóstico SWOT"
         id="content"
@@ -44,9 +44,9 @@ const PrintableResults = React.memo(function PrintableResults({ children }: Prin
         </AnimatePresence>
         
         {/* Strategic CTA */}
-        <div className="bg-[#fff8f0] p-6 rounded-xl text-center shadow-sm mt-12 border-l-4 border-[#f39c12]">
-          <p className="text-sm text-gray-800 font-medium mb-2">💡 Está com dificuldades para executar esses planos?</p>
-          <p className="text-xs text-gray-600 mb-4">A equipe da INFINITY pode te ajudar a tirar esses pontos do papel com estratégia.</p>
+        <div className="bg-[#fff8f0] p-6 md:p-8 lg:p-10 rounded-xl text-center shadow-sm mt-12 border-l-4 border-[#f39c12]">
+          <p className="text-sm text-[#1f1f1f] font-medium mb-2">💡 Está com dificuldades para executar esses planos?</p>
+          <p className="text-xs text-[#1f1f1f] mb-4">A equipe da INFINITY pode te ajudar a tirar esses pontos do papel com estratégia.</p>
           <Button 
             className="bg-[#ef0002] hover:bg-[#b70001] text-white px-5 py-2 rounded-xl"
             onClick={handleContactTeam}
@@ -56,16 +56,16 @@ const PrintableResults = React.memo(function PrintableResults({ children }: Prin
         </div>
         
         {/* Congrats message */}
-        <div className="bg-[#fef6f6] text-[#560005] text-center py-6 px-4 rounded-xl shadow-sm mt-10">
+        <div className="bg-white text-[#560005] text-center py-6 px-4 rounded-xl shadow-sm mt-10">
           <p className="text-lg font-semibold mb-2">🎉 Parabéns por concluir sua Análise SWOT Premium!</p>
           <p className="text-sm">Sua jornada de transformação empresarial começa agora. Conte com a INFINITY para os próximos passos.</p>
         </div>
         
         {/* Conditionally show "New Analysis" button only on desktop */}
         {!isMobile && (
-          <div className="text-center mt-6">
+          <div className="text-center mt-10 mb-6">
             <button 
-              className="text-xs underline text-gray-400 hover:text-gray-600 mt-4"
+              className="text-xs underline text-gray-400 hover:text-gray-600"
               onClick={handleNewAnalysis}
             >
               Iniciar nova análise
@@ -73,11 +73,17 @@ const PrintableResults = React.memo(function PrintableResults({ children }: Prin
           </div>
         )}
         
+        {/* Institutional footer */}
+        <p className="text-center text-xs text-gray-400 mt-16 mb-4">
+          Relatório SWOT gerado com tecnologia INFINITY ACADEMY · Todos os direitos reservados.
+        </p>
+        
         {/* Tag for tracking implementation */}
         <div className="hidden">
           {/* fase6_3_design_final_pdf_ok = true */}
           {/* fase7_1_ui_ux_gamificada_ok = true */}
           {/* fase7_2_consultivo_avancado_ok = true */}
+          {/* fase7_3_polimento_final_ok = true */}
         </div>
       </motion.div>
     </>

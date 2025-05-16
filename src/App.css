@@ -1,8 +1,15 @@
+
 #root {
   max-width: 1280px;
   margin: 0 auto;
   padding: 2rem;
   text-align: center;
+}
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  color: #1f1f1f;
+  line-height: 1.5;
 }
 
 .logo {
@@ -11,9 +18,11 @@
   will-change: filter;
   transition: filter 300ms;
 }
+
 .logo:hover {
   filter: drop-shadow(0 0 2em #646cffaa);
 }
+
 .logo.react:hover {
   filter: drop-shadow(0 0 2em #61dafbaa);
 }
@@ -39,4 +48,61 @@
 
 .read-the-docs {
   color: #888;
+}
+
+/* Global Button Styles */
+.btn-primary {
+  background-color: #ef0002;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  margin-top: 2.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.btn-primary:hover {
+  background-color: #b70001;
+}
+
+/* Global Typography */
+h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #000;
+}
+
+h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f1f1f;
+}
+
+h3 {
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: #560005;
+}
+
+h4 {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #ef0002;
+}
+
+/* PDF Print Styles */
+@media print {
+  body {
+    font-size: 13px;
+    line-height: 1.6;
+  }
+  
+  .page-break {
+    page-break-before: always;
+  }
+  
+  div, p, li, h1, h2, h3, h4 {
+    page-break-inside: avoid;
+  }
 }
