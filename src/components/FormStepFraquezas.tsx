@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { FraquezasData } from "@/types/formData";
@@ -113,19 +112,14 @@ export default function FormStepFraquezas({
   }
 
   return (
-    <form
-      className="w-full bg-white rounded-xl p-1 sm:p-6 shadow-sm border border-[#f1eaea] max-w-lg animate-fade-in"
-      onSubmit={handleSubmit(onSubmit)}
-      autoComplete="off"
-    >
-      <h2 className="font-bold text-2xl text-[#560005] mb-3">Etapa 3 – FRAQUEZAS</h2>
-      <p className="text-base text-black mb-5">
-        Quais são os principais desafios internos da sua empresa?
+    <form onSubmit={handleSubmit} className="w-full max-w-2xl bg-white rounded-xl p-6 shadow-md mx-auto animate-fade-in">
+      <h2 className="text-2xl font-bold text-[#560005] mb-4">
+        Diagnóstico dos Pontos de Melhoria
+      </h2>
+      <p className="text-gray-600 mb-6">
+        Identificar fraquezas é o primeiro passo para superá-las. Seja honesto sobre os desafios atuais da empresa.
       </p>
-      <p className="text-sm text-gray-500 mb-8">
-        Agora vamos identificar pontos de atenção que podem estar impedindo sua empresa de crescer.
-      </p>
-
+      
       {/* 1. Em quais áreas sente mais dificuldade... */}
       <div className="mb-6">
         <label className="block mb-2 font-medium">
@@ -458,23 +452,25 @@ export default function FormStepFraquezas({
         )}
       </div>
 
-      <div className="flex justify-between">
+      <div className="flex justify-between pt-4 gap-4 flex-wrap-reverse sm:flex-nowrap">
         {onBack && (
-          <Button
+          <button
             type="button"
             onClick={onBack}
-            className="bg-gray-200 text-gray-800 font-medium px-5 py-2 rounded hover:bg-gray-300"
+            className="mr-auto text-sm sm:text-base bg-white border border-gray-300 rounded-lg px-4 py-2 hover:bg-gray-100 transition"
           >
-            Voltar
-          </Button>
+            ← Voltar
+          </button>
         )}
-        
-        <Button
+        <button
           type="submit"
-          className="bg-[#ef0002] text-white font-bold px-8 py-2 rounded"
+          className={`px-6 py-3 rounded-lg text-white font-medium ${
+            !isValid ? "bg-gray-400 cursor-not-allowed" : "bg-[#ef0002] hover:bg-[#c50000]"
+          }`}
+          disabled={!isValid}
         >
-          Próxima etapa: Oportunidades
-        </Button>
+          Avançar para Oportunidades
+        </button>
       </div>
     </form>
   );

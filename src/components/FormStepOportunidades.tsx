@@ -26,9 +26,10 @@ const canaisOpcoes = [
 interface Props {
   defaultValues?: Partial<OportunidadesData>;
   onComplete: (data: OportunidadesData) => void;
+  onBack?: () => void;
 }
 
-export default function FormStepOportunidades({ defaultValues, onComplete }: Props) {
+export default function FormStepOportunidades({ defaultValues, onComplete, onBack }: Props) {
   const [form, setForm] = useState<OportunidadesData>({
     nova_demanda_cliente: "",
     situacao_mercado: "",
@@ -339,10 +340,19 @@ export default function FormStepOportunidades({ defaultValues, onComplete }: Pro
         </>
       )}
 
-      <div className="flex justify-end">
+      <div className="flex justify-between pt-4 gap-4 flex-wrap-reverse sm:flex-nowrap">
+        {onBack && (
+          <button
+            type="button"
+            onClick={onBack}
+            className="mr-auto text-sm sm:text-base bg-white border border-gray-300 rounded-lg px-4 py-2 hover:bg-gray-100 transition"
+          >
+            ← Voltar
+          </button>
+        )}
         <Button
           type="submit"
-          className="bg-[#ef0002] text-white font-bold px-8 py-2 mt-6 rounded"
+          className="bg-[#ef0002] text-white font-bold px-8 py-2 rounded"
           disabled={!isValid}
         >
           Avançar para Ameaças

@@ -1,3 +1,4 @@
+
 // Tipagem central do projeto SWOT INSIGHTS – Infinity Academy
 // Cada etapa do formulário possui sua interface específica
 // Essa tipagem será usada progressivamente no projeto para substituir o uso de any
@@ -183,4 +184,6 @@ export interface FormData {
   fase5_perguntas_expandidas_ok?: boolean;
   // Add the missing property
   fase5_transicoes_ok?: boolean;
+  // Add back button tracking tag
+  fase5_voltar_ok?: boolean;
 }

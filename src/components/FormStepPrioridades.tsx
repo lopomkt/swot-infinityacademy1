@@ -1,4 +1,3 @@
-
 import React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -43,9 +42,10 @@ const areaOptions = [
 interface Props {
   defaultValues?: Partial<PrioridadesSchema>;
   onComplete: (data: PrioridadesData) => void;
+  onBack?: () => void;
 }
 
-const FormStepPrioridades: React.FC<Props> = ({ defaultValues, onComplete }) => {
+const FormStepPrioridades: React.FC<Props> = ({ defaultValues, onComplete, onBack }) => {
   const form = useForm<PrioridadesSchema>({
     resolver: zodResolver(prioridadesSchema),
     defaultValues: defaultValues || {
@@ -287,7 +287,7 @@ const FormStepPrioridades: React.FC<Props> = ({ defaultValues, onComplete }) => 
             name="distribuicao_tempo"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Você sente que seu tempo como gestor está bem distribuído?</FormLabel>
+                <FormLabel>Você sente que seu tempo como gestor está bem distribu��do?</FormLabel>
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
                     <SelectTrigger>
@@ -431,7 +431,12 @@ const FormStepPrioridades: React.FC<Props> = ({ defaultValues, onComplete }) => 
             />
           )}
 
-          <div className="flex justify-center pt-4">
+          <div className="flex justify-between pt-4 gap-4 flex-wrap-reverse sm:flex-nowrap">
+            {onBack && (
+              <Button type="button" variant="outline" onClick={onBack}>
+                ← Voltar
+              </Button>
+            )}
             <Button 
               type="submit" 
               className="bg-[#ef0002] hover:bg-[#c50000] text-white px-8 py-2"

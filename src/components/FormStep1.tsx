@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -302,10 +301,10 @@ const FormStep1 = ({ defaultValues = {}, onComplete, onBack }: Props) => {
             )}
           />
           
-          <div className="flex justify-between pt-4">
+          <div className="flex justify-between pt-4 gap-4 flex-wrap-reverse sm:flex-nowrap">
             {onBack && (
               <Button type="button" variant="outline" onClick={onBack}>
-                Voltar
+                ← Voltar
               </Button>
             )}
             <Button type="submit">Avançar para Forças</Button>

@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { SaudeFinanceiraData } from "@/types/formData";
@@ -9,6 +8,7 @@ import { saudeFinanceiraSchema, SaudeFinanceiraSchema } from "@/schemas/saudeFin
 interface Props {
   defaultValues?: Partial<SaudeFinanceiraData>;
   onComplete: (data: SaudeFinanceiraData) => void;
+  onBack?: () => void;
 }
 
 const opcoesSelectCaixa = [
@@ -73,7 +73,7 @@ const opcoesMaturidade = [
   "Avançada (indicadores, metas, projeções)"
 ];
 
-export default function FormStepSaudeFinanceira({ defaultValues, onComplete }: Props) {
+export default function FormStepSaudeFinanceira({ defaultValues, onComplete, onBack }: Props) {
   const {
     register,
     handleSubmit,
@@ -368,7 +368,16 @@ export default function FormStepSaudeFinanceira({ defaultValues, onComplete }: P
       </select>
       <ErrorMessage message={errors.maturidade_financeira?.message} />
 
-      <div className="flex justify-end">
+      <div className="flex justify-between pt-4 gap-4 flex-wrap-reverse sm:flex-nowrap">
+        {onBack && (
+          <button
+            type="button"
+            onClick={onBack}
+            className="mr-auto text-sm sm:text-base bg-white border border-gray-300 rounded-lg px-4 py-2 hover:bg-gray-100 transition"
+          >
+            ← Voltar
+          </button>
+        )}
         <Button
           type="submit"
           className="bg-[#ef0002] text-white font-bold px-8 py-2 mt-6 rounded"

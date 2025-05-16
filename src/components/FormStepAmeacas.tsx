@@ -24,9 +24,11 @@ const dependenciaPlataformasOpcoes = [
 const FormStepAmeacas = ({
   defaultValues,
   onComplete,
+  onBack,
 }: {
   defaultValues?: any;
   onComplete: (data: any) => void;
+  onBack?: () => void;
 }) => {
   // Inicializa o formulário com validação Zod
   const form = useForm<AmeacasSchema>({
@@ -402,8 +404,17 @@ const FormStepAmeacas = ({
         )}
 
         {/* Botão de avanço */}
-        <div className="pt-2 flex justify-end">
-          <Button type="submit" className="w-auto">
+        <div className="flex justify-between pt-4 gap-4 flex-wrap-reverse sm:flex-nowrap">
+          {onBack && (
+            <button
+              type="button"
+              onClick={onBack}
+              className="mr-auto text-sm sm:text-base bg-white border border-gray-300 rounded-lg px-4 py-2 hover:bg-gray-100 transition"
+            >
+              ← Voltar
+            </button>
+          )}
+          <Button type="submit" className="bg-[#ef0002] text-white">
             Avançar para Saúde Financeira
           </Button>
         </div>

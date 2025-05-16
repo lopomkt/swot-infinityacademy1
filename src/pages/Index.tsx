@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ProgressBar from "@/components/ProgressBar";
 import WelcomeStep from "@/components/WelcomeStep";
 import FormStep1 from "@/components/FormStep1";
@@ -37,11 +37,21 @@ const Index = () => {
   const [step, setStep] = useState(0);
   const [formData, setFormData] = useState<FormData>({
     tipagem_index_ok: true,
-    fase5_transicoes_ok: true, // Tag de rastreamento
+    fase5_transicoes_ok: true,
+    fase5_voltar_ok: true, // Tag for back button implementation
   });
 
+  const handleBackButtonClick = (previousStep: number) => {
+    window.scrollTo(0, 0);
+    setStep(previousStep);
+  };
+
   const resetForm = () => {
-    setFormData({ tipagem_index_ok: true });
+    setFormData({ 
+      tipagem_index_ok: true,
+      fase5_transicoes_ok: true,
+      fase5_voltar_ok: true,
+    });
     setStep(0);
   };
 
@@ -71,6 +81,7 @@ const Index = () => {
         {step === 1 && (
           <FormStep1
             defaultValues={formData.identificacao}
+            onBack={step > 0 ? () => handleBackButtonClick(0) : undefined}
             onComplete={(identificacao) => {
               setFormData((prev) => ({ ...prev, identificacao }));
               setStep(1.5);
@@ -87,6 +98,7 @@ const Index = () => {
         {step === 2 && (
           <FormStepForcas
             defaultValues={formData.forcas}
+            onBack={() => handleBackButtonClick(1)}
             onComplete={(forcas) => {
               setFormData((prev) => ({ 
                 ...prev, 
@@ -109,6 +121,7 @@ const Index = () => {
         {step === 3 && (
           <FormStepFraquezas
             defaultValues={formData.fraquezas}
+            onBack={() => handleBackButtonClick(2)}
             onComplete={(fraquezas) => {
               setFormData((prev) => ({ ...prev, fraquezas }));
               setStep(3.5);
@@ -125,6 +138,7 @@ const Index = () => {
         {step === 4 && (
           <FormStepOportunidades
             defaultValues={formData.oportunidades}
+            onBack={() => handleBackButtonClick(3)}
             onComplete={(oportunidades) => {
               setFormData((prev) => ({ ...prev, oportunidades }));
               setStep(4.5);
@@ -141,6 +155,7 @@ const Index = () => {
         {step === 5 && (
           <FormStepAmeacas
             defaultValues={formData.ameacas}
+            onBack={() => handleBackButtonClick(4)}
             onComplete={(ameacas) => {
               setFormData((prev) => ({ ...prev, ameacas }));
               setStep(5.5);
@@ -157,6 +172,7 @@ const Index = () => {
         {step === 6 && (
           <FormStepSaudeFinanceira
             defaultValues={formData.saudeFinanceira}
+            onBack={() => handleBackButtonClick(5)}
             onComplete={(saudeFinanceira) => {
               setFormData((prev) => ({ ...prev, saudeFinanceira }));
               setStep(6.5);
@@ -173,6 +189,7 @@ const Index = () => {
         {step === 7 && (
           <FormStepPrioridades
             defaultValues={formData.prioridades}
+            onBack={() => handleBackButtonClick(6)}
             onComplete={(prioridades) => {
               setFormData((prev) => ({ 
                 ...prev, 
