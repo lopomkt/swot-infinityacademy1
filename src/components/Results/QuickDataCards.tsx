@@ -20,7 +20,7 @@ export default function QuickDataCards({
       aria-label="Informações rápidas sobre a empresa"
     >
       <div 
-        className={`${statCardBase} bg-primary`}
+        className={`${statCardBase} bg-primary min-h-[120px] sm:min-h-[150px]`}
         role="group"
         aria-labelledby="tempo-mercado-label"
       >
@@ -28,7 +28,7 @@ export default function QuickDataCards({
         <p className="text-xl font-bold">{tempoDeMercado}</p>
       </div>
       <div 
-        className={`${statCardBase} bg-accent`}
+        className={`${statCardBase} bg-accent min-h-[120px] sm:min-h-[150px]`}
         role="group"
         aria-labelledby="faturamento-label"
       >
@@ -36,7 +36,7 @@ export default function QuickDataCards({
         <p className="text-xl font-bold">{faturamentoMensal}</p>
       </div>
       <div 
-        className={`${statCardBase} bg-secondary`}
+        className={`${statCardBase} bg-secondary min-h-[120px] sm:min-h-[150px]`}
         role="group"
         aria-labelledby="segmento-label"
       >

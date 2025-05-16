@@ -16,12 +16,12 @@ export default function HeaderSection({
 }: HeaderSectionProps) {
   return (
     <div 
-      className="mb-6 border-b pb-4"
+      className="mb-6 border-b pb-4 scroll-mt-20"
       role="banner" 
       aria-label="Cabeçalho com informações da empresa"
     >
-      <h1 className="text-3xl font-bold text-[#560005]">{nomeEmpresa}</h1>
-      <p className="text-gray-700">
+      <h1 className="text-2xl sm:text-3xl font-bold text-[#560005]">{nomeEmpresa}</h1>
+      <p className="text-gray-700 text-sm sm:text-base overflow-x-auto max-w-full">
         Segmento: <span aria-label="Segmento da empresa"><strong>{segmento}</strong></span> • 
         Faturamento mensal: <span aria-label="Faturamento mensal"><strong>{faturamentoMensal}</strong></span> • 
         Tempo de mercado: <span aria-label="Tempo de mercado"><strong>{tempoDeMercado}</strong></span>
