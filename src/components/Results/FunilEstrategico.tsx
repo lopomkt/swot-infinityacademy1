@@ -19,10 +19,64 @@ const FunilEstrategico = React.memo(function FunilEstrategico({ gargalos = [], a
   const gargalosData = gargalos && gargalos.length > 0 ? gargalos : ["Processos não otimizados", "Dependência de poucos clientes", "Comunicação interna limitada"];
   const alertasData = alertasCascata && alertasCascata.length > 0 ? alertasCascata : ["Problemas na captação impactam conversão", "Falta de processos compromete retenção"];
   
+  // Mock data for funnel visualization
+  const funnelStages = [
+    { name: "AQUISIÇÃO", status: "warning", width: "90%" },
+    { name: "CONVERSÃO", status: "bottleneck", width: "75%" },
+    { name: "ENTREGA", status: "healthy", width: "60%" },
+    { name: "FIDELIZAÇÃO", status: "warning", width: "45%" }
+  ];
+  
+  const getStatusColor = (status) => {
+    switch(status) {
+      case "healthy": return "bg-[#00b894]";
+      case "warning": return "bg-[#fdcb6e]";
+      case "bottleneck": return "bg-[#d63031]";
+      default: return "bg-gray-400";
+    }
+  };
+
   const renderFunilContent = () => (
     <>
+      {/* Vertical Funnel Visualization */}
       <motion.div 
-        className="bg-white p-4 sm:p-6 md:p-8 rounded-xl border-l-4 border-[#ef0002] shadow-sm mb-6 overflow-x-auto max-w-full"
+        className="mx-auto mb-8 max-w-md"
+        initial={prefersReducedMotion ? {} : { opacity: 0, y: 10 }}
+        animate={prefersReducedMotion ? {} : { opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+      >
+        <div className="space-y-3">
+          {funnelStages.map((stage, index) => (
+            <div key={index} className="text-center">
+              <div className="flex items-center justify-center mb-1">
+                <div 
+                  className={`h-12 ${getStatusColor(stage.status)} rounded-lg shadow-sm`}
+                  style={{ width: stage.width }}
+                >
+                  <div className="flex items-center justify-center h-full text-white font-semibold">
+                    {stage.name}
+                  </div>
+                </div>
+              </div>
+              {stage.status === "bottleneck" && (
+                <div className="flex items-center justify-center text-xs text-[#d63031]">
+                  <AlertTriangle className="h-3 w-3 mr-1" />
+                  <span>Gargalo crítico detectado</span>
+                </div>
+              )}
+              {stage.status === "warning" && (
+                <div className="flex items-center justify-center text-xs text-[#fdcb6e]">
+                  <AlertTriangle className="h-3 w-3 mr-1" />
+                  <span>Área de atenção</span>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </motion.div>
+
+      <motion.div 
+        className="bg-white p-4 sm:p-6 md:p-8 rounded-xl border-l-4 border-[#d63031] shadow-sm mb-6 overflow-x-auto max-w-full"
         initial={prefersReducedMotion ? {} : { opacity: 0, y: 10 }}
         animate={prefersReducedMotion ? {} : { opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
@@ -51,7 +105,7 @@ const FunilEstrategico = React.memo(function FunilEstrategico({ gargalos = [], a
         animate={prefersReducedMotion ? {} : { opacity: 1, y: 0 }}
         transition={{ duration: 0.3, delay: 0.2 }}
       >
-        <h3 id="alertas-title" className="font-semibold text-[#ef0002] mb-2 text-sm sm:text-base">Alertas em Efeito Cascata</h3>
+        <h3 id="alertas-title" className="font-semibold text-[#b70001] mb-2 text-sm sm:text-base">Alertas em Efeito Cascata</h3>
         <ul 
           className="list-disc pl-5 text-gray-700 space-y-1 text-sm sm:text-base"
           aria-labelledby="alertas-title"
@@ -78,8 +132,7 @@ const FunilEstrategico = React.memo(function FunilEstrategico({ gargalos = [], a
       >
         <AlertTriangle className="h-5 w-5 text-[#ef0002] mr-2 flex-shrink-0 mt-1" aria-hidden="true" />
         <p>
-          <strong>Atenção:</strong> gargalos não resolvidos nessa etapa tendem a causar efeito 
-          cascata e impactar toda a empresa. Inicie sua correção pela etapa mais crítica.
+          <strong>Atenção:</strong> Risco de efeito cascata se estas áreas não forem tratadas. Gargalos não resolvidos tendem a comprometer toda a operação.
         </p>
       </motion.div>
     </>
@@ -87,7 +140,7 @@ const FunilEstrategico = React.memo(function FunilEstrategico({ gargalos = [], a
 
   return (
     <motion.div 
-      className="mt-10 scroll-mt-20 mb-8 sm:mb-10 md:mb-16" 
+      className="px-4 md:px-12 py-12 mt-10 scroll-mt-20 mb-8 sm:mb-10 md:mb-16" 
       role="region" 
       aria-labelledby="funil-estrategico-title"
       initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
@@ -96,7 +149,7 @@ const FunilEstrategico = React.memo(function FunilEstrategico({ gargalos = [], a
     >
       <motion.h2 
         id="funil-estrategico-title" 
-        className="text-2xl font-bold text-[#560005] mb-4"
+        className="text-2xl font-bold text-black mb-4"
         initial={prefersReducedMotion ? {} : { opacity: 0 }}
         animate={prefersReducedMotion ? {} : { opacity: 1 }}
         transition={{ duration: 0.3, delay: 0.1 }}

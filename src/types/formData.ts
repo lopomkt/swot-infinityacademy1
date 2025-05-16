@@ -182,8 +182,6 @@ export interface FormData {
   tipagem_index_ok?: boolean;
   // New tracking tag
   fase5_perguntas_expandidas_ok?: boolean;
-  // Add the missing property
-  fase5_transicoes_ok?: boolean;
   // Add back button tracking tag
   fase5_voltar_ok?: boolean;
   // Add gamification tracking tag
@@ -194,4 +192,8 @@ export interface FormData {
   fase5_resultado_final_ok?: boolean;
   // Add welcome and transitions premium tag
   fase6_1_welcome_transicoes_premium_ok?: boolean;
+  // Add premium visual result tag
+  fase6_2_resultado_premium_visual_ok?: boolean;
+  // Add the missing property
+  fase5_transicoes_ok?: boolean;
 }

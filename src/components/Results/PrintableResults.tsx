@@ -20,7 +20,7 @@ const PrintableResults = React.memo(function PrintableResults({ children }: Prin
       
       <motion.div 
         id="container_resultado_pdf" 
-        className="max-w-5xl mx-auto px-4 sm:px-6 overflow-visible bg-white p-6 text-black print:block" 
+        className="max-w-5xl mx-auto px-4 sm:px-6 overflow-visible bg-white p-6 text-black print:block font-sans" 
         role="region" 
         aria-label="Relatório completo do diagnóstico SWOT"
         initial={prefersReducedMotion ? {} : { opacity: 0 }}
@@ -30,6 +30,16 @@ const PrintableResults = React.memo(function PrintableResults({ children }: Prin
         <AnimatePresence mode="wait">
           {children}
         </AnimatePresence>
+        
+        {/* Final Call to Action Button (centered) */}
+        <div className="flex justify-center mt-16 mb-8">
+          <button 
+            className="mt-10 bg-[#ef0002] hover:bg-[#b70001] text-white px-6 py-3 rounded-xl text-lg shadow-lg"
+            onClick={() => window.open('https://wa.me/5567993146148?text=Olá!%20Acabei%20de%20concluir%20o%20SWOT%20INSIGHTS%20da%20INFINITY%20e%20quero%20conversar%20com%20a%20equipe%20sobre%20o%20meu%20diagnóstico.', '_blank')}
+          >
+            Falar com a Equipe da INFINITY
+          </button>
+        </div>
         
         {/* Tag for tracking responsiveness implementation */}
         <div className="hidden">
@@ -42,6 +52,7 @@ const PrintableResults = React.memo(function PrintableResults({ children }: Prin
           {/* ux_micro_animacoes_ok = true */}
           {/* fase5_bugfixes_finais_ok = true */}
           {/* fase5_resultado_final_ok = true */}
+          {/* fase6_2_resultado_premium_visual_ok = true */}
         </div>
       </motion.div>
     </>

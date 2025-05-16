@@ -16,6 +16,11 @@ interface PlanosEstrategicosABCProps {
 const PlanosEstrategicosABC = React.memo(function PlanosEstrategicosABC({ planos }: PlanosEstrategicosABCProps) {
   const prefersReducedMotion = useReducedMotion();
 
+  // Fallback for empty plans
+  const planoA = planos.planoA?.length > 0 ? planos.planoA : ["Sem dados nesta seção"];
+  const planoB = planos.planoB?.length > 0 ? planos.planoB : ["Sem dados nesta seção"];
+  const planoC = planos.planoC?.length > 0 ? planos.planoC : ["Sem dados nesta seção"];
+
   const tabVariants = {
     hover: { scale: 1.04, transition: { type: 'spring', stiffness: 300 } },
     tap: { scale: 0.96 },
@@ -24,7 +29,7 @@ const PlanosEstrategicosABC = React.memo(function PlanosEstrategicosABC({ planos
 
   return (
     <motion.div 
-      className="mt-10 scroll-mt-20 mb-8 sm:mb-10 md:mb-16" 
+      className="px-4 md:px-12 py-12 mt-10 scroll-mt-20 mb-8 sm:mb-10 md:mb-16" 
       role="region" 
       aria-labelledby="planos-estrategicos-title"
       initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
@@ -33,7 +38,7 @@ const PlanosEstrategicosABC = React.memo(function PlanosEstrategicosABC({ planos
     >
       <motion.h2 
         id="planos-estrategicos-title" 
-        className="text-2xl font-bold text-[#560005] mb-4"
+        className="text-2xl font-bold text-black mb-4"
         initial={prefersReducedMotion ? {} : { opacity: 0 }}
         animate={prefersReducedMotion ? {} : { opacity: 1 }}
         transition={{ duration: 0.3, delay: 0.1 }}
@@ -108,15 +113,18 @@ const PlanosEstrategicosABC = React.memo(function PlanosEstrategicosABC({ planos
             animate={prefersReducedMotion ? {} : { opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
           >
-            <Card>
+            <Card className="bg-white rounded-xl shadow-sm">
               <CardHeader>
-                <CardTitle className="text-green-700 text-sm sm:text-base lg:text-lg">🎯 Rota A – Estratégia ideal com investimento robusto</CardTitle>
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl" aria-hidden="true">📌</span>
+                  <CardTitle className="text-green-700 text-sm sm:text-base lg:text-lg">Rota A – Estratégia ideal com investimento robusto</CardTitle>
+                </div>
                 <CardDescription>Investimento direcionado para crescimento acelerado</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="overflow-x-auto max-w-full">
                   <ul className="list-disc pl-6 text-gray-700 space-y-2 text-sm sm:text-base">
-                    {planos.planoA.map((item, i) => (
+                    {planoA.map((item, i) => (
                       <motion.li 
                         key={i}
                         initial={prefersReducedMotion ? {} : { opacity: 0, x: -5 }}
@@ -139,15 +147,18 @@ const PlanosEstrategicosABC = React.memo(function PlanosEstrategicosABC({ planos
             animate={prefersReducedMotion ? {} : { opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
           >
-            <Card>
+            <Card className="bg-white rounded-xl shadow-sm">
               <CardHeader>
-                <CardTitle className="text-blue-700 text-sm sm:text-base lg:text-lg">⚙️ Rota B – Estratégia viável com recursos limitados</CardTitle>
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl" aria-hidden="true">🧩</span>
+                  <CardTitle className="text-blue-700 text-sm sm:text-base lg:text-lg">Rota B – Estratégia viável com recursos limitados</CardTitle>
+                </div>
                 <CardDescription>Balanceamento entre investimento e resultados de curto prazo</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="overflow-x-auto max-w-full">
                   <ul className="list-disc pl-6 text-gray-700 space-y-2 text-sm sm:text-base">
-                    {planos.planoB.map((item, i) => (
+                    {planoB.map((item, i) => (
                       <motion.li 
                         key={i}
                         initial={prefersReducedMotion ? {} : { opacity: 0, x: -5 }}
@@ -170,15 +181,18 @@ const PlanosEstrategicosABC = React.memo(function PlanosEstrategicosABC({ planos
             animate={prefersReducedMotion ? {} : { opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
           >
-            <Card>
+            <Card className="bg-white rounded-xl shadow-sm">
               <CardHeader>
-                <CardTitle className="text-amber-700 text-sm sm:text-base lg:text-lg">💡 Rota C – Estratégia criativa com orçamento mínimo</CardTitle>
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl" aria-hidden="true">🛠️</span>
+                  <CardTitle className="text-amber-700 text-sm sm:text-base lg:text-lg">Rota C – Estratégia criativa com orçamento mínimo</CardTitle>
+                </div>
                 <CardDescription>Abordagem criativa para maximizar resultados com recursos limitados</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="overflow-x-auto max-w-full">
                   <ul className="list-disc pl-6 text-gray-700 space-y-2 text-sm sm:text-base">
-                    {planos.planoC.map((item, i) => (
+                    {planoC.map((item, i) => (
                       <motion.li 
                         key={i}
                         initial={prefersReducedMotion ? {} : { opacity: 0, x: -5 }}
