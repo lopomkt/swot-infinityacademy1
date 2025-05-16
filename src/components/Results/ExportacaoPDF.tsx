@@ -12,14 +12,6 @@ interface ExportacaoPDFProps {
 export default function ExportacaoPDF({ onExport }: ExportacaoPDFProps) {
   const prefersReducedMotion = useReducedMotion();
   const [gerando, setGerando] = useState(false);
-
-  // Function to open WhatsApp with predefined message
-  const openWhatsApp = () => {
-    const phoneNumber = "5567993146148"; // Using the existing phone number from ResultsScreen
-    const message = encodeURIComponent("Olá! Acabei de concluir o SWOT INSIGHTS da INFINITY e quero conversar com a equipe sobre o meu diagnóstico.");
-    const whatsappURL = `https://wa.me/${phoneNumber}?text=${message}`;
-    window.open(whatsappURL, '_blank');
-  };
   
   const buttonVariants = {
     hover: { scale: 1.04 },
@@ -100,7 +92,7 @@ export default function ExportacaoPDF({ onExport }: ExportacaoPDFProps) {
           href={`https://wa.me/5567993146148?text=${encodeURIComponent("Olá! Acabei de concluir o SWOT INSIGHTS da INFINITY e quero conversar com a equipe sobre o meu diagnóstico.")}`}
           target="_blank"
           rel="noopener noreferrer"
-          className={`${buttonBase} bg-secondary hover:bg-opacity-80 text-white flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-secondary focus:ring-offset-2 block w-full sm:w-auto text-center py-3 px-6 text-base`}
+          className={`${buttonBase} bg-[#ef0002] hover:bg-[#b70001] text-white flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-secondary focus:ring-offset-2 block w-full sm:w-auto text-center py-3 px-6 text-base`}
           aria-label="Conversar com a equipe da INFINITY sobre o diagnóstico via WhatsApp"
           variants={prefersReducedMotion ? {} : buttonVariants}
           whileHover={prefersReducedMotion ? {} : "hover"}
@@ -137,6 +129,7 @@ export default function ExportacaoPDF({ onExport }: ExportacaoPDFProps) {
       {/* Tag for tracking microanimations implementation */}
       <div className="hidden">
         {/* ux_micro_animacoes_ok = true */}
+        {/* fase6_3_design_final_pdf_ok = true */}
       </div>
     </motion.div>
   );

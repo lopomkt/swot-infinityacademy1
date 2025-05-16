@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { cardBase } from "@/styles/uiClasses";
 import { useReducedMotion } from '@/hooks/use-reduced-motion';
 
 interface PrintableResultsProps {
@@ -20,7 +19,7 @@ const PrintableResults = React.memo(function PrintableResults({ children }: Prin
       
       <motion.div 
         id="container_resultado_pdf" 
-        className="max-w-5xl mx-auto px-4 sm:px-6 overflow-visible bg-white p-6 text-black print:block font-sans" 
+        className="max-w-5xl mx-auto px-8 py-12 bg-white text-black print:block font-sans" 
         role="region" 
         aria-label="Relatório completo do diagnóstico SWOT"
         initial={prefersReducedMotion ? {} : { opacity: 0 }}
@@ -41,18 +40,9 @@ const PrintableResults = React.memo(function PrintableResults({ children }: Prin
           </button>
         </div>
         
-        {/* Tag for tracking responsiveness implementation */}
+        {/* Tag for tracking implementation */}
         <div className="hidden">
-          {/* ux_responsividade_mobile_ok = true */}
-        </div>
-        
-        {/* Tag for tracking performance optimization */}
-        <div className="hidden">
-          {/* ux_performance_memo_lazy_ok = true */}
-          {/* ux_micro_animacoes_ok = true */}
-          {/* fase5_bugfixes_finais_ok = true */}
-          {/* fase5_resultado_final_ok = true */}
-          {/* fase6_2_resultado_premium_visual_ok = true */}
+          {/* fase6_3_design_final_pdf_ok = true */}
         </div>
       </motion.div>
     </>

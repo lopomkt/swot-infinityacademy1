@@ -22,36 +22,38 @@ export function ProgressTracker({ currentStep, totalSteps, labels }: ProgressTra
         </div>
       </div>
       
-      <div className="flex flex-wrap justify-around gap-2 sm:gap-4 items-center max-w-5xl mx-auto mt-1">
-        {labels.map((label, index) => {
-          // Determine if this step is completed, current, or future
-          const isCompleted = index < currentStep;
-          const isCurrent = index === currentStep;
-          const isFuture = index > currentStep;
-          
-          return (
-            <div 
-              key={index} 
-              className={`flex flex-col items-center ${isFuture ? 'opacity-70' : ''}`}
-            >
-              <div
-                className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center text-xs font-bold 
-                  ${isCompleted ? 'bg-[#b70001] text-white' : isCurrent ? 'border-2 border-[#b70001] text-[#b70001]' : 'bg-gray-200 text-gray-600'} 
-                  transition-all duration-300`}
+      <div className="overflow-x-auto max-w-full">
+        <div className="flex flex-nowrap justify-between gap-2 w-max md:w-full max-w-5xl mx-auto mt-1">
+          {labels.map((label, index) => {
+            // Determine if this step is completed, current, or future
+            const isCompleted = index < currentStep;
+            const isCurrent = index === currentStep;
+            const isFuture = index > currentStep;
+            
+            return (
+              <div 
+                key={index} 
+                className={`flex flex-col items-center ${isFuture ? 'opacity-70' : ''}`}
               >
-                {isCompleted ? (
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                ) : (
-                  index + 1
-                )}
+                <div
+                  className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center text-xs font-bold 
+                    ${isCompleted ? 'bg-[#b70001] text-white' : isCurrent ? 'border-2 border-[#b70001] text-[#b70001]' : 'bg-gray-200 text-gray-600'} 
+                    transition-all duration-300`}
+                >
+                  {isCompleted ? (
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  ) : (
+                    index + 1
+                  )}
+                </div>
+                <span className="mt-1 hidden sm:block text-xs text-gray-600">Etapa {index + 1}</span>
+                <span className="mt-1 block sm:hidden text-[10px] text-gray-600">{index + 1}</span>
               </div>
-              <span className="mt-1 text-xs sm:text-sm hidden sm:block">{label}</span>
-              <span className="mt-1 text-[10px] text-center sm:hidden">{index + 1}</span>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
     </div>
   );

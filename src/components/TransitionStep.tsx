@@ -26,9 +26,6 @@ export default function TransitionStep({
     window.scrollTo(0, 0);
   }, []);
 
-  // Calculate progress based on current step and total steps
-  const percentual = Math.floor((currentStep / totalSteps) * 100);
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 40 }}
@@ -50,11 +47,6 @@ export default function TransitionStep({
       )}
       
       <p className="text-gray-700 mb-8 font-sans leading-snug">{description}</p>
-      
-      {/* Progress indicator */}
-      <p className="text-sm text-gray-600 italic mt-2 mb-6">
-        ✅ Você está a {percentual}% de concluir sua análise SWOT.
-      </p>
       
       <Button 
         onClick={onContinue} 

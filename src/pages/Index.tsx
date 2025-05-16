@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import ProgressBar from "@/components/ProgressBar";
 import WelcomeStep from "@/components/WelcomeStep";
@@ -45,6 +44,8 @@ const Index = () => {
     fase5_finalizacao_ok: true,
     fase5_resultado_final_ok: true,
     fase6_1_welcome_transicoes_premium_ok: true,
+    fase6_2_resultado_premium_visual_ok: true,
+    fase6_3_design_final_pdf_ok: true,
   });
 
   // Save form data to localStorage whenever it changes
@@ -55,6 +56,11 @@ const Index = () => {
   // Save step to localStorage whenever it changes
   useEffect(() => {
     saveState('swotStep', step);
+  }, [step]);
+
+  // Scroll to top whenever step changes
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [step]);
 
   const handleBackButtonClick = (previousStep: number) => {
@@ -71,6 +77,8 @@ const Index = () => {
       fase5_finalizacao_ok: true,
       fase5_resultado_final_ok: true,
       fase6_1_welcome_transicoes_premium_ok: true,
+      fase6_2_resultado_premium_visual_ok: true,
+      fase6_3_design_final_pdf_ok: true,
     });
     setStep(0);
   };
@@ -244,19 +252,8 @@ const Index = () => {
                 prioridades,
                 step_prioridades_ok: true
               }));
-              setStep(7.5);
+              setStep(8);
             }}
-          />
-        )}
-        {step === 7.5 && (
-          <TransitionStep
-            title="Finalizando sua análise SWOT"
-            description="Parabéns! Você completou todas as etapas do diagnóstico. Agora vamos processar suas informações e gerar seu relatório estratégico personalizado."
-            fraseMotivacional="Prepare-se para insights valiosos sobre seu negócio!"
-            iconeEtapa={<Star className="h-10 w-10" />}
-            onContinue={() => setStep(8)}
-            currentStep={currentMainStep}
-            totalSteps={totalMainSteps}
           />
         )}
         {step === 8 && (
@@ -267,7 +264,8 @@ const Index = () => {
               setFormData(prev => ({
                 ...prev,
                 resultadoFinal,
-                fase5_finalizacao_ok: true
+                fase5_finalizacao_ok: true,
+                fase6_3_design_final_pdf_ok: true
               }));
               setStep(9);
             }}
@@ -285,9 +283,13 @@ const Index = () => {
       </main>
 
       {/* Tag de rastreamento - não remover */}
-      {/* fase5_bugfixes_finais_ok = true */}
-      {/* fase5_resultado_final_ok = true */}
-      {/* fase6_1_welcome_transicoes_premium_ok = true */}
+      <div className="hidden">
+        {/* fase5_bugfixes_finais_ok = true */}
+        {/* fase5_resultado_final_ok = true */}
+        {/* fase6_1_welcome_transicoes_premium_ok = true */}
+        {/* fase6_2_resultado_premium_visual_ok = true */}
+        {/* fase6_3_design_final_pdf_ok = true */}
+      </div>
     </div>
   );
 };
