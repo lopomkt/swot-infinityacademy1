@@ -15,10 +15,16 @@ export default function HeaderSection({
   tempoDeMercado,
 }: HeaderSectionProps) {
   return (
-    <div className="mb-6 border-b pb-4">
+    <div 
+      className="mb-6 border-b pb-4"
+      role="banner" 
+      aria-label="Cabeçalho com informações da empresa"
+    >
       <h1 className="text-3xl font-bold text-[#560005]">{nomeEmpresa}</h1>
       <p className="text-gray-700">
-        Segmento: <strong>{segmento}</strong> • Faturamento mensal: <strong>{faturamentoMensal}</strong> • Tempo de mercado: <strong>{tempoDeMercado}</strong>
+        Segmento: <span aria-label="Segmento da empresa"><strong>{segmento}</strong></span> • 
+        Faturamento mensal: <span aria-label="Faturamento mensal"><strong>{faturamentoMensal}</strong></span> • 
+        Tempo de mercado: <span aria-label="Tempo de mercado"><strong>{tempoDeMercado}</strong></span>
       </p>
     </div>
   );

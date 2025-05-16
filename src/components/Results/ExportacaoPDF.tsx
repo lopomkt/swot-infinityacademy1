@@ -17,9 +17,9 @@ export default function ExportacaoPDF({ onExport }: ExportacaoPDFProps) {
   };
   
   return (
-    <div className="mb-16">
+    <div className="mb-16" role="region" aria-labelledby="export-section-title">
       <div className="text-center mb-8">
-        <h2 className="text-2xl font-bold text-secondary mb-2">
+        <h2 id="export-section-title" className="text-2xl font-bold text-secondary mb-2">
           Seu Diagnóstico Está Pronto.
         </h2>
         <p className="text-gray-600 max-w-2xl mx-auto">
@@ -33,17 +33,19 @@ export default function ExportacaoPDF({ onExport }: ExportacaoPDFProps) {
       <div className="flex flex-col md:flex-row gap-4 justify-center mb-8">
         <button 
           onClick={onExport}
-          className={`${buttonBase} bg-primary text-white hover:bg-primaryDark flex items-center justify-center`}
+          className={`${buttonBase} bg-primary text-white hover:bg-primaryDark flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2`}
+          aria-label="Baixar diagnóstico SWOT em formato PDF"
         >
-          <Download className="mr-2 h-4 w-4" />
+          <Download className="mr-2 h-4 w-4" aria-hidden="true" />
           Baixar Diagnóstico em PDF
         </button>
         
         <button 
           onClick={openWhatsApp}
-          className={`${buttonBase} bg-secondary hover:bg-opacity-80 text-white flex items-center justify-center`}
+          className={`${buttonBase} bg-secondary hover:bg-opacity-80 text-white flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-secondary focus:ring-offset-2`}
+          aria-label="Conversar com a equipe da INFINITY sobre o diagnóstico via WhatsApp"
         >
-          <MessageCircle className="mr-2 h-4 w-4" />
+          <MessageCircle className="mr-2 h-4 w-4" aria-hidden="true" />
           Falar com a Equipe da INFINITY
         </button>
       </div>
@@ -54,7 +56,7 @@ export default function ExportacaoPDF({ onExport }: ExportacaoPDFProps) {
       </p>
       
       {/* Footer watermark */}
-      <div className="text-xs text-center text-accent mt-10">
+      <div className="text-xs text-center text-accent mt-10" aria-hidden="true">
         SWOT INSIGHTS | Infinity Academy
       </div>
     </div>

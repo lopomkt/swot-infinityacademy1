@@ -9,15 +9,24 @@ interface ScoreEstrategicoProps {
 
 export default function ScoreEstrategico({ scoreLabel, pontuacao }: ScoreEstrategicoProps) {
   return (
-    <div className={`${cardBase} bg-gray-50 mt-10`}>
-      <h2 className={`${headingBase} mb-4`}>Score Estratégico</h2>
+    <div 
+      className={`${cardBase} bg-gray-50 mt-10`}
+      role="region"
+      aria-labelledby="score-strategic-title"
+    >
+      <h2 id="score-strategic-title" className={`${headingBase} mb-4`}>Score Estratégico</h2>
       <p className="text-gray-700 text-lg">
         Seu nível de maturidade estratégica é classificado como: 
         <span className="text-primary font-bold ml-1">{scoreLabel}</span>
       </p>
       <div className="mt-4">
-        <p className="text-gray-600">Pontuação geral: <strong>{pontuacao}/100</strong></p>
+        <p className="text-gray-600">
+          Pontuação geral: <strong aria-label={`${pontuacao} de 100 pontos`}>{pontuacao}/100</strong>
+        </p>
         {/* Aqui futuramente entra o gráfico radar ou circular */}
+        <div aria-hidden="true" className="sr-only">
+          Este score representa o nível de maturidade estratégica da sua empresa, baseado nas respostas fornecidas na análise SWOT.
+        </div>
       </div>
     </div>
   );
