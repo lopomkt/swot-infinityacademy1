@@ -181,4 +181,6 @@ export interface FormData {
   tipagem_index_ok?: boolean;
   // New tracking tag
   fase5_perguntas_expandidas_ok?: boolean;
+  // Add the missing property
+  fase5_transicoes_ok?: boolean;
 }
