@@ -114,6 +114,14 @@ interface ResultsScreenProps {
   formData: FormData;
 }
 
+// Define the Suggestion interface to match what StrategicSuggestions expects
+interface Suggestion {
+  title: string;
+  description: string;
+  borderColor: string; 
+  textColor: string;
+}
+
 const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData }) => {
   // Enhanced fallback messages for better error handling
   if (!formData?.resultadoFinal) {
@@ -484,6 +492,22 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData }) => {
   const actionsByAreaA = groupActionsByArea(strategicPlans.rotaA.actions || []);
   const actionsByAreaB = groupActionsByArea(strategicPlans.rotaB.actions || []);
   const actionsByAreaC = groupActionsByArea(strategicPlans.rotaC.actions || []);
+
+  // Create strategic suggestions based on existing data
+  const strategicSuggestions: Suggestion[] = [
+    {
+      title: "Melhorar Fluxo de Caixa",
+      description: "Avalie reduzir despesas fixas e aumentar ticket médio por cliente ativo.",
+      borderColor: "border-[#00b894]",
+      textColor: "text-[#00b894]"
+    },
+    {
+      title: "Risco com concorrência",
+      description: "Identifique diferenciais que possam te proteger de novos entrantes no seu nicho.",
+      borderColor: "border-[#d63031]",
+      textColor: "text-[#d63031]"
+    }
+  ];
 
   // Function to generate and download PDF
   const generatePDF = () => {
