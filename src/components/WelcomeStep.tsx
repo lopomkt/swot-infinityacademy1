@@ -1,37 +1,69 @@
 
+import { Button } from "@/components/ui/button";
 import RedBullet from "./RedBullet";
 
 interface WelcomeStepProps {
   onStart: () => void;
 }
+
 const WelcomeStep = ({ onStart }: WelcomeStepProps) => (
-  <section className="w-full max-w-lg bg-[#f9f9f9] rounded-xl py-10 px-6 md:px-10 shadow-md border border-[#f1eaea] animate-fade-in">
-    <h1 className="text-2xl md:text-3xl font-bold mb-2 text-[#560005] font-manrope">
-      Seja bem-vindo ao Diagnóstico Estratégico SWOT PREMIUM
-    </h1>
-    <h2 className="text-lg md:text-xl mb-6 text-black">
-      Você está prestes a realizar um check-up completo da sua empresa. <br />
-      <span className="font-medium text-[#ef0002]">
-        Em menos de 40 minutos, você terá um relatório profissional com estratégias sob medida.
-      </span>
-    </h2>
-    <ul className="text-base md:text-lg space-y-3 mb-7 text-black">
-      <li className="flex items-start"><RedBullet />Diagnóstico visual e completo do seu negócio</li>
-      <li className="flex items-start"><RedBullet />Relatório gerado por inteligência artificial</li>
-      <li className="flex items-start"><RedBullet />Ações sugeridas com diferentes níveis de investimento</li>
-      <li className="flex items-start"><RedBullet />Material final para usar com sócios, equipe ou investidores</li>
-    </ul>
-    <div className="flex items-center gap-2 text-[#b70001] mb-7 font-semibold">
-      <span role="img" aria-label="timer">⏱️</span>
-      Duração média: <span className="ml-1">35 a 40 minutos</span>
+  <section className="w-full max-w-5xl bg-white py-20 px-6 mx-auto animate-fade-in">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      {/* Left Column - Content */}
+      <div className="flex flex-col justify-center">
+        <h1 className="text-3xl md:text-4xl font-bold text-black leading-snug">
+          Bem-vindo ao SWOT INSIGHTS
+        </h1>
+        <p className="mt-4 text-base text-gray-700">
+          Aqui começa o diagnóstico estratégico mais completo da sua empresa. Em poucos minutos, você terá um relatório poderoso com insights reais para vender mais, organizar processos e crescer de forma consistente.
+        </p>
+        
+        <div className="mt-8 space-y-4">
+          <div className="flex items-start space-x-3">
+            <RedBullet />
+            <p className="text-sm text-gray-700">
+              <strong>+ Estrutura:</strong> Veja o que precisa ser corrigido internamente.
+            </p>
+          </div>
+          <div className="flex items-start space-x-3">
+            <RedBullet />
+            <p className="text-sm text-gray-700">
+              <strong>+ Vendas:</strong> Identifique oportunidades ocultas de receita.
+            </p>
+          </div>
+          <div className="flex items-start space-x-3">
+            <RedBullet />
+            <p className="text-sm text-gray-700">
+              <strong>+ Expansão:</strong> Descubra novos caminhos estratégicos de crescimento.
+            </p>
+          </div>
+        </div>
+        
+        <div className="flex items-center gap-2 text-[#b70001] mt-6 font-semibold">
+          <span role="img" aria-label="timer">⏱️</span>
+          Duração média: <span className="ml-1">35 a 40 minutos</span>
+        </div>
+        
+        <Button
+          onClick={onStart}
+          className="mt-6 text-lg py-3 px-6 bg-[#ef0002] hover:bg-[#b70001] text-white rounded-xl shadow-md"
+          aria-label="Começar diagnóstico"
+        >
+          Iniciar Diagnóstico
+        </Button>
+      </div>
+      
+      {/* Right Column - Image */}
+      <div className="hidden md:flex items-center justify-center">
+        <img 
+          src="/placeholder.svg" 
+          alt="Diagnóstico estratégico SWOT" 
+          className="w-full h-auto object-contain" 
+        />
+      </div>
     </div>
-    <button
-      onClick={onStart}
-      className="w-full py-3 rounded-lg bg-[#ef0002] text-white font-bold text-lg md:text-xl hover:bg-[#b70001] transition"
-      aria-label="Começar diagnóstico"
-    >
-      Começar diagnóstico
-    </button>
+    
+    {/* fase6_1_welcome_transicoes_premium_ok = true */}
   </section>
 );
 

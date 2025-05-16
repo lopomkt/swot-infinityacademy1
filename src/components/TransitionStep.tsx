@@ -1,5 +1,5 @@
 
-import { useEffect } from "react";
+import { useEffect, ReactNode } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 
@@ -9,6 +9,8 @@ interface TransitionStepProps {
   onContinue: () => void;
   currentStep?: number;
   totalSteps?: number;
+  fraseMotivacional?: string;
+  iconeEtapa?: ReactNode;
 }
 
 export default function TransitionStep({ 
@@ -16,7 +18,9 @@ export default function TransitionStep({
   description, 
   onContinue,
   currentStep = 1,
-  totalSteps = 8
+  totalSteps = 8,
+  fraseMotivacional,
+  iconeEtapa
 }: TransitionStepProps) {
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -31,10 +35,21 @@ export default function TransitionStep({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
       transition={{ duration: 0.5 }}
-      className="p-8 bg-white rounded-xl shadow-md max-w-3xl mx-auto text-center animate-fade-in"
+      className="p-6 md:p-12 bg-white rounded-xl shadow-md max-w-3xl mx-auto text-center animate-fade-in"
     >
+      {iconeEtapa && (
+        <div className="flex justify-center mb-4 text-4xl text-[#ef0002]">
+          {iconeEtapa}
+        </div>
+      )}
+      
       <h2 className="text-2xl font-bold text-[#560005] mb-4">{title}</h2>
-      <p className="text-gray-700 mb-8">{description}</p>
+      
+      {fraseMotivacional && (
+        <p className="mt-2 text-sm italic text-[#560005]">{fraseMotivacional}</p>
+      )}
+      
+      <p className="text-gray-700 mb-8 font-sans leading-snug">{description}</p>
       
       {/* Progress indicator */}
       <p className="text-sm text-gray-600 italic mt-2 mb-6">

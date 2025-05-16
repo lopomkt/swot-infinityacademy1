@@ -14,6 +14,7 @@ import ResultsScreen from "@/pages/ResultsScreen";
 import TransitionStep from "@/components/TransitionStep";
 import { FormData } from "@/types/formData";
 import { saveState, loadState } from "@/lib/persistence";
+import { Bulb, Star, Flag, TrendingUp, TrendingDown, ArrowRight } from "lucide-react";
 
 const STEPS = [
   { label: "Boas-vindas" },
@@ -43,6 +44,7 @@ const Index = () => {
     fase5_gamificacao_ok: true,
     fase5_finalizacao_ok: true,
     fase5_resultado_final_ok: true,
+    fase6_1_welcome_transicoes_premium_ok: true,
   });
 
   // Save form data to localStorage whenever it changes
@@ -68,6 +70,7 @@ const Index = () => {
       fase5_gamificacao_ok: true,
       fase5_finalizacao_ok: true,
       fase5_resultado_final_ok: true,
+      fase6_1_welcome_transicoes_premium_ok: true,
     });
     setStep(0);
   };
@@ -113,6 +116,8 @@ const Index = () => {
           <TransitionStep
             title="Vamos identificar as forças do seu negócio"
             description="Agora vamos analisar os pontos fortes da sua empresa - aqueles diferenciais competitivos que você já possui e que podem ser potencializados."
+            fraseMotivacional="Seus diferenciais competitivos são a base do seu crescimento!"
+            iconeEtapa={<Star className="h-10 w-10" />}
             onContinue={() => setStep(2)}
             currentStep={currentMainStep}
             totalSteps={totalMainSteps}
@@ -138,6 +143,8 @@ const Index = () => {
           <TransitionStep
             title="Vamos analisar os pontos de melhoria"
             description="Identificar fraquezas não é sinal de fracasso - é um passo essencial para fortalecer seu negócio e transformar vulnerabilidades em oportunidades de crescimento."
+            fraseMotivacional="Conhecer suas fraquezas é o primeiro passo para superá-las!"
+            iconeEtapa={<TrendingDown className="h-10 w-10" />}
             onContinue={() => setStep(3)}
             currentStep={currentMainStep}
             totalSteps={totalMainSteps}
@@ -157,6 +164,8 @@ const Index = () => {
           <TransitionStep
             title="Explorando oportunidades de mercado"
             description="Vamos identificar as oportunidades externas que podem impulsionar seu negócio - tendências, nichos inexplorados e demandas emergentes que podem ser aproveitadas."
+            fraseMotivacional="Onde outros veem problemas, você verá oportunidades!"
+            iconeEtapa={<Bulb className="h-10 w-10" />}
             onContinue={() => setStep(4)}
             currentStep={currentMainStep}
             totalSteps={totalMainSteps}
@@ -176,6 +185,8 @@ const Index = () => {
           <TransitionStep
             title="Identificando ameaças e desafios"
             description="Por último, vamos mapear as ameaças externas que podem impactar seu negócio, preparando estratégias defensivas e de mitigação de riscos."
+            fraseMotivacional="Prevenir é melhor que remediar. Vamos preparar seu negócio!"
+            iconeEtapa={<Flag className="h-10 w-10" />}
             onContinue={() => setStep(5)}
             currentStep={currentMainStep}
             totalSteps={totalMainSteps}
@@ -195,6 +206,8 @@ const Index = () => {
           <TransitionStep
             title="Avaliando a saúde financeira"
             description="Agora vamos analisar a situação financeira da sua empresa para fundamentar recomendações alinhadas à sua realidade econômica."
+            fraseMotivacional="Números saudáveis refletem estratégias inteligentes!"
+            iconeEtapa={<TrendingUp className="h-10 w-10" />}
             onContinue={() => setStep(6)}
             currentStep={currentMainStep}
             totalSteps={totalMainSteps}
@@ -214,6 +227,8 @@ const Index = () => {
           <TransitionStep
             title="Definindo prioridades estratégicas"
             description="Para finalizar, vamos estabelecer prioridades claras e entender suas metas de curto e longo prazo para direcionar as recomendações estratégicas."
+            fraseMotivacional="Foco e priorização são os pilares do sucesso!"
+            iconeEtapa={<ArrowRight className="h-10 w-10" />}
             onContinue={() => setStep(7)}
             currentStep={currentMainStep}
             totalSteps={totalMainSteps}
@@ -237,6 +252,8 @@ const Index = () => {
           <TransitionStep
             title="Finalizando sua análise SWOT"
             description="Parabéns! Você completou todas as etapas do diagnóstico. Agora vamos processar suas informações e gerar seu relatório estratégico personalizado."
+            fraseMotivacional="Prepare-se para insights valiosos sobre seu negócio!"
+            iconeEtapa={<Star className="h-10 w-10" />}
             onContinue={() => setStep(8)}
             currentStep={currentMainStep}
             totalSteps={totalMainSteps}
@@ -270,6 +287,7 @@ const Index = () => {
       {/* Tag de rastreamento - não remover */}
       {/* fase5_bugfixes_finais_ok = true */}
       {/* fase5_resultado_final_ok = true */}
+      {/* fase6_1_welcome_transicoes_premium_ok = true */}
     </div>
   );
 };
