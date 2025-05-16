@@ -14,7 +14,7 @@ import ResultsScreen from "@/pages/ResultsScreen";
 import TransitionStep from "@/components/TransitionStep";
 import { FormData } from "@/types/formData";
 import { saveState, loadState } from "@/lib/persistence";
-import { Bulb, Star, Flag, TrendingUp, TrendingDown, ArrowRight } from "lucide-react";
+import { Lightbulb, Star, Flag, TrendingUp, TrendingDown, ArrowRight } from "lucide-react";
 
 const STEPS = [
   { label: "Boas-vindas" },
@@ -165,7 +165,7 @@ const Index = () => {
             title="Explorando oportunidades de mercado"
             description="Vamos identificar as oportunidades externas que podem impulsionar seu negócio - tendências, nichos inexplorados e demandas emergentes que podem ser aproveitadas."
             fraseMotivacional="Onde outros veem problemas, você verá oportunidades!"
-            iconeEtapa={<Bulb className="h-10 w-10" />}
+            iconeEtapa={<Lightbulb className="h-10 w-10" />}
             onContinue={() => setStep(4)}
             currentStep={currentMainStep}
             totalSteps={totalMainSteps}
