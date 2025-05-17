@@ -146,15 +146,44 @@ export interface ForcasData {
 
 // Interface for FraquezasData
 export interface FraquezasData {
-  respostas: string[];
-  problemas_identificados: string[];
+  respostas?: string[];
+  problemas_identificados?: string[];
   inconsistencias?: string[];
-  pontos_inconsistentes: string[];
+  pontos_inconsistentes?: string[];
+  fraqueza_critica?: string;
+  bloqueio_estrategico?: string;
+  centralizacao_gestao?: string;
+  retrabalho_frequente?: string;
+  clareza_funcoes?: number;
+  documentacao_processos?: string;
+  indicadores_ativos?: string;
+  ferramentas_utilizadas?: string;
+  tentativas_resolucao?: string;
+  tentativa_falha_motivo?: string;
+  capacidade_inovacao?: string;
+  ausencia_dados_decisao?: string;
+  falta_treinamento?: string;
+  problemas_cultura?: string;
+  step_fraquezas_ok?: boolean;
 }
 
 // Interface for OportunidadesData
 export interface OportunidadesData {
   respostas: string[];
+  nova_demanda_cliente?: string;
+  situacao_mercado?: string;
+  nichos_ocultos?: string;
+  concorrentes_enfraquecendo?: string;
+  tendencias_aproveitaveis?: string[];
+  tendencias_outro?: string;
+  demanda_nao_atendida?: string;
+  parcerias_possiveis?: string;
+  recurso_ocioso?: string;
+  canais_potenciais?: string[];
+  canais_outro?: string;
+  nivel_disposicao?: number;
+  acao_inicial_oportunidade?: string;
+  step_oportunidades_ok?: boolean;
 }
 
 // Interface for AmeacasData
@@ -191,6 +220,21 @@ export interface SaudeFinanceiraData {
   meta_financeira?: string;
   maturidade_financeira?: string;
   confianca_financeira?: string;
+  caixa_disponivel?: string;
+  autonomia_caixa?: string;
+  controle_financeiro?: string;
+  fluxo_frequencia?: string;
+  endividamento_nivel?: string;
+  inadimplencia_clientes?: string;
+  custos_fixos?: string;
+  cac_estimado_conhecimento?: string;
+  cac_estimado?: string;
+  orcamento_planejado?: string;
+  intencao_investimento?: string;
+  step_financas_ok?: boolean;
+  grau_endividamento?: string;
+  previsao_orcamentaria?: string;
+  margem_lucro_liquida?: string;
 }
 
 // Interface for PrioridadesData
@@ -209,6 +253,11 @@ export interface PrioridadesData {
   maior_gargalo?: string;
   comprometimento_estrategico?: number;
   prioridades_principais?: string[];
+  distribuicao_tempo?: string;
+  prontidao_execucao?: string;
+  meta_crescimento_6_meses?: string;
+  meta_crescimento_12_meses?: string;
+  tipo_investimento?: string;
 }
 
 // Props para as etapas de incosistência

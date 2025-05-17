@@ -30,7 +30,7 @@ interface Props {
 }
 
 export default function FormStepOportunidades({ defaultValues, onComplete, onBack }: Props) {
-  const [form, setForm] = useState<OportunidadesData>({
+  const [form, setForm] = useState<Partial<OportunidadesData>>({
     nova_demanda_cliente: "",
     situacao_mercado: "",
     nichos_ocultos: "",
@@ -49,9 +49,9 @@ export default function FormStepOportunidades({ defaultValues, onComplete, onBac
     ...defaultValues,
   });
 
-  const mostrarOutroTendencias = form.tendencias_aproveitaveis.includes("Outro");
-  const mostrarOutroCanais = form.canais_potenciais.includes("Outro");
-  const mostrarCampoAcaoInicial = form.nivel_disposicao >= 8;
+  const mostrarOutroTendencias = form.tendencias_aproveitaveis?.includes("Outro") || false;
+  const mostrarOutroCanais = form.canais_potenciais?.includes("Outro") || false;
+  const mostrarCampoAcaoInicial = (form.nivel_disposicao || 0) >= 8;
 
   function handleChange<K extends keyof OportunidadesData>(key: K, value: OportunidadesData[K]) {
     setForm((prev) => ({
@@ -62,25 +62,26 @@ export default function FormStepOportunidades({ defaultValues, onComplete, onBac
 
   function handleCheckbox(key: "tendencias_aproveitaveis" | "canais_potenciais", value: string) {
     setForm((prev) => {
-      const arr = prev[key].includes(value)
-        ? prev[key].filter((v: string) => v !== value)
-        : [...prev[key], value];
+      const currentArray = prev[key] || [];
+      const arr = currentArray.includes(value)
+        ? currentArray.filter((v: string) => v !== value)
+        : [...currentArray, value];
       return { ...prev, [key]: arr };
     });
   }
 
-  function countFilledFields(data: OportunidadesData) {
+  function countFilledFields(data: Partial<OportunidadesData>) {
     let c = 0;
     if (data.nova_demanda_cliente?.trim()) c++;
     if (data.situacao_mercado) c++;
     if (data.nichos_ocultos?.trim()) c++;
     if (data.concorrentes_enfraquecendo) c++;
-    if (data.tendencias_aproveitaveis.length) c++;
+    if (data.tendencias_aproveitaveis?.length) c++;
     if (mostrarOutroTendencias && data.tendencias_outro?.trim()) c++;
     if (data.demanda_nao_atendida?.trim()) c++;
     if (data.parcerias_possiveis) c++;
     if (data.recurso_ocioso?.trim()) c++;
-    if (data.canais_potenciais.length) c++;
+    if (data.canais_potenciais?.length) c++;
     if (mostrarOutroCanais && data.canais_outro?.trim()) c++;
     if (typeof data.nivel_disposicao === "number" && data.nivel_disposicao !== 0) c++;
     if (mostrarCampoAcaoInicial && data.acao_inicial_oportunidade?.trim()) c++;
@@ -92,7 +93,11 @@ export default function FormStepOportunidades({ defaultValues, onComplete, onBac
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (isValid) {
-      const finalData = { ...form, step_oportunidades_ok: true };
+      const finalData: OportunidadesData = {
+        ...form as OportunidadesData,
+        step_oportunidades_ok: true,
+        respostas: form.respostas || []
+      };
       // TODO: Auto-save to Supabase as etapa 4
       onComplete(finalData);
     }
