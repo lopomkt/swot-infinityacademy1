@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { statCardBase } from "@/styles/uiClasses";
 import { useReducedMotion } from '@/hooks/use-reduced-motion';
 
 interface QuickDataCardsProps {

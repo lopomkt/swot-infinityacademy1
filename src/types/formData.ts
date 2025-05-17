@@ -1,3 +1,4 @@
+
 // Props para as etapas do formulário
 export interface FormStepProps {
   etapa_atual: number;
@@ -81,32 +82,133 @@ export interface ProgressProps {
 
 // Interface para os dados do formulário
 export interface FormData {
-  identificacao?: {
-    nomeEmpresa: string;
-    segmento: string;
-    faturamentoMensal: string;
-    tempoDeMercado: string;
-  };
-  forcas?: {
-    respostas: string[];
-  };
-  fraquezas?: {
-    respostas: string[];
-    problemas_identificados: string[];
-    inconsistencias?: string[];
-    pontos_inconsistentes: string[];
-  };
-  oportunidades?: {
-    respostas: string[];
-  };
-  ameacas?: {
-    respostas: string[];
-  };
-  prioridades?: {
-    comprometimento_estrategico: string;
-    prioridades_principais: string[];
-  };
+  identificacao?: IdentificacaoData;
+  forcas?: ForcasData;
+  fraquezas?: FraquezasData;
+  oportunidades?: OportunidadesData;
+  ameacas?: AmeacasData;
+  saudeFinanceira?: SaudeFinanceiraData;
+  prioridades?: PrioridadesData;
   resultadoFinal?: ResultadoFinalData;
+  tipagem_index_ok?: boolean;
+  fase5_transicoes_ok?: boolean;
+  fase5_voltar_ok?: boolean;
+  fase5_gamificacao_ok?: boolean;
+  fase5_finalizacao_ok?: boolean;
+  fase5_resultado_final_ok?: boolean;
+  fase6_1_welcome_transicoes_premium_ok?: boolean;
+  fase6_2_resultado_premium_visual_ok?: boolean;
+  fase6_3_design_final_pdf_ok?: boolean;
+  fase7_1_ui_ux_gamificada_ok?: boolean;
+  fase7_2_consultivo_avancado_ok?: boolean;
+  fase7_3_polimento_final_ok?: boolean;
+  fase7_5_1_correcao_total_ok?: boolean;
+  fase7_5_2_ui_premium_ok?: boolean;
+  step_forcas_ok?: boolean;
+  step_prioridades_ok?: boolean;
+}
+
+// Interface for IdentificacaoData
+export interface IdentificacaoData {
+  nomeEmpresa: string;
+  segmento: string;
+  faturamentoMensal: string;
+  tempoDeMercado: string;
+  tipo_produto_servico?: string;
+  tempo_retencao_clientes?: string;
+  perfil_cliente_ideal?: string;
+  fonte_trafego_principal?: string;
+  nivel_automacao?: string;
+  canais_venda_atuais?: string;
+  numero_colaboradores?: string;
+  modelo_precificacao?: string;
+  tipagem_identificacao_ok?: boolean;
+}
+
+// Interface for ForcasData
+export interface ForcasData {
+  respostas?: string[];
+  cultura_forte?: string;
+  equipe_qualificada?: string;
+  marca_reconhecida?: string;
+  tecnologia_propria?: string;
+  carteira_fiel?: string;
+  diferencial_mercado?: string;
+  reputacao_regional?: string;
+  canais_distribuicao?: string;
+  estrutura_financeira?: string;
+  velocidade_entrega?: string;
+  processos_otimizados?: string;
+  lideranca_setorial?: string;
+  atendimento_diferenciado?: string;
+  outros?: string;
+}
+
+// Interface for FraquezasData
+export interface FraquezasData {
+  respostas: string[];
+  problemas_identificados: string[];
+  inconsistencias?: string[];
+  pontos_inconsistentes: string[];
+}
+
+// Interface for OportunidadesData
+export interface OportunidadesData {
+  respostas: string[];
+}
+
+// Interface for AmeacasData
+export interface AmeacasData {
+  respostas: string[];
+  fator_preocupante?: string;
+  concorrente_em_ascensao?: string;
+  dependencia_parceiros?: string;
+  ameaca_legislativa?: string;
+  sazonalidade_negocio?: string;
+  detalheSazonalidade?: string;
+  dependencia_plataformas?: string[];
+  mudanca_comportamental?: string;
+  resiliencia_crise?: string;
+  perdas_externas?: string;
+  detalhePerda?: string;
+  impacto_ameacas?: number;
+  estrategia_defesa?: string;
+  step_ameacas_ok?: boolean;
+  validacao_ameacas_ok?: boolean;
+}
+
+// Interface for SaudeFinanceiraData
+export interface SaudeFinanceiraData {
+  margem_lucro?: string;
+  fluxo_caixa?: string;
+  investimento_disponivel?: string;
+  nivel_dividas?: string;
+  saude_financeira_geral?: number;
+  custo_aquisicao?: string;
+  ciclo_vendas?: string;
+  valor_medio_cliente?: string;
+  rentabilidade_produtos?: string;
+  meta_financeira?: string;
+  maturidade_financeira?: string;
+  confianca_financeira?: string;
+}
+
+// Interface for PrioridadesData
+export interface PrioridadesData {
+  meta_90_dias?: string;
+  top3_desafios?: string;
+  areas_fraqueza?: string[];
+  areas_potenciais?: string[];
+  ajuda_externa_urgente?: string;
+  acao_unica_desejada?: string;
+  engajamento_equipe?: number;
+  estilo_decisao?: string;
+  tempo_resposta?: string;
+  nivel_adaptacao?: string;
+  maior_sonho?: string;
+  maior_gargalo?: string;
+  comprometimento_estrategico?: number;
+  prioridades_principais?: string[];
 }
 
 // Props para as etapas de incosistência

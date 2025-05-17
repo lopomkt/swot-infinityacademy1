@@ -17,7 +17,11 @@ const AIBlock: React.FC<AIBlockProps> = ({ formData, onRestart, onAIComplete }) 
     matriz_swot: "",
     diagnostico_textual: "",
     planos_acao: "",
-    acoes_priorizadas: []
+    acoes_priorizadas: [],
+    forcas_convertidas: [],
+    fraquezas_convertidas: [],
+    oportunidades_convertidas: [],
+    ameacas_convertidas: []
   });
   const { toast } = useToast();
 
@@ -85,7 +89,11 @@ Use os seguintes delimitadores para separar cada seção da sua resposta:
         planoB: [],
         planoC: [],
         gargalos: [],
-        alertasCascata: []
+        alertasCascata: [],
+        forcas_convertidas: [],
+        fraquezas_convertidas: [],
+        oportunidades_convertidas: [],
+        ameacas_convertidas: []
       };
     }
     
@@ -100,7 +108,11 @@ Use os seguintes delimitadores para separar cada seção da sua resposta:
       planoB: [],
       planoC: [],
       gargalos: [],
-      alertasCascata: []
+      alertasCascata: [],
+      forcas_convertidas: [],
+      fraquezas_convertidas: [],
+      oportunidades_convertidas: [],
+      ameacas_convertidas: []
     };
   };
 
@@ -245,7 +257,7 @@ As áreas mais frágeis (${formData.prioridades?.areas_fraqueza?.join(", ") || "
               Matriz SWOT detalhada da sua empresa
             </h3>
             <div className="prose max-w-none">
-              {resultadoFinal.matriz_swot.split('\n\n').map((section, index) => {
+              {resultadoFinal.matriz_swot?.split('\n\n').map((section, index) => {
                 const lines = section.split('\n');
                 const title = lines[0];
                 const items = lines.slice(1);
@@ -274,7 +286,7 @@ As áreas mais frágeis (${formData.prioridades?.areas_fraqueza?.join(", ") || "
               Análise estratégica gerada por inteligência artificial
             </h3>
             <div className="prose max-w-none text-gray-700">
-              {resultadoFinal.diagnostico_textual.split('\n\n').map((paragraph, index) => (
+              {resultadoFinal.diagnostico_textual?.split('\n\n').map((paragraph, index) => (
                 <p key={index} className="mb-4">
                   {paragraph}
                 </p>
@@ -288,7 +300,7 @@ As áreas mais frágeis (${formData.prioridades?.areas_fraqueza?.join(", ") || "
               Plano de ação com rotas estratégicas sugeridas
             </h3>
             <div className="prose max-w-none">
-              {resultadoFinal.planos_acao.split('\n\n').map((section, index) => {
+              {resultadoFinal.planos_acao?.split('\n\n').map((section, index) => {
                 const lines = section.split('\n');
                 const title = lines[0];
                 const items = lines.slice(1);

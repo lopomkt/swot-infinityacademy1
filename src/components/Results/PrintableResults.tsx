@@ -2,7 +2,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useReducedMotion } from '@/hooks/use-reduced-motion';
-import { useIsMobile } from '@/hooks/use-mobile';
 import { Button } from "@/components/ui/button";
 
 interface PrintableResultsProps {
@@ -11,7 +10,6 @@ interface PrintableResultsProps {
 
 const PrintableResults = React.memo(function PrintableResults({ children }: PrintableResultsProps) {
   const prefersReducedMotion = useReducedMotion();
-  const isMobile = useIsMobile();
 
   const handleContactTeam = () => {
     window.open('https://wa.me/5567993146148?text=Olá!%20Acabei%20de%20concluir%20o%20SWOT%20INSIGHTS%20da%20INFINITY%20e%20quero%20conversar%20com%20a%20equipe%20sobre%20o%20meu%20diagnóstico.', '_blank');
