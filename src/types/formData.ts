@@ -169,7 +169,7 @@ export interface FraquezasData {
 
 // Interface for OportunidadesData
 export interface OportunidadesData {
-  respostas: string[];
+  respostas?: string[];
   nova_demanda_cliente?: string;
   situacao_mercado?: string;
   nichos_ocultos?: string;
@@ -188,7 +188,7 @@ export interface OportunidadesData {
 
 // Interface for AmeacasData
 export interface AmeacasData {
-  respostas: string[];
+  respostas?: string[];
   fator_preocupante?: string;
   concorrente_em_ascensao?: string;
   dependencia_parceiros?: string;
@@ -246,15 +246,19 @@ export interface PrioridadesData {
   ajuda_externa_urgente?: string;
   acao_unica_desejada?: string;
   engajamento_equipe?: number;
-  estilo_decisao?: string;
+  // Fix: Changed string to union type to match the schema
+  distribuicao_tempo?: "Sim" | "Parcialmente" | "Estou sobrecarregado";
+  comprometimento_estrategico?: number;
+  prioridades_principais?: string[];
+  // Fix: Changed string to union type to match the schema
+  estilo_decisao?: "Analítico" | "Rápido e objetivo" | "Intuitivo" | "Compartilhado com sócios / equipe";
+  // Fix: Changed string to union type to match the schema
+  prontidao_execucao?: "Sim" | "Com adaptações" | "Ainda não";
   tempo_resposta?: string;
   nivel_adaptacao?: string;
   maior_sonho?: string;
   maior_gargalo?: string;
-  comprometimento_estrategico?: number;
-  prioridades_principais?: string[];
-  distribuicao_tempo?: string;
-  prontidao_execucao?: string;
+  distribuicao_tempo_alternativo?: string;
   meta_crescimento_6_meses?: string;
   meta_crescimento_12_meses?: string;
   tipo_investimento?: string;

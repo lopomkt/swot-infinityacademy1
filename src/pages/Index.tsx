@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import ProgressBar from "@/components/ProgressBar";
 import WelcomeStep from "@/components/WelcomeStep";
@@ -12,7 +11,7 @@ import FormStepPrioridades from "@/components/FormStepPrioridades";
 import FinalizacaoStep from "@/components/FinalizacaoStep";
 import ResultsScreen from "@/pages/ResultsScreen";
 import TransitionStep from "@/components/TransitionStep";
-import { FormData } from "@/types/formData";
+import { FormData, PrioridadesData } from "@/types/formData";
 import { saveState, loadState } from "@/lib/persistence";
 import { Lightbulb, Star, Flag, TrendingUp, TrendingDown, ArrowRight } from "lucide-react";
 
@@ -184,7 +183,7 @@ const Index = () => {
         {step === 4.5 && (
           <TransitionStep
             title="Identificando ameaças e desafios"
-            description="Por último, vamos mapear as ameaças externas que podem impactar seu negócio, preparando estratégias defensivas e de mitigação de riscos."
+            description="Por último, vamos mapear as ameaças externas que podem impactar seu negócio, preparando estrat��gias defensivas e de mitigação de riscos."
             fraseMotivacional="Prevenir é melhor que remediar. Vamos preparar seu negócio!"
             iconeEtapa={<Flag className="h-10 w-10" />}
             onContinue={() => setStep(5)}
@@ -239,9 +238,10 @@ const Index = () => {
             defaultValues={formData.prioridades}
             onBack={() => handleBackButtonClick(6)}
             onComplete={(prioridades) => {
+              // Ensure prioridades conforms to the expected type
               setFormData((prev) => ({ 
                 ...prev, 
-                prioridades,
+                prioridades: prioridades as PrioridadesData,
                 step_prioridades_ok: true
               }));
               setStep(8);

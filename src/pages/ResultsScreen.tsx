@@ -1,3 +1,5 @@
+// Import motion from framer-motion at the top of the file
+import { motion } from 'framer-motion';
 
 // Adding fallback message at the top of the component
 import React, { useState, lazy, Suspense, useEffect } from "react";
