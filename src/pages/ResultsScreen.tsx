@@ -609,7 +609,7 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData, onRestart, onNo
             caminhos da sua empresa.
           </p>
           
-          {/* Add the DiagnosticoPronto component here */}
+          {/* Keep only the DiagnosticoPronto component - removed duplicate card */}
           <div className="mt-8 max-w-3xl mx-auto">
             <DiagnosticoPronto empresa={formData.identificacao?.nomeEmpresa} />
           </div>
@@ -710,7 +710,7 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData, onRestart, onNo
               Nível de Maturidade e Prontidão Estratégica
             </h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              Essa avaliação considera suas respostas em múltiplas áreas como gestão, 
+              Essa avaliaç��o considera suas respostas em múltiplas áreas como gestão, 
               finanças, marketing, operação e decisão estratégica.
             </p>
           </div>
@@ -803,10 +803,10 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData, onRestart, onNo
           </div>
         </div>
 
-        {/* FINAL BLOCK: Conclusion Section with the new ConclusaoFinal component */}
+        {/* FINAL BLOCK: Conclusion Section with the ConclusaoFinal component */}
         <ConclusaoFinal />
         
-        {/* Add ParabensFinal and ResultsScreenWrapper components here */}
+        {/* Add ParabensFinal only ONCE - removed duplicates */}
         <ParabensFinal />
         
         <div className="max-w-3xl mx-auto">

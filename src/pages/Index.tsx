@@ -86,7 +86,7 @@ const Index = () => {
     setStep(0);
   };
 
-  // NEW - Function to completely reset app flow after report generation
+  // Function to completely reset app flow after report generation
   const resetAppFlow = () => {
     setFormData({
       tipagem_index_ok: true,
@@ -110,33 +110,25 @@ const Index = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // New function to handle starting a new analysis
+  // Updated function to handle starting a new analysis
   const handleNovaAnalise = () => {
-    // 1. Verifica se há relatório atual preenchido
-    if (formData && formData.resultadoFinal) {
-      // 2. Salva no localStorage (ou em breve no Supabase)
-      const historico = JSON.parse(localStorage.getItem('historico_relatorios') || '[]');
-      historico.push({ ...formData, data: new Date().toISOString() });
-      localStorage.setItem('historico_relatorios', JSON.stringify(historico));
-      
-      // TODO: enviar relatório atual para Supabase quando conectado
+    try {
+      if (formData && formData.resultadoFinal) {
+        const historico = JSON.parse(localStorage.getItem('historico_relatorios') || '[]');
+        historico.push({ ...formData, data: new Date().toISOString() });
+        localStorage.setItem('historico_relatorios', JSON.stringify(historico));
+      }
+
+      // Reset do estado
+      resetForm();
+      resetAppFlow();
+
+      // Reset da tela
+      window.location.reload(); // Força o estado inicial do Lovable
+
+    } catch (error) {
+      console.error('Erro ao resetar análise:', error);
     }
-
-    // 3. Reseta os estados (flow inicial)
-    resetForm();
-    resetAppFlow(); // função existente
-
-    // 4. Redireciona para o passo inicial
-    setStep(1);
-    
-    // 5. Marcar visualmente a nova análise iniciada
-    console.log('🆕 Nova análise iniciada');
-    
-    // 6. Tag técnica de conclusão
-    setFormData(prev => ({
-      ...prev,
-      fase4_nova_analise_ok: true
-    }));
   };
 
   // Check if AI results are ready to show results screen
