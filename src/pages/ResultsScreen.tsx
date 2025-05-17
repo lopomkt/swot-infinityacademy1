@@ -403,19 +403,38 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData, onRestart }) =>
 
   // Calculate strategic score data for radar chart
   const calculateStrategicScore = () => {
-    const marketing = Math.floor(Math.random() * 7) + 3;
-    const vendas = Math.floor(Math.random() * 7) + 3;
-    const gestao = Math.floor(Math.random() * 7) + 3;
-    const financas = Math.floor(Math.random() * 7) + 3;
-    const operacoes = Math.floor(Math.random() * 7) + 3;
-    
-    return [
-      { subject: "Marketing", A: marketing, fullMark: 10 },
-      { subject: "Vendas", A: vendas, fullMark: 10 },
-      { subject: "Gestão", A: gestao, fullMark: 10 },
-      { subject: "Finanças", A: financas, fullMark: 10 },
-      { subject: "Operações", A: operacoes, fullMark: 10 }
-    ];
+    try {
+      // If we have actual data, use it
+      if (formData.resultadoFinal?.score_estrategico && 
+          Array.isArray(formData.resultadoFinal.score_estrategico) && 
+          formData.resultadoFinal.score_estrategico.length > 0) {
+        return formData.resultadoFinal.score_estrategico;
+      }
+      
+      // Otherwise use calculated fallback data
+      const marketing = Math.floor(Math.random() * 7) + 3;
+      const vendas = Math.floor(Math.random() * 7) + 3;
+      const gestao = Math.floor(Math.random() * 7) + 3;
+      const financas = Math.floor(Math.random() * 7) + 3;
+      const operacoes = Math.floor(Math.random() * 7) + 3;
+      
+      return [
+        { subject: "Marketing", A: marketing, fullMark: 10 },
+        { subject: "Vendas", A: vendas, fullMark: 10 },
+        { subject: "Gestão", A: gestao, fullMark: 10 },
+        { subject: "Finanças", A: financas, fullMark: 10 },
+        { subject: "Operações", A: operacoes, fullMark: 10 }
+      ];
+    } catch (error) {
+      console.error("Error calculating strategic score:", error);
+      return [
+        { subject: "Marketing", A: 5, fullMark: 10 },
+        { subject: "Vendas", A: 5, fullMark: 10 },
+        { subject: "Gestão", A: 5, fullMark: 10 },
+        { subject: "Finanças", A: 5, fullMark: 10 },
+        { subject: "Operações", A: 5, fullMark: 10 }
+      ];
+    }
   };
 
   const strategicScoreData = calculateStrategicScore();
@@ -736,6 +755,7 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData, onRestart }) =>
                 <ScoreEstrategico
                   scoreLabel={getMaturityLevel().title || "N/A"}
                   pontuacao={Math.round(averageScore * 10)}
+                  scoreData={strategicScoreData}
                 />
               </Suspense>
               

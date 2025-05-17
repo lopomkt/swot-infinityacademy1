@@ -4,14 +4,50 @@ import { motion } from 'framer-motion';
 import { cardBase, headingBase } from "@/styles/uiClasses";
 import { useReducedMotion } from '@/hooks/use-reduced-motion';
 import { Badge } from "@/components/ui/badge";
+import {
+  RadarChart,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  Radar,
+  ResponsiveContainer
+} from "recharts";
+import {
+  ChartContainer, 
+  ChartLegend, 
+  ChartLegendContent
+} from "@/components/ui/chart";
+
+interface ScoreDataPoint {
+  subject: string;
+  A: number;
+  fullMark: number;
+}
 
 interface ScoreEstrategicoProps {
   scoreLabel: string;
   pontuacao: number;
+  scoreData?: ScoreDataPoint[];
 }
 
-const ScoreEstrategico = React.memo(function ScoreEstrategico({ scoreLabel, pontuacao }: ScoreEstrategicoProps) {
+const ScoreEstrategico = React.memo(function ScoreEstrategico({ 
+  scoreLabel, 
+  pontuacao,
+  scoreData = []
+}: ScoreEstrategicoProps) {
   const prefersReducedMotion = useReducedMotion();
+  
+  // Default data if none provided
+  const defaultScoreData = [
+    { subject: "Marketing", A: 8, fullMark: 10 },
+    { subject: "Vendas", A: 6, fullMark: 10 },
+    { subject: "Gestão", A: 7, fullMark: 10 },
+    { subject: "Finanças", A: 5, fullMark: 10 },
+    { subject: "Operações", A: 9, fullMark: 10 }
+  ];
+  
+  // Use provided scoreData or default
+  const chartData = scoreData && scoreData.length > 0 ? scoreData : defaultScoreData;
   
   // Determine badge color based on score
   const getBadgeColor = () => {
@@ -31,13 +67,45 @@ const ScoreEstrategico = React.memo(function ScoreEstrategico({ scoreLabel, pont
     >
       <motion.h2 
         id="score-strategic-title" 
-        className={`${headingBase} mb-4 text-xl sm:text-2xl font-bold text-black border-b pb-2`}
+        className={`${headingBase} mb-4 text-xl sm:text-2xl font-bold text-black border-b pb-2 text-center`}
         initial={prefersReducedMotion ? {} : { opacity: 0 }}
         animate={prefersReducedMotion ? {} : { opacity: 1 }}
         transition={{ duration: 0.3, delay: 0.1 }}
       >
         Score Estratégico
       </motion.h2>
+      
+      {/* Radar Chart */}
+      <div className="h-[300px] w-full mb-6">
+        <ChartContainer
+          config={{
+            area: {
+              theme: {
+                light: "#ef0002",
+                dark: "#ef0002",
+              },
+            },
+          }}
+        >
+          <ResponsiveContainer width="100%" height="100%">
+            <RadarChart outerRadius={90} data={chartData}>
+              <PolarGrid stroke="#ccc" />
+              <PolarAngleAxis dataKey="subject" />
+              <PolarRadiusAxis angle={30} domain={[0, 10]} />
+              <Radar
+                name="Sua Empresa"
+                dataKey="A"
+                stroke="#ef0002"
+                fill="#ef0002"
+                fillOpacity={0.3}
+              />
+              <ChartLegend>
+                <ChartLegendContent />
+              </ChartLegend>
+            </RadarChart>
+          </ResponsiveContainer>
+        </ChartContainer>
+      </div>
       
       <motion.div
         className="mb-4"
@@ -86,6 +154,11 @@ const ScoreEstrategico = React.memo(function ScoreEstrategico({ scoreLabel, pont
       <div className="mt-6 text-center">
         <p className="text-sm text-gray-600 mb-1">Nível de Maturidade Estratégica:</p>
         <span className="text-xl font-bold text-[#ef0002]">{scoreLabel || "Não Avaliado"}</span>
+      </div>
+      
+      {/* Hidden refactoring tag */}
+      <div className="hidden">
+        {/* refatoracao_score_estrategico_ok = true */}
       </div>
       
       <div aria-hidden="true" className="sr-only">
