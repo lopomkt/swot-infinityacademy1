@@ -57,6 +57,7 @@ const FunilEstrategico = lazy(() => import('@/components/Results/FunilEstrategic
 const ConsultiveInsight = lazy(() => import('@/components/Results/ConsultiveInsight'));
 const StrategicSuggestions = lazy(() => import('@/components/Results/StrategicSuggestions'));
 const StrategicCTA = lazy(() => import('@/components/Results/StrategicCTA'));
+const DiagnosticoConsultivo = lazy(() => import('@/components/Results/DiagnosticoConsultivo'));
 
 // Define types for better TypeScript support
 interface ActionItem {
@@ -676,37 +677,8 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData, onRestart }) =>
           <Separator className="mb-12" />
         </div>
 
-        {/* NEW BLOCK 3: Diagnostic Section */}
-        <div id="bloco_diagnostico_ia" className="mb-16">
-          <div className="text-center mb-8">
-            <div className="flex justify-center mb-3">
-              <BrainIcon className="h-8 w-8 text-[#ef0002]" />
-            </div>
-            <h2 className="text-2xl font-bold text-[#560005] border-b pb-2 mb-4 inline-block px-8">
-              Análise Profunda do Seu Negócio
-            </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
-              Abaixo está a interpretação completa da situação atual da sua empresa, 
-              com base nos dados fornecidos, feita por inteligência artificial estratégica.
-            </p>
-          </div>
-
-          <Card className="max-w-3xl mx-auto border border-[#ef0002]">
-            <CardContent className="p-6">
-              <ScrollArea className="max-h-fit">
-                <Suspense fallback={<Skeleton className="h-32 w-full" />}>
-                  {formData.resultadoFinal?.diagnostico_textual ? (
-                    <DiagnosticoTextual
-                      texto={formData.resultadoFinal.diagnostico_textual}
-                    />
-                  ) : (
-                    <Skeleton className="h-40 w-full" />
-                  )}
-                </Suspense>
-              </ScrollArea>
-            </CardContent>
-          </Card>
-        </div>
+        {/* NEW BLOCK 3: Diagnostic Section - Now using the extracted component */}
+        <DiagnosticoConsultivo diagnostico={formData.resultadoFinal?.diagnostico_textual || ''} />
 
         {/* NEW BLOCK 4: Strategic Score */}
         <div id="bloco_score_final" className="mb-16">
