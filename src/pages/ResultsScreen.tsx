@@ -47,6 +47,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import PrintableResults from '@/components/Results/PrintableResults';
 import ExportacaoPDF from '@/components/Results/ExportacaoPDF';
 import { useIsMobile } from '@/hooks/use-mobile'; 
+import ConclusaoFinal from '@/components/Results/ConclusaoFinal';
 
 // Lazy-loaded components
 const DiagnosticoTextual = lazy(() => import('@/components/Results/DiagnosticoTextual'));
@@ -56,8 +57,6 @@ const PlanosEstrategicosABC = lazy(() => import('@/components/Results/PlanosEstr
 const FunilEstrategico = lazy(() => import('@/components/Results/FunilEstrategico'));
 const ConsultiveInsight = lazy(() => import('@/components/Results/ConsultiveInsight'));
 const StrategicSuggestions = lazy(() => import('@/components/Results/StrategicSuggestions'));
-const StrategicCTA = lazy(() => import('@/components/Results/StrategicCTA'));
-const DiagnosticoConsultivo = lazy(() => import('@/components/Results/DiagnosticoConsultivo'));
 
 // Define types for better TypeScript support
 interface ActionItem {
@@ -830,16 +829,8 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData, onRestart }) =>
           </div>
         </div>
 
-        {/* FINAL BLOCK: CTA Section - Removed the StrategicCTA component since it's already in PrintableResults */}
-        {allSectionsReady && (
-          <>
-            <div id="ancora_final">
-              <Separator className="mb-12" />
-            </div>
-            
-            {/* We removed the StrategicCTA component here as it's already included in PrintableResults */}
-          </>
-        )}
+        {/* FINAL BLOCK: Conclusion Section with the new ConclusaoFinal component */}
+        <ConclusaoFinal />
 
         {/* Set the flag for next prompt */}
         <div className="hidden">
@@ -864,6 +855,7 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData, onRestart }) =>
           {/* fase7_5_1_correcao_total_ok = true */}
           {/* refatoracao_planos_abc_ok = true */}
           {/* refatoracao_funil_estrategico_ok = true */}
+          {/* refatoracao_encerramento_ok = true */}
         </div>
       </PrintableResults>
       
