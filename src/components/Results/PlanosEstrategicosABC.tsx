@@ -38,7 +38,7 @@ const PlanosEstrategicosABC = React.memo(function PlanosEstrategicosABC({ planos
     >
       <motion.h2 
         id="planos-estrategicos-title" 
-        className="text-2xl font-bold text-[#000] border-b pb-2 mb-6"
+        className="text-2xl font-bold text-[#560005] border-b pb-2 mb-6 text-center"
         initial={prefersReducedMotion ? {} : { opacity: 0 }}
         animate={prefersReducedMotion ? {} : { opacity: 1 }}
         transition={{ duration: 0.3, delay: 0.1 }}
@@ -48,7 +48,7 @@ const PlanosEstrategicosABC = React.memo(function PlanosEstrategicosABC({ planos
       
       <Tabs defaultValue="A" className="w-full">
         <TabsList 
-          className="bg-[#ef0002] rounded-xl p-1 mb-4 flex gap-2 overflow-x-auto max-w-full" 
+          className="bg-[#efefef] rounded-full p-1 mb-4 flex gap-2 overflow-x-auto max-w-full" 
           role="tablist" 
           aria-label="Escolha entre os planos estratégicos A, B e C"
         >
@@ -60,7 +60,7 @@ const PlanosEstrategicosABC = React.memo(function PlanosEstrategicosABC({ planos
           >
             <TabsTrigger 
               value="A" 
-              className="text-white data-[state=active]:bg-white data-[state=active]:text-[#ef0002] focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 text-sm sm:text-base block w-full sm:w-auto"
+              className="text-[#1f1f1f] data-[state=active]:bg-[#ef0002] data-[state=active]:text-white hover:bg-[#dfdfdf] focus:outline-none focus:ring-2 focus:ring-[#ef0002] focus:ring-offset-2 text-sm sm:text-base block w-full sm:w-auto rounded-full data-[state=active]:border-b-2 data-[state=active]:border-[#ef0002]"
               role="tab"
               aria-selected="true"
               aria-controls="plano-a-content"
@@ -78,7 +78,7 @@ const PlanosEstrategicosABC = React.memo(function PlanosEstrategicosABC({ planos
           >
             <TabsTrigger 
               value="B" 
-              className="text-white data-[state=active]:bg-white data-[state=active]:text-[#ef0002] focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 text-sm sm:text-base block w-full sm:w-auto"
+              className="text-[#1f1f1f] data-[state=active]:bg-[#ef0002] data-[state=active]:text-white hover:bg-[#dfdfdf] focus:outline-none focus:ring-2 focus:ring-[#ef0002] focus:ring-offset-2 text-sm sm:text-base block w-full sm:w-auto rounded-full data-[state=active]:border-b-2 data-[state=active]:border-[#ef0002]"
               role="tab"
               aria-selected="false"
               aria-controls="plano-b-content"
@@ -96,7 +96,7 @@ const PlanosEstrategicosABC = React.memo(function PlanosEstrategicosABC({ planos
           >
             <TabsTrigger 
               value="C" 
-              className="text-white data-[state=active]:bg-white data-[state=active]:text-[#ef0002] focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 text-sm sm:text-base block w-full sm:w-auto"
+              className="text-[#1f1f1f] data-[state=active]:bg-[#ef0002] data-[state=active]:text-white hover:bg-[#dfdfdf] focus:outline-none focus:ring-2 focus:ring-[#ef0002] focus:ring-offset-2 text-sm sm:text-base block w-full sm:w-auto rounded-full data-[state=active]:border-b-2 data-[state=active]:border-[#ef0002]"
               role="tab"
               aria-selected="false"
               aria-controls="plano-c-content"
@@ -124,14 +124,16 @@ const PlanosEstrategicosABC = React.memo(function PlanosEstrategicosABC({ planos
               <CardContent>
                 <div className="overflow-x-auto max-w-full">
                   {planoA.length > 0 ? (
-                    <ul className="list-disc pl-6 text-gray-700 space-y-2 text-sm sm:text-base">
+                    <ul className="space-y-2 text-sm sm:text-base">
                       {planoA.map((item, i) => (
                         <motion.li 
                           key={i}
                           initial={prefersReducedMotion ? {} : { opacity: 0, x: -5 }}
                           animate={prefersReducedMotion ? {} : { opacity: 1, x: 0 }}
                           transition={{ duration: 0.2, delay: 0.05 * i }}
+                          className="flex gap-2 items-start text-sm text-[#1f1f1f]"
                         >
+                          <span className="text-[#ef0002] text-lg mt-[2px]">✔</span> 
                           {item}
                         </motion.li>
                       ))}
@@ -162,14 +164,16 @@ const PlanosEstrategicosABC = React.memo(function PlanosEstrategicosABC({ planos
               <CardContent>
                 <div className="overflow-x-auto max-w-full">
                   {planoB.length > 0 ? (
-                    <ul className="list-disc pl-6 text-gray-700 space-y-2 text-sm sm:text-base">
+                    <ul className="space-y-2 text-sm sm:text-base">
                       {planoB.map((item, i) => (
                         <motion.li 
                           key={i}
                           initial={prefersReducedMotion ? {} : { opacity: 0, x: -5 }}
                           animate={prefersReducedMotion ? {} : { opacity: 1, x: 0 }}
                           transition={{ duration: 0.2, delay: 0.05 * i }}
+                          className="flex gap-2 items-start text-sm text-[#1f1f1f]"
                         >
+                          <span className="text-[#ef0002] text-lg mt-[2px]">✔</span> 
                           {item}
                         </motion.li>
                       ))}
@@ -200,14 +204,16 @@ const PlanosEstrategicosABC = React.memo(function PlanosEstrategicosABC({ planos
               <CardContent>
                 <div className="overflow-x-auto max-w-full">
                   {planoC.length > 0 ? (
-                    <ul className="list-disc pl-6 text-gray-700 space-y-2 text-sm sm:text-base">
+                    <ul className="space-y-2 text-sm sm:text-base">
                       {planoC.map((item, i) => (
                         <motion.li 
                           key={i}
                           initial={prefersReducedMotion ? {} : { opacity: 0, x: -5 }}
                           animate={prefersReducedMotion ? {} : { opacity: 1, x: 0 }}
                           transition={{ duration: 0.2, delay: 0.05 * i }}
+                          className="flex gap-2 items-start text-sm text-[#1f1f1f]"
                         >
+                          <span className="text-[#ef0002] text-lg mt-[2px]">✔</span> 
                           {item}
                         </motion.li>
                       ))}

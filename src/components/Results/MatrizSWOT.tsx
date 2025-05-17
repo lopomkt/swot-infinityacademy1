@@ -32,15 +32,15 @@ const MatrizSWOT = React.memo(function MatrizSWOT({ forcas, fraquezas, oportunid
       }}
     >      
       <motion.div 
-        className="bg-white border-l-4 border-[#00b894] p-6 md:p-8 lg:p-10 rounded-xl shadow-sm"
+        className="bg-white border-2 border-[#ef0002] p-6 md:p-8 lg:p-10 rounded-xl shadow-sm"
         variants={prefersReducedMotion ? {} : {
           hidden: { opacity: 0, y: 20 },
           visible: { opacity: 1, y: 0, transition: { duration: 0.3 } }
         }}
       >
-        <div className="flex items-center mb-2">
-          <Star className="h-5 w-5 text-[#00b894] mr-2" />
-          <h3 id="forcas-title" className="font-medium text-[#1f1f1f] text-lg">FORÇAS</h3>
+        <div className="flex items-center justify-center mb-2">
+          <Star className="h-5 w-5 text-[#b70001] mr-2" />
+          <h3 id="forcas-title" className="font-semibold text-[#b70001] text-lg text-center">FORÇAS</h3>
         </div>
         <ul 
           className="list-disc pl-5 text-[#1f1f1f] text-sm sm:text-base" 
@@ -60,15 +60,15 @@ const MatrizSWOT = React.memo(function MatrizSWOT({ forcas, fraquezas, oportunid
         </ul>
       </motion.div>
       <motion.div 
-        className="bg-white border-l-4 border-[#d63031] p-6 md:p-8 lg:p-10 rounded-xl shadow-sm"
+        className="bg-white border-2 border-[#ef0002] p-6 md:p-8 lg:p-10 rounded-xl shadow-sm"
         variants={prefersReducedMotion ? {} : {
           hidden: { opacity: 0, y: 20 },
           visible: { opacity: 1, y: 0, transition: { duration: 0.3, delay: 0.05 } }
         }}
       >
-        <div className="flex items-center mb-2">
-          <TrendingDown className="h-5 w-5 text-[#d63031] mr-2" />
-          <h3 id="fraquezas-title" className="font-medium text-[#1f1f1f] text-lg">FRAQUEZAS</h3>
+        <div className="flex items-center justify-center mb-2">
+          <TrendingDown className="h-5 w-5 text-[#b70001] mr-2" />
+          <h3 id="fraquezas-title" className="font-semibold text-[#b70001] text-lg text-center">FRAQUEZAS</h3>
         </div>
         <ul 
           className="list-disc pl-5 text-[#1f1f1f] text-sm sm:text-base"
@@ -88,15 +88,15 @@ const MatrizSWOT = React.memo(function MatrizSWOT({ forcas, fraquezas, oportunid
         </ul>
       </motion.div>
       <motion.div 
-        className="bg-white border-l-4 border-[#0984e3] p-6 md:p-8 lg:p-10 rounded-xl shadow-sm"
+        className="bg-white border-2 border-[#ef0002] p-6 md:p-8 lg:p-10 rounded-xl shadow-sm"
         variants={prefersReducedMotion ? {} : {
           hidden: { opacity: 0, y: 20 },
           visible: { opacity: 1, y: 0, transition: { duration: 0.3, delay: 0.1 } }
         }}
       >
-        <div className="flex items-center mb-2">
-          <Lightbulb className="h-5 w-5 text-[#0984e3] mr-2" />
-          <h3 id="oportunidades-title" className="font-medium text-[#1f1f1f] text-lg">OPORTUNIDADES</h3>
+        <div className="flex items-center justify-center mb-2">
+          <Lightbulb className="h-5 w-5 text-[#b70001] mr-2" />
+          <h3 id="oportunidades-title" className="font-semibold text-[#b70001] text-lg text-center">OPORTUNIDADES</h3>
         </div>
         <ul 
           className="list-disc pl-5 text-[#1f1f1f] text-sm sm:text-base"
@@ -116,15 +116,15 @@ const MatrizSWOT = React.memo(function MatrizSWOT({ forcas, fraquezas, oportunid
         </ul>
       </motion.div>
       <motion.div 
-        className="bg-white border-l-4 border-[#fdcb6e] p-6 md:p-8 lg:p-10 rounded-xl shadow-sm"
+        className="bg-white border-2 border-[#ef0002] p-6 md:p-8 lg:p-10 rounded-xl shadow-sm"
         variants={prefersReducedMotion ? {} : {
           hidden: { opacity: 0, y: 20 },
           visible: { opacity: 1, y: 0, transition: { duration: 0.3, delay: 0.15 } }
         }}
       >
-        <div className="flex items-center mb-2">
-          <AlertTriangle className="h-5 w-5 text-[#fdcb6e] mr-2" />
-          <h3 id="ameacas-title" className="font-medium text-[#1f1f1f] text-lg">AMEAÇAS</h3>
+        <div className="flex items-center justify-center mb-2">
+          <AlertTriangle className="h-5 w-5 text-[#b70001] mr-2" />
+          <h3 id="ameacas-title" className="font-semibold text-[#b70001] text-lg text-center">AMEAÇAS</h3>
         </div>
         <ul 
           className="list-disc pl-5 text-[#1f1f1f] text-sm sm:text-base"

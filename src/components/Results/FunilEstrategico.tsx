@@ -1,6 +1,6 @@
 
 import React from "react";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, AlertCircle } from "lucide-react";
 import { motion, AnimatePresence } from 'framer-motion';
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useReducedMotion } from '@/hooks/use-reduced-motion';
@@ -99,22 +99,29 @@ const FunilEstrategico = React.memo(function FunilEstrategico({ gargalos = [], a
           animate={prefersReducedMotion ? {} : { opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
         >
-          <h3 id="gargalos-title" className="font-medium text-[#560005] mb-2 text-lg">Gargalos Atuais</h3>
-          <ul 
-            className="list-disc pl-5 text-[#1f1f1f] space-y-1 text-sm sm:text-base"
-            aria-labelledby="gargalos-title"
-          >
-            {gargalosData.map((item, i) => (
-              <motion.li 
-                key={i}
-                initial={prefersReducedMotion ? {} : { opacity: 0 }}
-                animate={prefersReducedMotion ? {} : { opacity: 1 }}
-                transition={{ duration: 0.2, delay: 0.1 * i }}
+          <div className="flex items-start">
+            <span className="text-2xl mr-3">❗</span>
+            <div>
+              <h3 id="gargalos-title" className="text-lg font-semibold text-[#ef0002] mb-2">Gargalos Atuais</h3>
+              <ul 
+                className="space-y-2"
+                aria-labelledby="gargalos-title"
               >
-                {item}
-              </motion.li>
-            ))}
-          </ul>
+                {gargalosData.map((item, i) => (
+                  <motion.li 
+                    key={i}
+                    initial={prefersReducedMotion ? {} : { opacity: 0 }}
+                    animate={prefersReducedMotion ? {} : { opacity: 1 }}
+                    transition={{ duration: 0.2, delay: 0.1 * i }}
+                    className="flex gap-2 items-start text-sm text-[#1f1f1f]"
+                  >
+                    <span className="text-[#ef0002] text-lg mt-[2px]">•</span> 
+                    {item}
+                  </motion.li>
+                ))}
+              </ul>
+            </div>
+          </div>
         </motion.div>
 
         <motion.div 
@@ -123,22 +130,29 @@ const FunilEstrategico = React.memo(function FunilEstrategico({ gargalos = [], a
           animate={prefersReducedMotion ? {} : { opacity: 1, y: 0 }}
           transition={{ duration: 0.3, delay: 0.2 }}
         >
-          <h3 id="alertas-title" className="font-medium text-[#560005] mb-2 text-lg">Alertas em Efeito Cascata</h3>
-          <ul 
-            className="list-disc pl-5 text-[#1f1f1f] space-y-1 text-sm sm:text-base"
-            aria-labelledby="alertas-title"
-          >
-            {alertasData.map((item, i) => (
-              <motion.li 
-                key={i}
-                initial={prefersReducedMotion ? {} : { opacity: 0 }}
-                animate={prefersReducedMotion ? {} : { opacity: 1 }}
-                transition={{ duration: 0.2, delay: 0.1 * i }}
+          <div className="flex items-start">
+            <span className="text-2xl mr-3">⚠️</span>
+            <div>
+              <h3 id="alertas-title" className="text-lg font-semibold text-[#ef0002] mb-2">Alertas em Efeito Cascata</h3>
+              <ul 
+                className="space-y-2"
+                aria-labelledby="alertas-title"
               >
-                {item}
-              </motion.li>
-            ))}
-          </ul>
+                {alertasData.map((item, i) => (
+                  <motion.li 
+                    key={i}
+                    initial={prefersReducedMotion ? {} : { opacity: 0 }}
+                    animate={prefersReducedMotion ? {} : { opacity: 1 }}
+                    transition={{ duration: 0.2, delay: 0.1 * i }}
+                    className="flex gap-2 items-start text-sm text-[#1f1f1f]"
+                  >
+                    <span className="text-[#ef0002] text-lg mt-[2px]">•</span> 
+                    {item}
+                  </motion.li>
+                ))}
+              </ul>
+            </div>
+          </div>
         </motion.div>
       </div>
       

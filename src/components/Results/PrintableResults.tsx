@@ -38,25 +38,27 @@ const PrintableResults = React.memo(function PrintableResults({ children }: Prin
           {children}
         </AnimatePresence>
         
-        {/* Strategic CTA */}
-        <div className="bg-[#fff8f0] p-6 md:p-8 lg:p-10 rounded-xl text-center shadow-sm mt-12 border-l-4 border-[#f39c12]">
-          <p className="text-sm text-[#1f1f1f] font-medium mb-2">💡 Está com dificuldades para executar esses planos?</p>
-          <p className="text-xs text-[#1f1f1f] mb-4">A equipe da INFINITY pode te ajudar a tirar esses pontos do papel com estratégia.</p>
-          <Button 
-            className="bg-[#ef0002] hover:bg-[#b70001] text-white px-5 py-2 rounded-xl"
-            onClick={handleContactTeam}
-          >
-            Falar com a Equipe da INFINITY
-          </Button>
+        {/* Closing card with updated styling */}
+        <div className="bg-white border border-gray-200 p-6 sm:p-8 rounded-xl shadow-md text-center mt-12">
+          <h2 className="text-xl font-bold text-[#1f1f1f] mb-2">Seu Diagnóstico Está Pronto.</h2>
+          <p className="text-sm text-gray-600 mb-4">Agora você tem um raio-X completo da sua empresa. Você pode baixar esse relatório, compartilhar ou aplicar com sua equipe.</p>
+          <div className="flex justify-center gap-4 flex-wrap">
+            <Button 
+              variant="outline" 
+              className="text-[#ef0002] border-[#ef0002] hover:bg-[#ef0002]/10"
+              onClick={() => document.dispatchEvent(new Event('export-pdf'))}
+            >
+              📄 Baixar PDF
+            </Button>
+            <Button 
+              variant="default" 
+              className="bg-[#ef0002] hover:bg-[#b70001] text-white"
+              onClick={handleContactTeam}
+            >
+              💬 Falar com a INFINITY
+            </Button>
+          </div>
         </div>
-        
-        {/* Congrats message */}
-        <div className="bg-white text-[#560005] text-center py-6 px-4 rounded-xl shadow-sm mt-10">
-          <p className="text-lg font-semibold mb-2">🎉 Parabéns por concluir sua Análise SWOT Premium!</p>
-          <p className="text-sm">Sua jornada de transformação empresarial começa agora. Conte com a INFINITY para os próximos passos.</p>
-        </div>
-        
-        {/* Removed the "Iniciar nova análise" button entirely */}
         
         {/* Institutional footer */}
         <p className="text-center text-xs text-gray-400 mt-16 mb-4">
@@ -70,6 +72,7 @@ const PrintableResults = React.memo(function PrintableResults({ children }: Prin
           {/* fase7_2_consultivo_avancado_ok = true */}
           {/* fase7_3_polimento_final_ok = true */}
           {/* fase7_5_1_correcao_total_ok = true */}
+          {/* fase7_5_2_ui_premium_ok = true */}
         </div>
       </motion.div>
     </>

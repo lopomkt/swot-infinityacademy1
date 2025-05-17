@@ -1,3 +1,4 @@
+
 // Adding fallback message at the top of the component
 import React, { useState, lazy, Suspense, useEffect } from "react";
 import { 
@@ -56,7 +57,6 @@ const PlanosEstrategicosABC = lazy(() => import('@/components/Results/PlanosEstr
 const FunilEstrategico = lazy(() => import('@/components/Results/FunilEstrategico'));
 const ConsultiveInsight = lazy(() => import('@/components/Results/ConsultiveInsight'));
 const StrategicSuggestions = lazy(() => import('@/components/Results/StrategicSuggestions'));
-const StrategicCTA = lazy(() => import('@/components/Results/StrategicCTA'));
 
 // Define types for better TypeScript support
 interface ActionItem {
@@ -578,19 +578,24 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData, onRestart }) =>
   const isMobile = useIsMobile();
 
   return (
-    <section className="min-h-screen bg-white py-12 px-4 sm:px-6">
+    <section className="py-16 px-6 sm:px-10 bg-[#f9f9f9] min-h-screen rounded-[32px]">
       <PrintableResults>
-        {/* Header Section */}
+        {/* Header Section with new styling */}
         <div className="text-center mb-12">
-          <div className="flex justify-center mb-4">
+          <motion.div 
+            initial={{ opacity: 0 }} 
+            animate={{ opacity: 1 }} 
+            transition={{ duration: 0.6 }}
+            className="flex justify-center mb-4"
+          >
             <div className="bg-[#F8F9FA] p-3 rounded-full">
               <BrainIcon size={32} className="text-[#ef0002]" />
             </div>
-          </div>
-          <h1 className="text-3xl md:text-4xl font-bold text-[#560005] mb-4">
+          </motion.div>
+          <h1 className="text-2xl sm:text-4xl font-bold text-center text-[#1f1f1f] mb-2">
             Análise Estratégica de {formData.identificacao?.nomeEmpresa || "Sua Empresa"}
           </h1>
-          <p className="text-gray-600 max-w-3xl mx-auto">
+          <p className="text-sm sm:text-base text-center text-gray-600 max-w-2xl mx-auto mb-6">
             Este diagnóstico foi gerado com base nas informações fornecidas e analisado por 
             inteligência artificial estratégica. Prepare-se para entender os verdadeiros 
             caminhos da sua empresa.
@@ -605,18 +610,29 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData, onRestart }) =>
           </div>
         </div>
 
-        {/* Quick Data Cards */}
-        <div className="mb-12">
+        {/* Quick Data Cards with updated grid layout */}
+        <motion.div 
+          initial={{ opacity: 0 }} 
+          animate={{ opacity: 1 }} 
+          transition={{ duration: 0.6, delay: 0.1 }}
+          className="mb-12"
+        >
           <QuickDataCards
             tempoDeMercado={formData.identificacao?.tempoDeMercado || "Não informado"}
             faturamentoMensal={formData.identificacao?.faturamentoMensal || "Não informado"}
             segmento={formData.identificacao?.segmento || "Não informado"}
           />
-        </div>
+        </motion.div>
 
-        {/* SWOT Matrix */}
-        <div id="bloco_mapa_swot" className="mb-12">
-          <h2 className="text-2xl font-bold text-[#000] border-b pb-2 mb-6">Matriz SWOT</h2>
+        {/* SWOT Matrix with updated styling */}
+        <motion.div 
+          initial={{ opacity: 0 }} 
+          animate={{ opacity: 1 }} 
+          transition={{ duration: 0.6, delay: 0.2 }}
+          id="bloco_mapa_swot" 
+          className="mb-12"
+        >
+          <h2 className="text-2xl font-bold text-[#560005] border-b pb-2 mb-6 text-center">Matriz SWOT</h2>
           
           <Suspense fallback={<Skeleton className="h-[300px] w-full rounded-xl" />}>
             <MatrizSWOT
@@ -627,15 +643,20 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData, onRestart }) =>
             />
           </Suspense>
           
-          {/* New Quick Scenario Reading section */}
+          {/* New Quick Scenario Reading section with icon */}
           <Suspense fallback={<Skeleton className="h-[100px] w-full rounded-xl mt-10" />}>
             <ConsultiveInsight
               title="Leitura Rápida do Cenário"
               icon="📌"
             >
-              <p className="text-sm text-gray-700 leading-relaxed">
-                A combinação entre suas forças e oportunidades indica que sua empresa está posicionada para <span className="font-semibold text-[#b70001]">acelerar o crescimento</span>. Porém, as fraquezas e ameaças revelam pontos de atenção que <span className="font-semibold text-[#d63031]">precisam de ação imediata</span>.
-              </p>
+              <div className="bg-white rounded-xl shadow-sm p-6 sm:p-8 text-base text-[#1f1f1f] leading-relaxed max-w-4xl mx-auto">
+                <div className="flex items-start">
+                  <span className="text-2xl mr-3">📌</span>
+                  <p className="text-sm sm:text-base text-[#1f1f1f] leading-relaxed">
+                    A combinação entre suas forças e oportunidades indica que sua empresa está posicionada para <span className="font-semibold text-[#b70001]">acelerar o crescimento</span>. Porém, as fraquezas e ameaças revelam pontos de atenção que <span className="font-semibold text-[#d63031]">precisam de ação imediata</span>.
+                  </p>
+                </div>
+              </div>
             </ConsultiveInsight>
           </Suspense>
 
@@ -658,12 +679,12 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData, onRestart }) =>
               </CollapsibleContent>
             </Collapsible>
           </div>
-        </div>
+        </motion.div>
 
         {/* Navigation Button */}
-        <div className="flex justify-center mb-16">
+        <div className="flex justify-center mb-12">
           <Button 
-            className="bg-[#ef0002] hover:bg-[#c50000] text-white"
+            className="bg-[#ef0002] hover:bg-[#b70001] text-white"
             onClick={() => scrollToSection("ancora_diagnostico")}
           >
             Próximo: Diagnóstico do Negócio
@@ -676,8 +697,14 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData, onRestart }) =>
           <Separator className="mb-12" />
         </div>
 
-        {/* NEW BLOCK 3: Diagnostic Section */}
-        <div id="bloco_diagnostico_ia" className="mb-16">
+        {/* NEW BLOCK 3: Diagnostic Section with icon and new styling */}
+        <motion.div 
+          initial={{ opacity: 0 }} 
+          animate={{ opacity: 1 }} 
+          transition={{ duration: 0.6, delay: 0.3 }}
+          id="bloco_diagnostico_ia" 
+          className="mb-12"
+        >
           <div className="text-center mb-8">
             <div className="flex justify-center mb-3">
               <BrainIcon className="h-8 w-8 text-[#ef0002]" />
@@ -691,7 +718,7 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData, onRestart }) =>
             </p>
           </div>
 
-          <Card className="max-w-3xl mx-auto border border-[#ef0002]">
+          <Card className="max-w-4xl mx-auto border border-[#ef0002]">
             <CardContent className="p-6">
               <ScrollArea className="max-h-fit">
                 <Suspense fallback={<Skeleton className="h-32 w-full" />}>
@@ -706,10 +733,16 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData, onRestart }) =>
               </ScrollArea>
             </CardContent>
           </Card>
-        </div>
+        </motion.div>
 
         {/* NEW BLOCK 4: Strategic Score */}
-        <div id="bloco_score_final" className="mb-16">
+        <motion.div 
+          initial={{ opacity: 0 }} 
+          animate={{ opacity: 1 }} 
+          transition={{ duration: 0.6, delay: 0.4 }}
+          id="bloco_score_final" 
+          className="mb-12"
+        >
           <div id="ancora_score"></div> {/* Anchor for navigation */}
           
           <div className="text-center mb-8">
@@ -770,7 +803,7 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData, onRestart }) =>
               <div className="mt-8 flex justify-center">
                 <Button 
                   id="btn_ver_planos"
-                  className="bg-[#ef0002] hover:bg-[#c50000] text-white"
+                  className="bg-[#ef0002] hover:bg-[#b70001] text-white"
                   onClick={() => scrollToSection("ancora_planos")}
                 >
                   Visualizar Plano Estratégico A/B/C
@@ -779,15 +812,21 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData, onRestart }) =>
               </div>
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Anchor for Plans Section */}
         <div id="ancora_planos">
           <Separator className="mb-12" />
         </div>
 
-        {/* NEW BLOCK 5: Strategic Action Plan A/B/C */}
-        <div id="bloco_planos_abc" className="mb-16">
+        {/* NEW BLOCK 5: Strategic Action Plan A/B/C with updated styling */}
+        <motion.div 
+          initial={{ opacity: 0 }} 
+          animate={{ opacity: 1 }} 
+          transition={{ duration: 0.6, delay: 0.5 }}
+          id="bloco_planos_abc" 
+          className="mb-12"
+        >
           <div className="text-center mb-8">
             <h2 className="text-2xl font-bold text-[#560005] border-b pb-2 mb-4 inline-block px-8">
               Plano de Ação Estratégico: Escolha sua Rota
@@ -807,17 +846,29 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData, onRestart }) =>
               }}
             />
           </Suspense>
-        </div>
+        </motion.div>
 
         {/* NEW BLOCK: Strategic Suggestions */}
-        <div id="bloco_sugestoes_estrategicas" className="mb-16">
+        <motion.div 
+          initial={{ opacity: 0 }} 
+          animate={{ opacity: 1 }} 
+          transition={{ duration: 0.6, delay: 0.6 }}
+          id="bloco_sugestoes_estrategicas" 
+          className="mb-12"
+        >
           <Suspense fallback={<Skeleton className="h-[300px] w-full rounded-xl" />}>
             <StrategicSuggestions suggestions={strategicSuggestions} />
           </Suspense>
-        </div>
+        </motion.div>
 
         {/* BLOCK: Funnel Visualization with updated grid layout */}
-        <div id="bloco_funil_gargalos" className="mb-16">
+        <motion.div 
+          initial={{ opacity: 0 }} 
+          animate={{ opacity: 1 }} 
+          transition={{ duration: 0.6, delay: 0.7 }}
+          id="bloco_funil_gargalos" 
+          className="mb-12"
+        >
           <div className="text-center mb-8">
             <h2 className="text-2xl font-bold text-[#560005] border-b pb-2 mb-4 inline-block px-8">
               Funil Estratégico da Empresa: Gargalos e Alertas
@@ -836,17 +887,41 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData, onRestart }) =>
               />
             </Suspense>
           </div>
-        </div>
+        </motion.div>
 
-        {/* FINAL BLOCK: CTA Section - Removed the StrategicCTA component since it's already in PrintableResults */}
+        {/* FINAL BLOCK: CTA Section */}
         {allSectionsReady && (
-          <>
+          <motion.div 
+            initial={{ opacity: 0 }} 
+            animate={{ opacity: 1 }} 
+            transition={{ duration: 0.6, delay: 0.8 }}
+          >
             <div id="ancora_final">
               <Separator className="mb-12" />
             </div>
             
-            {/* We removed the StrategicCTA component here as it's already included in PrintableResults */}
-          </>
+            {/* Updated closing card */}
+            <div className="bg-white border border-gray-200 p-6 sm:p-8 rounded-xl shadow-md text-center mb-0">
+              <h2 className="text-xl font-bold text-[#1f1f1f] mb-2">Seu Diagnóstico Está Pronto.</h2>
+              <p className="text-sm text-gray-600 mb-4">Agora você tem um raio-X completo da sua empresa. Você pode baixar esse relatório, compartilhar ou aplicar com sua equipe.</p>
+              <div className="flex justify-center gap-4 flex-wrap">
+                <Button 
+                  variant="outline" 
+                  className="text-[#ef0002] border-[#ef0002] hover:bg-[#ef0002]/10"
+                  onClick={generatePDF}
+                >
+                  📄 Baixar PDF
+                </Button>
+                <Button 
+                  variant="default" 
+                  className="bg-[#ef0002] hover:bg-[#b70001] text-white"
+                  onClick={openWhatsApp}
+                >
+                  💬 Falar com a INFINITY
+                </Button>
+              </div>
+            </div>
+          </motion.div>
         )}
 
         {/* Set the flag for next prompt */}
@@ -857,6 +932,7 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData, onRestart }) =>
               formData.resultadoFinal.resultados_bloco5_e_4b_ok = true;
               formData.resultadoFinal.fase7_2_consultivo_avancado_ok = true;
               formData.resultadoFinal.fase7_5_1_correcao_total_ok = true;
+              formData.resultadoFinal.fase7_5_2_ui_premium_ok = true;
             }
             return null;
           })()}
@@ -870,6 +946,7 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData, onRestart }) =>
           {/* fase7_2_consultivo_avancado_ok = true */}
           {/* fase7_3_polimento_final_ok = true */}
           {/* fase7_5_1_correcao_total_ok = true */}
+          {/* fase7_5_2_ui_premium_ok = true */}
         </div>
       </PrintableResults>
       
