@@ -91,53 +91,56 @@ const FunilEstrategico = React.memo(function FunilEstrategico({ gargalos = [], a
         </div>
       </motion.div>
 
-      <motion.div 
-        className="bg-white p-6 md:p-8 lg:p-10 rounded-xl border-l-4 border-[#d63031] shadow-sm mb-6 overflow-x-auto max-w-full"
-        initial={prefersReducedMotion ? {} : { opacity: 0, y: 10 }}
-        animate={prefersReducedMotion ? {} : { opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-      >
-        <h3 id="gargalos-title" className="font-medium text-[#560005] mb-2 text-lg">Gargalos Atuais</h3>
-        <ul 
-          className="list-disc pl-5 text-[#1f1f1f] space-y-1 text-sm sm:text-base"
-          aria-labelledby="gargalos-title"
+      {/* Grid layout for Gargalos and Alertas cards - side by side on desktop, stacked on mobile */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <motion.div 
+          className="bg-white p-6 md:p-8 lg:p-10 rounded-xl border-l-4 border-[#d63031] shadow-sm overflow-x-auto max-w-full"
+          initial={prefersReducedMotion ? {} : { opacity: 0, y: 10 }}
+          animate={prefersReducedMotion ? {} : { opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
         >
-          {gargalosData.map((item, i) => (
-            <motion.li 
-              key={i}
-              initial={prefersReducedMotion ? {} : { opacity: 0 }}
-              animate={prefersReducedMotion ? {} : { opacity: 1 }}
-              transition={{ duration: 0.2, delay: 0.1 * i }}
-            >
-              {item}
-            </motion.li>
-          ))}
-        </ul>
-      </motion.div>
+          <h3 id="gargalos-title" className="font-medium text-[#560005] mb-2 text-lg">Gargalos Atuais</h3>
+          <ul 
+            className="list-disc pl-5 text-[#1f1f1f] space-y-1 text-sm sm:text-base"
+            aria-labelledby="gargalos-title"
+          >
+            {gargalosData.map((item, i) => (
+              <motion.li 
+                key={i}
+                initial={prefersReducedMotion ? {} : { opacity: 0 }}
+                animate={prefersReducedMotion ? {} : { opacity: 1 }}
+                transition={{ duration: 0.2, delay: 0.1 * i }}
+              >
+                {item}
+              </motion.li>
+            ))}
+          </ul>
+        </motion.div>
 
-      <motion.div 
-        className="bg-white p-6 md:p-8 lg:p-10 rounded-xl border-l-4 border-[#560005] shadow-sm mb-6 overflow-x-auto max-w-full"
-        initial={prefersReducedMotion ? {} : { opacity: 0, y: 10 }}
-        animate={prefersReducedMotion ? {} : { opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, delay: 0.2 }}
-      >
-        <h3 id="alertas-title" className="font-medium text-[#560005] mb-2 text-lg">Alertas em Efeito Cascata</h3>
-        <ul 
-          className="list-disc pl-5 text-[#1f1f1f] space-y-1 text-sm sm:text-base"
-          aria-labelledby="alertas-title"
+        <motion.div 
+          className="bg-white p-6 md:p-8 lg:p-10 rounded-xl border-l-4 border-[#560005] shadow-sm overflow-x-auto max-w-full"
+          initial={prefersReducedMotion ? {} : { opacity: 0, y: 10 }}
+          animate={prefersReducedMotion ? {} : { opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.2 }}
         >
-          {alertasData.map((item, i) => (
-            <motion.li 
-              key={i}
-              initial={prefersReducedMotion ? {} : { opacity: 0 }}
-              animate={prefersReducedMotion ? {} : { opacity: 1 }}
-              transition={{ duration: 0.2, delay: 0.1 * i }}
-            >
-              {item}
-            </motion.li>
-          ))}
-        </ul>
-      </motion.div>
+          <h3 id="alertas-title" className="font-medium text-[#560005] mb-2 text-lg">Alertas em Efeito Cascata</h3>
+          <ul 
+            className="list-disc pl-5 text-[#1f1f1f] space-y-1 text-sm sm:text-base"
+            aria-labelledby="alertas-title"
+          >
+            {alertasData.map((item, i) => (
+              <motion.li 
+                key={i}
+                initial={prefersReducedMotion ? {} : { opacity: 0 }}
+                animate={prefersReducedMotion ? {} : { opacity: 1 }}
+                transition={{ duration: 0.2, delay: 0.1 * i }}
+              >
+                {item}
+              </motion.li>
+            ))}
+          </ul>
+        </motion.div>
+      </div>
       
       <motion.div 
         className="bg-white border border-[#ef0002] rounded-md p-6 md:p-8 lg:p-10 text-[#1f1f1f] flex items-start text-sm sm:text-base" 

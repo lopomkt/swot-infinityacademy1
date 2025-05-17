@@ -23,7 +23,7 @@ export function ProgressTracker({ currentStep, totalSteps, labels }: ProgressTra
       </div>
       
       <div className="overflow-x-auto max-w-full">
-        <div className="flex flex-nowrap justify-between gap-2 w-max md:w-full max-w-5xl mx-auto mt-1">
+        <div className="flex flex-nowrap justify-between gap-1 md:gap-2 w-full max-w-5xl mx-auto mt-1">
           {labels.map((label, index) => {
             // Determine if this step is completed, current, or future
             const isCompleted = index < currentStep;

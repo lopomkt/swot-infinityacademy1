@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import ProgressBar from "@/components/ProgressBar";
 import WelcomeStep from "@/components/WelcomeStep";
@@ -84,6 +83,29 @@ const Index = () => {
       fase7_1_ui_ux_gamificada_ok: true,
     });
     setStep(0);
+  };
+
+  // NEW - Function to completely reset app flow after report generation
+  const resetAppFlow = () => {
+    setFormData({
+      tipagem_index_ok: true,
+      fase5_transicoes_ok: true,
+      fase5_voltar_ok: true,
+      fase5_gamificacao_ok: true,
+      fase5_finalizacao_ok: true,
+      fase5_resultado_final_ok: true,
+      fase6_1_welcome_transicoes_premium_ok: true,
+      fase6_2_resultado_premium_visual_ok: true,
+      fase6_3_design_final_pdf_ok: true,
+      fase7_1_ui_ux_gamificada_ok: true,
+      fase7_3_polimento_final_ok: true,
+    });
+    setStep(0);
+    // Clear localStorage items related to the form
+    localStorage.removeItem('swotStep');
+    localStorage.removeItem('swotForm');
+    // Scroll back to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   // Check if AI results are ready to show results screen
@@ -269,7 +291,8 @@ const Index = () => {
                 resultadoFinal,
                 fase5_finalizacao_ok: true,
                 fase6_3_design_final_pdf_ok: true,
-                fase7_1_ui_ux_gamificada_ok: true
+                fase7_1_ui_ux_gamificada_ok: true,
+                fase7_3_polimento_final_ok: true
               }));
               setStep(9);
             }}
@@ -278,6 +301,7 @@ const Index = () => {
         {step === 9 && formData.resultadoFinal?.ai_block_pronto && formData.resultadoFinal?.gpt_prompt_ok && (
           <ResultsScreen 
             formData={formData}
+            onRestart={resetAppFlow} // Added the resetAppFlow function here
           />
         )}
         
@@ -294,6 +318,7 @@ const Index = () => {
         {/* fase6_2_resultado_premium_visual_ok = true */}
         {/* fase6_3_design_final_pdf_ok = true */}
         {/* fase7_1_ui_ux_gamificada_ok = true */}
+        {/* fase7_3_polimento_final_ok = true */}
       </div>
     </div>
   );

@@ -26,6 +26,9 @@ export default function TransitionStep({
     window.scrollTo(0, 0);
   }, []);
 
+  // Calculate progress percentage
+  const progressPercentage = Math.floor((currentStep / totalSteps) * 100);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 40 }}
@@ -42,7 +45,7 @@ export default function TransitionStep({
       
       <h2 className="text-2xl font-bold text-[#560005] mb-4">{title}</h2>
       
-      <p className="text-gray-700 mb-8 font-sans leading-snug">{description}</p>
+      <p className="text-[#1f1f1f] mb-8 font-['Inter',system-ui,sans-serif] leading-snug">{description}</p>
       
       {fraseMotivacional && (
         <p className="text-sm italic text-[#560005] mt-2 mb-6">{fraseMotivacional}</p>
@@ -50,7 +53,7 @@ export default function TransitionStep({
       
       <Button 
         onClick={onContinue} 
-        className="mt-8 px-6 py-3 text-base bg-[#ef0002] hover:bg-[#b70001] text-white rounded-xl shadow-sm transition-all duration-300"
+        className="mt-10 mb-6 px-6 py-3 text-base bg-[#ef0002] hover:bg-[#b70001] text-white rounded-xl shadow-sm transition-all duration-300"
       >
         Avançar
       </Button>

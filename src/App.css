@@ -71,24 +71,28 @@ h1 {
   font-size: 1.5rem;
   font-weight: 700;
   color: #000;
+  font-family: 'Inter', system-ui, sans-serif;
 }
 
 h2 {
   font-size: 1.25rem;
   font-weight: 600;
   color: #1f1f1f;
+  font-family: 'Inter', system-ui, sans-serif;
 }
 
 h3 {
   font-size: 1.125rem;
   font-weight: 500;
   color: #560005;
+  font-family: 'Inter', system-ui, sans-serif;
 }
 
 h4 {
   font-size: 1rem;
   font-weight: 500;
   color: #ef0002;
+  font-family: 'Inter', system-ui, sans-serif;
 }
 
 /* PDF Print Styles */
@@ -96,6 +100,8 @@ h4 {
   body {
     font-size: 13px;
     line-height: 1.6;
+    font-family: 'Inter', system-ui, sans-serif;
+    color: #1f1f1f;
   }
   
   .page-break {
@@ -104,5 +110,6 @@ h4 {
   
   div, p, li, h1, h2, h3, h4 {
     page-break-inside: avoid;
+    font-family: 'Inter', system-ui, sans-serif;
   }
 }

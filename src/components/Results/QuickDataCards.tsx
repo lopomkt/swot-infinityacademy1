@@ -32,7 +32,7 @@ export default function QuickDataCards({
       transition={{ staggerChildren: 0.1 }}
     >
       <motion.div 
-        className={`${statCardBase} bg-primary min-h-[120px] sm:min-h-[150px]`}
+        className="rounded-2xl p-4 text-center shadow-md bg-white text-[#1f1f1f] border-l-4 border-[#ef0002] min-h-[120px] sm:min-h-[150px]"
         role="group"
         aria-labelledby="tempo-mercado-label"
         variants={prefersReducedMotion ? {} : cardVariants}
@@ -43,7 +43,7 @@ export default function QuickDataCards({
         <p className="text-xl font-bold">{tempoDeMercado}</p>
       </motion.div>
       <motion.div 
-        className={`${statCardBase} bg-accent min-h-[120px] sm:min-h-[150px]`}
+        className="rounded-2xl p-4 text-center shadow-md bg-white text-[#1f1f1f] border-l-4 border-[#00b894] min-h-[120px] sm:min-h-[150px]"
         role="group"
         aria-labelledby="faturamento-label"
         variants={prefersReducedMotion ? {} : cardVariants}
@@ -54,7 +54,7 @@ export default function QuickDataCards({
         <p className="text-xl font-bold">{faturamentoMensal}</p>
       </motion.div>
       <motion.div 
-        className={`${statCardBase} bg-secondary min-h-[120px] sm:min-h-[150px]`}
+        className="rounded-2xl p-4 text-center shadow-md bg-white text-[#1f1f1f] border-l-4 border-[#3498db] min-h-[120px] sm:min-h-[150px]"
         role="group"
         aria-labelledby="segmento-label"
         variants={prefersReducedMotion ? {} : cardVariants}

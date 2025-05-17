@@ -17,11 +17,6 @@ const PrintableResults = React.memo(function PrintableResults({ children }: Prin
     window.open('https://wa.me/5567993146148?text=Olá!%20Acabei%20de%20concluir%20o%20SWOT%20INSIGHTS%20da%20INFINITY%20e%20quero%20conversar%20com%20a%20equipe%20sobre%20o%20meu%20diagnóstico.', '_blank');
   };
 
-  const handleNewAnalysis = () => {
-    // Reset the form or navigate back to the start
-    window.location.href = '/';
-  };
-
   return (
     <>
       {/* Skip to content link */}
@@ -30,6 +25,7 @@ const PrintableResults = React.memo(function PrintableResults({ children }: Prin
       </a>
       
       <motion.div 
+        id="container_resultado_pdf"
         className="max-w-5xl mx-auto px-8 py-12 bg-white text-[#1f1f1f] print:block font-['Inter',system-ui,sans-serif] shadow-md text-[13px] leading-relaxed" 
         role="region" 
         aria-label="Relatório completo do diagnóstico SWOT"
@@ -61,17 +57,7 @@ const PrintableResults = React.memo(function PrintableResults({ children }: Prin
           <p className="text-sm">Sua jornada de transformação empresarial começa agora. Conte com a INFINITY para os próximos passos.</p>
         </div>
         
-        {/* Conditionally show "New Analysis" button only on desktop */}
-        {!isMobile && (
-          <div className="text-center mt-10 mb-6">
-            <button 
-              className="text-xs underline text-gray-400 hover:text-gray-600"
-              onClick={handleNewAnalysis}
-            >
-              Iniciar nova análise
-            </button>
-          </div>
-        )}
+        {/* Removed the "Iniciar nova análise" button entirely */}
         
         {/* Institutional footer */}
         <p className="text-center text-xs text-gray-400 mt-16 mb-4">
@@ -84,6 +70,7 @@ const PrintableResults = React.memo(function PrintableResults({ children }: Prin
           {/* fase7_1_ui_ux_gamificada_ok = true */}
           {/* fase7_2_consultivo_avancado_ok = true */}
           {/* fase7_3_polimento_final_ok = true */}
+          {/* fase7_5_1_correcao_total_ok = true */}
         </div>
       </motion.div>
     </>

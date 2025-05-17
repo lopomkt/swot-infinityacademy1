@@ -112,6 +112,7 @@ interface CascadeEffect {
 
 interface ResultsScreenProps {
   formData: FormData;
+  onRestart?: () => void; // New prop to handle restart flow
 }
 
 // Define the Suggestion interface to match what StrategicSuggestions expects
@@ -122,7 +123,7 @@ interface Suggestion {
   textColor: string;
 }
 
-const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData }) => {
+const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData, onRestart }) => {
   // Enhanced fallback messages for better error handling
   if (!formData?.resultadoFinal) {
     return <p className="text-center text-gray-600 mt-12">Relatório ainda não disponível. Tente novamente em instantes.</p>;
@@ -692,7 +693,7 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData }) => {
 
           <Card className="max-w-3xl mx-auto border border-[#ef0002]">
             <CardContent className="p-6">
-              <ScrollArea className="max-h-[400px]">
+              <ScrollArea className="max-h-fit">
                 <Suspense fallback={<Skeleton className="h-32 w-full" />}>
                   {formData.resultadoFinal?.diagnostico_textual ? (
                     <DiagnosticoTextual
@@ -815,13 +816,13 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData }) => {
           </Suspense>
         </div>
 
-        {/* BLOCK: Funnel Visualization */}
+        {/* BLOCK: Funnel Visualization with updated grid layout */}
         <div id="bloco_funil_gargalos" className="mb-16">
           <div className="text-center mb-8">
             <h2 className="text-2xl font-bold text-[#560005] border-b pb-2 mb-4 inline-block px-8">
               Funil Estratégico da Empresa: Gargalos e Alertas
             </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <p className="text-[#1f1f1f] max-w-2xl mx-auto">
               Veja como sua empresa se comporta nas 4 fases críticas e onde estão os pontos 
               de atenção que podem comprometer toda a operação.
             </p>
@@ -837,16 +838,14 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData }) => {
           </div>
         </div>
 
-        {/* FINAL BLOCK: CTA Section */}
+        {/* FINAL BLOCK: CTA Section - Removed the StrategicCTA component since it's already in PrintableResults */}
         {allSectionsReady && (
           <>
             <div id="ancora_final">
               <Separator className="mb-12" />
             </div>
             
-            <Suspense fallback={<Skeleton className="h-[150px] w-full rounded-xl" />}>
-              <StrategicCTA />
-            </Suspense>
+            {/* We removed the StrategicCTA component here as it's already included in PrintableResults */}
           </>
         )}
 
@@ -857,6 +856,7 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData }) => {
             if (formData.resultadoFinal) {
               formData.resultadoFinal.resultados_bloco5_e_4b_ok = true;
               formData.resultadoFinal.fase7_2_consultivo_avancado_ok = true;
+              formData.resultadoFinal.fase7_5_1_correcao_total_ok = true;
             }
             return null;
           })()}
@@ -868,6 +868,8 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData }) => {
           {/* ux_performance_memo_lazy_ok = true */}
           {/* fase5_finalizacao_ok = true */}
           {/* fase7_2_consultivo_avancado_ok = true */}
+          {/* fase7_3_polimento_final_ok = true */}
+          {/* fase7_5_1_correcao_total_ok = true */}
         </div>
       </PrintableResults>
       
