@@ -1,3 +1,4 @@
+
 // Adding fallback message at the top of the component
 import React, { useState, lazy, Suspense, useEffect } from "react";
 import { 
@@ -48,6 +49,7 @@ import PrintableResults from '@/components/Results/PrintableResults';
 import ExportacaoPDF from '@/components/Results/ExportacaoPDF';
 import { useIsMobile } from '@/hooks/use-mobile'; 
 import ConclusaoFinal from '@/components/Results/ConclusaoFinal';
+import DiagnosticoConsultivo from '@/components/Results/DiagnosticoConsultivo'; // Adding the missing import
 
 // Lazy-loaded components
 const DiagnosticoTextual = lazy(() => import('@/components/Results/DiagnosticoTextual'));
