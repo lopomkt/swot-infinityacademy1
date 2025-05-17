@@ -47,6 +47,7 @@ const Index = () => {
     fase6_2_resultado_premium_visual_ok: true,
     fase6_3_design_final_pdf_ok: true,
     fase7_1_ui_ux_gamificada_ok: true,
+    fase7_3_polimento_final_ok: true,
   });
 
   // Save form data to localStorage whenever it changes
@@ -99,6 +100,7 @@ const Index = () => {
       fase6_3_design_final_pdf_ok: true,
       fase7_1_ui_ux_gamificada_ok: true,
       fase7_3_polimento_final_ok: true,
+      fase7_5_1_correcao_total_ok: true,
     });
     setStep(0);
     // Clear localStorage items related to the form
@@ -319,6 +321,7 @@ const Index = () => {
         {/* fase6_3_design_final_pdf_ok = true */}
         {/* fase7_1_ui_ux_gamificada_ok = true */}
         {/* fase7_3_polimento_final_ok = true */}
+        {/* fase7_5_1_correcao_total_ok = true */}
       </div>
     </div>
   );

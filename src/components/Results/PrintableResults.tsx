@@ -25,11 +25,10 @@ const PrintableResults = React.memo(function PrintableResults({ children }: Prin
       </a>
       
       <motion.div 
-        id="container_resultado_pdf"
         className="max-w-5xl mx-auto px-8 py-12 bg-white text-[#1f1f1f] print:block font-['Inter',system-ui,sans-serif] shadow-md text-[13px] leading-relaxed" 
         role="region" 
         aria-label="Relatório completo do diagnóstico SWOT"
-        id="content"
+        id="container_resultado_pdf"
         initial={prefersReducedMotion ? {} : { opacity: 0 }}
         animate={prefersReducedMotion ? {} : { opacity: 1 }}
         transition={{ duration: 0.3 }}

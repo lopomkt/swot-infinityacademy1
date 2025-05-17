@@ -158,6 +158,8 @@ export interface ResultadoFinalData {
   fase6_3_design_final_pdf_ok?: boolean;
   fase7_1_ui_ux_gamificada_ok?: boolean;
   fase7_2_consultivo_avancado_ok?: boolean;
+  fase7_3_polimento_final_ok?: boolean;
+  fase7_5_1_correcao_total_ok?: boolean;
 }
 
 // Flag interna para controlar a tipagem
@@ -202,4 +204,6 @@ export interface FormData {
   fase7_1_ui_ux_gamificada_ok?: boolean;
   // Add the missing property
   fase5_transicoes_ok?: boolean;
+  fase7_3_polimento_final_ok?: boolean;
+  fase7_5_1_correcao_total_ok?: boolean;
 }
