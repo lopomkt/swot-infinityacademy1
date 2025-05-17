@@ -26,11 +26,27 @@ export interface FormData {
   step_prioridades_ok?: boolean;
 }
 
+// Create type aliases for the component props
+export type IdentificacaoData = Identificacao;
+export type FraquezasData = Fraquezas;
+export type OportunidadesData = Oportunidades;
+export type PrioridadesData = Prioridades;
+export type SaudeFinanceiraData = SaudeFinanceira;
+
 export interface Identificacao {
   nomeEmpresa?: string;
   segmento?: string;
   tempoDeMercado?: string;
   faturamentoMensal?: string;
+  tipo_produto_servico?: string;
+  tempo_retencao_clientes?: string;
+  perfil_cliente_ideal?: string;
+  fonte_trafego_principal?: string;
+  nivel_automacao?: string;
+  canais_venda_atuais?: string;
+  numero_colaboradores?: string;
+  modelo_precificacao?: string;
+  tipagem_identificacao_ok?: boolean;
 }
 
 export interface Forcas {
@@ -52,6 +68,20 @@ export interface Oportunidades {
   oportunidade1?: string;
   oportunidade2?: string;
   oportunidade3?: string;
+  nova_demanda_cliente?: string;
+  situacao_mercado?: string;
+  nichos_ocultos?: string;
+  concorrentes_enfraquecendo?: string;
+  tendencias_aproveitaveis?: string[];
+  tendencias_outro?: string;
+  demanda_nao_atendida?: string;
+  parcerias_possiveis?: string;
+  recurso_ocioso?: string;
+  canais_potenciais?: string[];
+  canais_outro?: string;
+  nivel_disposicao?: number;
+  acao_inicial_oportunidade?: string;
+  step_oportunidades_ok?: boolean;
 }
 
 export interface Ameacas {
@@ -59,6 +89,19 @@ export interface Ameacas {
   ameaca1?: string;
   ameaca2?: string;
   ameaca3?: string;
+  fator_preocupante?: string;
+  concorrente_em_ascensao?: string;
+  dependencia_parceiros?: string;
+  ameaca_legislativa?: string;
+  sazonalidade_negocio?: string;
+  detalheSazonalidade?: string;
+  dependencia_plataformas?: string[];
+  mudanca_comportamental?: string;
+  resiliencia_crise?: string;
+  perdas_externas?: string;
+  detalhePerda?: string;
+  impacto_ameacas?: number;
+  estrategia_defesa?: string;
 }
 
 export interface Financeiro {
@@ -72,21 +115,47 @@ export interface SaudeFinanceira {
   receita_media_mensal?: string;
   margem_contribuicao?: string;
   maturidade_financeira?: string;
+  caixa_disponivel?: string;
+  autonomia_caixa?: string;
+  controle_financeiro?: string;
+  fluxo_frequencia?: string;
+  endividamento_nivel?: string;
+  inadimplencia_clientes?: string;
+  custos_fixos?: string;
+  cac_estimado_conhecimento?: string;
+  cac_estimado?: string;
+  orcamento_planejado?: string;
+  intencao_investimento?: string;
+  margem_lucro_liquida?: string;
+  previsao_orcamentaria?: string;
+  grau_endividamento?: string;
+  step_financas_ok?: boolean;
 }
 
 export interface Prioridades {
   foco_estrategico?: string;
-  comprometimento_estrategico?: string;
+  comprometimento_estrategico?: number; // Changed from string to number to match schema
   meta_90_dias?: string;
   top3_desafios?: string;
   areas_fraqueza?: string[];
   areas_potenciais?: string[];
   ajuda_externa_urgente?: string;
   acao_unica_desejada?: string;
-  engajamento_equipe?: string;
+  engajamento_equipe?: number; // Changed from string to number to match schema
   estilo_decisao?: string;
   maior_obstáculo?: string;
   maior_gargalo?: string;
+  distribuicao_tempo?: string;
+  prontidao_execucao?: string;
+  meta_crescimento_6_meses?: string;
+  meta_crescimento_12_meses?: string;
+  tipo_investimento?: string;
+}
+
+export interface AreaMaturidade {
+  area: string;
+  nivel: number;
+  descricao: string;
 }
 
 export interface ResultadoFinalData {
@@ -107,7 +176,7 @@ export interface ResultadoFinalData {
   resultados_bloco5_e_4b_ok?: boolean;
   fase7_2_consultivo_avancado_ok?: boolean;
   fase7_5_1_correcao_total_ok?: boolean;
-  maturidade_setorial?: string;
+  maturidade_setorial?: string | AreaMaturidade[]; // Allow both string and array of objects
   acoes_priorizadas_lista?: string[];
 }
 

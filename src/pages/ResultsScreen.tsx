@@ -1,4 +1,3 @@
-// Adding fallback message at the top of the component
 import React, { useState, lazy, Suspense, useEffect } from "react";
 import { 
   Check, 

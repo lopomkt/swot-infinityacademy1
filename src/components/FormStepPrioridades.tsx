@@ -1,8 +1,8 @@
-import React from "react";
+import { useState } from "react";
+import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { PrioridadesData } from "@/types/formData";
-import { prioridadesSchema, PrioridadesSchema } from "@/schemas/prioridadesSchema";
+import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -13,78 +13,85 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { toast } from "@/hooks/use-toast";
-
-const areaOptions = [
-  { id: "marketing", label: "Marketing" },
-  { id: "vendas", label: "Vendas" },
-  { id: "gestao", label: "Gestão" },
-  { id: "pessoas", label: "Pessoas" },
-  { id: "operacao", label: "Operação" },
-  { id: "estrategia", label: "Estratégia" },
-  { id: "financeiro", label: "Financeiro" },
-  { id: "produto", label: "Produto" },
-  { id: "atendimento", label: "Atendimento" },
-];
+import { PrioridadesData, Prioridades } from "@/types/formData";
+import { prioridadesSchema, PrioridadesSchema } from "@/schemas/prioridadesSchema";
 
 interface Props {
-  defaultValues?: Partial<PrioridadesSchema>;
+  defaultValues?: Partial<PrioridadesData>;
   onComplete: (data: PrioridadesData) => void;
   onBack?: () => void;
 }
 
-const FormStepPrioridades: React.FC<Props> = ({ defaultValues, onComplete, onBack }) => {
+const FormStepPrioridades = ({ defaultValues = {}, onComplete, onBack }: Props) => {
   const form = useForm<PrioridadesSchema>({
     resolver: zodResolver(prioridadesSchema),
-    defaultValues: defaultValues || {
-      meta_90_dias: "",
-      top3_desafios: "",
-      areas_fraqueza: [],
-      areas_potenciais: [],
-      ajuda_externa_urgente: "",
-      acao_unica_desejada: "",
-      engajamento_equipe: 5,
-      distribuicao_tempo: "Parcialmente",
-      comprometimento_estrategico: 5,
-      estilo_decisao: "Analítico",
+    defaultValues: {
+      meta_90_dias: defaultValues.meta_90_dias || "",
+      top3_desafios: defaultValues.top3_desafios || "",
+      areas_fraqueza: defaultValues.areas_fraqueza || [],
+      areas_potenciais: defaultValues.areas_potenciais || [],
+      ajuda_externa_urgente: defaultValues.ajuda_externa_urgente || "",
+      acao_unica_desejada: defaultValues.acao_unica_desejada || "",
+      engajamento_equipe: defaultValues.engajamento_equipe || 5,
+      distribuicao_tempo: defaultValues.distribuicao_tempo || "Sim",
+      comprometimento_estrategico: defaultValues.comprometimento_estrategico || 5,
+      estilo_decisao: defaultValues.estilo_decisao || "Analítico",
+      prontidao_execucao: defaultValues.prontidao_execucao || "Sim",
+      meta_crescimento_6_meses: defaultValues.meta_crescimento_6_meses || "",
+      meta_crescimento_12_meses: defaultValues.meta_crescimento_12_meses || "",
+      tipo_investimento: defaultValues.tipo_investimento || "",
+      maior_gargalo: defaultValues.maior_gargalo || "",
     },
   });
 
-  const comprometimentoValue = form.watch("comprometimento_estrategico");
-  const mostrarProntidao = comprometimentoValue >= 8;
+  const [formValues, setForm] = useState<Prioridades>({
+    meta_90_dias: defaultValues.meta_90_dias || "",
+    top3_desafios: defaultValues.top3_desafios || "",
+    areas_fraqueza: defaultValues.areas_fraqueza || [],
+    areas_potenciais: defaultValues.areas_potenciais || [],
+    ajuda_externa_urgente: defaultValues.ajuda_externa_urgente || "",
+    acao_unica_desejada: defaultValues.acao_unica_desejada || "",
+    engajamento_equipe: defaultValues.engajamento_equipe || 5,
+    distribuicao_tempo: defaultValues.distribuicao_tempo || "Sim",
+    comprometimento_estrategico: defaultValues.comprometimento_estrategico || 5,
+    estilo_decisao: defaultValues.estilo_decisao || "Analítico",
+    prontidao_execucao: defaultValues.prontidao_execucao || "Sim",
+    meta_crescimento_6_meses: defaultValues.meta_crescimento_6_meses || "",
+    meta_crescimento_12_meses: defaultValues.meta_crescimento_12_meses || "",
+    tipo_investimento: defaultValues.tipo_investimento || "",
+    maior_gargalo: defaultValues.maior_gargalo || "",
+  });
 
-  function onSubmit(data: PrioridadesSchema) {
-    toast({
-      title: "Diagnóstico finalizado!",
-      description: "Preparando análise estratégica...",
-    });
-    // Flag de validação concluída
-    const validacao_prioridades_ok = true;
-    onComplete(data as PrioridadesData);
+  const onSubmit = (data: PrioridadesSchema) => {
+    const dataWithFlag = { ...data, step_prioridades_ok: true };
+    onComplete(dataWithFlag);
+  };
+
+  // Make sure that when setting form values, we convert string values to numbers where needed
+  function handleChange<K extends keyof PrioridadesSchema>(key: K, value: PrioridadesSchema[K]) {
+    setForm((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
+  }
+
+  // Special handler for numeric fields to ensure they are stored as numbers
+  function handleNumericChange<K extends "engajamento_equipe" | "comprometimento_estrategico">(key: K, value: string | number) {
+    const numericValue = typeof value === 'string' ? Number(value) : value;
+    setForm((prev) => ({
+      ...prev,
+      [key]: numericValue,
+    }));
   }
 
   return (
-    <div className="w-full max-w-2xl mx-auto py-8 animate-fade-in">
-      <div className="mb-8 text-center">
-        <h2 className="text-2xl font-bold text-[#560005] mb-2">
-          Vamos fechar com foco, clareza e prioridade
-        </h2>
-        <p className="text-gray-600">
-          Com base em tudo o que foi respondido, agora queremos entender o que realmente importa neste momento.
-        </p>
-      </div>
+    <div className="w-full bg-white rounded-xl p-6 shadow-sm border border-[#f1eaea] max-w-lg mx-auto animate-fade-in">
+      <h2 className="font-bold text-2xl text-[#560005] mb-3">Etapa 7 – PRIORIDADES ESTRATÉGICAS</h2>
+      <p className="text-base text-black mb-5">
+        Vamos agora definir suas prioridades e metas para os próximos meses.
+      </p>
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -93,13 +100,13 @@ const FormStepPrioridades: React.FC<Props> = ({ defaultValues, onComplete, onBac
             name="meta_90_dias"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Qual é a principal meta da sua empresa para os próximos 90 dias?</FormLabel>
+                <FormLabel className="font-medium">1. Meta Principal (90 dias)</FormLabel>
                 <FormControl>
-                  <Input 
-                    placeholder="Ex: aumentar o faturamento, estruturar time, abrir filial…" 
-                    {...field} 
-                  />
+                  <Input placeholder="Ex: Aumentar vendas em 20%, lançar novo produto..." {...field} />
                 </FormControl>
+                <FormDescription>
+                  Qual sua meta mais importante para os próximos 90 dias?
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -110,13 +117,13 @@ const FormStepPrioridades: React.FC<Props> = ({ defaultValues, onComplete, onBac
             name="top3_desafios"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Quais são os três maiores desafios hoje?</FormLabel>
+                <FormLabel className="font-medium">2. Top 3 Desafios Atuais</FormLabel>
                 <FormControl>
-                  <Textarea 
-                    placeholder="Liste os principais desafios com breves descrições" 
-                    {...field} 
-                  />
+                  <Input placeholder="Ex: Falta de clientes, equipe desmotivada, concorrência..." {...field} />
                 </FormControl>
+                <FormDescription>
+                  Quais são os 3 maiores desafios que sua empresa enfrenta hoje?
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -125,49 +132,27 @@ const FormStepPrioridades: React.FC<Props> = ({ defaultValues, onComplete, onBac
           <FormField
             control={form.control}
             name="areas_fraqueza"
-            render={() => (
+            render={({ field }) => (
               <FormItem>
-                <div className="mb-4">
-                  <FormLabel>Quais áreas você considera mais frágeis no momento?</FormLabel>
-                  <FormDescription>
-                    Selecione todas que se aplicam.
-                  </FormDescription>
-                </div>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                  {areaOptions.map((option) => (
-                    <FormField
-                      key={option.id}
-                      control={form.control}
-                      name="areas_fraqueza"
-                      render={({ field }) => {
-                        return (
-                          <FormItem
-                            key={option.id}
-                            className="flex flex-row items-start space-x-3 space-y-0"
-                          >
-                            <FormControl>
-                              <Checkbox
-                                checked={field.value?.includes(option.id)}
-                                onCheckedChange={(checked) => {
-                                  return checked
-                                    ? field.onChange([...field.value, option.id])
-                                    : field.onChange(
-                                        field.value?.filter(
-                                          (value) => value !== option.id
-                                        )
-                                      );
-                                }}
-                              />
-                            </FormControl>
-                            <FormLabel className="font-normal cursor-pointer">
-                              {option.label}
-                            </FormLabel>
-                          </FormItem>
-                        );
-                      }}
-                    />
-                  ))}
-                </div>
+                <FormLabel className="font-medium">3. Áreas Frágeis</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione as áreas frágeis" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="Marketing">Marketing</SelectItem>
+                    <SelectItem value="Vendas">Vendas</SelectItem>
+                    <SelectItem value="Financeiro">Financeiro</SelectItem>
+                    <SelectItem value="Operacional">Operacional</SelectItem>
+                    <SelectItem value="Gestão">Gestão</SelectItem>
+                    <SelectItem value="RH">RH</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormDescription>
+                  Em quais áreas sua empresa precisa de mais atenção e melhorias?
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -176,49 +161,27 @@ const FormStepPrioridades: React.FC<Props> = ({ defaultValues, onComplete, onBac
           <FormField
             control={form.control}
             name="areas_potenciais"
-            render={() => (
+            render={({ field }) => (
               <FormItem>
-                <div className="mb-4">
-                  <FormLabel>Quais áreas mais promissoras para crescimento?</FormLabel>
-                  <FormDescription>
-                    Selecione todas que se aplicam.
-                  </FormDescription>
-                </div>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                  {areaOptions.map((option) => (
-                    <FormField
-                      key={option.id}
-                      control={form.control}
-                      name="areas_potenciais"
-                      render={({ field }) => {
-                        return (
-                          <FormItem
-                            key={option.id}
-                            className="flex flex-row items-start space-x-3 space-y-0"
-                          >
-                            <FormControl>
-                              <Checkbox
-                                checked={field.value?.includes(option.id)}
-                                onCheckedChange={(checked) => {
-                                  return checked
-                                    ? field.onChange([...field.value, option.id])
-                                    : field.onChange(
-                                        field.value?.filter(
-                                          (value) => value !== option.id
-                                        )
-                                      );
-                                }}
-                              />
-                            </FormControl>
-                            <FormLabel className="font-normal cursor-pointer">
-                              {option.label}
-                            </FormLabel>
-                          </FormItem>
-                        );
-                      }}
-                    />
-                  ))}
-                </div>
+                <FormLabel className="font-medium">4. Áreas Promissoras</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione as áreas promissoras" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="Marketing">Marketing</SelectItem>
+                    <SelectItem value="Vendas">Vendas</SelectItem>
+                    <SelectItem value="Financeiro">Financeiro</SelectItem>
+                    <SelectItem value="Operacional">Operacional</SelectItem>
+                    <SelectItem value="Gestão">Gestão</SelectItem>
+                    <SelectItem value="RH">RH</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormDescription>
+                  Em quais áreas sua empresa tem maior potencial de crescimento?
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -229,10 +192,13 @@ const FormStepPrioridades: React.FC<Props> = ({ defaultValues, onComplete, onBac
             name="ajuda_externa_urgente"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Em qual ponto você mais sente que precisa de ajuda externa?</FormLabel>
+                <FormLabel className="font-medium">5. Ajuda Externa Urgente</FormLabel>
                 <FormControl>
-                  <Input {...field} />
+                  <Input placeholder="Ex: Consultoria de marketing, mentoria de gestão..." {...field} />
                 </FormControl>
+                <FormDescription>
+                  Onde você mais precisa de ajuda externa neste momento?
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -243,10 +209,13 @@ const FormStepPrioridades: React.FC<Props> = ({ defaultValues, onComplete, onBac
             name="acao_unica_desejada"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Se pudesse resolver uma única coisa agora, qual seria?</FormLabel>
+                <FormLabel className="font-medium">6. Ação Única Desejada</FormLabel>
                 <FormControl>
-                  <Input {...field} />
+                  <Input placeholder="Ex: Atrair mais clientes, reduzir custos, melhorar processos..." {...field} />
                 </FormControl>
+                <FormDescription>
+                  Se pudesse resolver um único problema agora, qual seria?
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -257,26 +226,18 @@ const FormStepPrioridades: React.FC<Props> = ({ defaultValues, onComplete, onBac
             name="engajamento_equipe"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Você sente que sua equipe está engajada no processo de crescimento?</FormLabel>
-                <FormDescription className="flex justify-between">
-                  <span>0 - Nada engajada</span>
-                  <span>10 - Totalmente engajada</span>
-                </FormDescription>
+                <FormLabel className="font-medium">7. Engajamento da Equipe (0-10)</FormLabel>
                 <FormControl>
-                  <div className="pt-2">
-                    <Slider
-                      min={0}
-                      max={10}
-                      step={1}
-                      value={[field.value]}
-                      onValueChange={(vals) => field.onChange(vals[0])}
-                      className="w-full"
-                    />
-                  </div>
+                  <Slider
+                    defaultValue={[field.value || 5]}
+                    max={10}
+                    step={1}
+                    onValueChange={(value) => field.onChange(value[0])}
+                  />
                 </FormControl>
-                <div className="text-center mt-2">
-                  <span className="font-semibold">{field.value}</span>
-                </div>
+                <FormDescription>
+                  De 0 a 10, como você avalia o engajamento e motivação da sua equipe?
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -287,7 +248,7 @@ const FormStepPrioridades: React.FC<Props> = ({ defaultValues, onComplete, onBac
             name="distribuicao_tempo"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Você sente que seu tempo como gestor está bem distribu��do?</FormLabel>
+                <FormLabel className="font-medium">8. Distribuição do Tempo</FormLabel>
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
                     <SelectTrigger>
@@ -300,6 +261,9 @@ const FormStepPrioridades: React.FC<Props> = ({ defaultValues, onComplete, onBac
                     <SelectItem value="Estou sobrecarregado">Estou sobrecarregado</SelectItem>
                   </SelectContent>
                 </Select>
+                <FormDescription>
+                  Você sente que distribui seu tempo de forma eficaz?
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -310,26 +274,18 @@ const FormStepPrioridades: React.FC<Props> = ({ defaultValues, onComplete, onBac
             name="comprometimento_estrategico"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Em uma escala de 0 a 10, qual o seu nível de comprometimento com mudanças estratégicas reais?</FormLabel>
-                <FormDescription className="flex justify-between">
-                  <span>0 - Pouco comprometido</span>
-                  <span>10 - Totalmente comprometido</span>
-                </FormDescription>
+                <FormLabel className="font-medium">9. Comprometimento Estratégico (0-10)</FormLabel>
                 <FormControl>
-                  <div className="pt-2">
-                    <Slider
-                      min={0}
-                      max={10}
-                      step={1}
-                      value={[field.value]}
-                      onValueChange={(vals) => field.onChange(vals[0])}
-                      className="w-full"
-                    />
-                  </div>
+                  <Slider
+                    defaultValue={[field.value || 5]}
+                    max={10}
+                    step={1}
+                    onValueChange={(value) => field.onChange(value[0])}
+                  />
                 </FormControl>
-                <div className="text-center mt-2">
-                  <span className="font-semibold">{field.value}</span>
-                </div>
+                <FormDescription>
+                  De 0 a 10, qual o seu nível de comprometimento com a estratégia da empresa?
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -339,97 +295,122 @@ const FormStepPrioridades: React.FC<Props> = ({ defaultValues, onComplete, onBac
             control={form.control}
             name="estilo_decisao"
             render={({ field }) => (
-              <FormItem className="space-y-3">
-                <FormLabel>Qual o seu estilo de decisão atual?</FormLabel>
-                <FormControl>
-                  <RadioGroup
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                    className="flex flex-col space-y-1"
-                  >
-                    <FormItem className="flex items-center space-x-3 space-y-0">
-                      <FormControl>
-                        <RadioGroupItem value="Analítico" />
-                      </FormControl>
-                      <FormLabel className="font-normal">
-                        Analítico
-                      </FormLabel>
-                    </FormItem>
-                    <FormItem className="flex items-center space-x-3 space-y-0">
-                      <FormControl>
-                        <RadioGroupItem value="Rápido e objetivo" />
-                      </FormControl>
-                      <FormLabel className="font-normal">
-                        Rápido e objetivo
-                      </FormLabel>
-                    </FormItem>
-                    <FormItem className="flex items-center space-x-3 space-y-0">
-                      <FormControl>
-                        <RadioGroupItem value="Intuitivo" />
-                      </FormControl>
-                      <FormLabel className="font-normal">
-                        Intuitivo
-                      </FormLabel>
-                    </FormItem>
-                    <FormItem className="flex items-center space-x-3 space-y-0">
-                      <FormControl>
-                        <RadioGroupItem value="Compartilhado com sócios / equipe" />
-                      </FormControl>
-                      <FormLabel className="font-normal">
-                        Compartilhado com sócios / equipe
-                      </FormLabel>
-                    </FormItem>
-                  </RadioGroup>
-                </FormControl>
+              <FormItem>
+                <FormLabel className="font-medium">10. Estilo de Decisão</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione seu estilo de decisão" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="Analítico">Analítico</SelectItem>
+                    <SelectItem value="Rápido e objetivo">Rápido e objetivo</SelectItem>
+                    <SelectItem value="Intuitivo">Intuitivo</SelectItem>
+                    <SelectItem value="Compartilhado com sócios / equipe">Compartilhado com sócios / equipe</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormDescription>
+                  Como você costuma tomar decisões na sua empresa?
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
           />
 
-          {mostrarProntidao && (
-            <FormField
-              control={form.control}
-              name="prontidao_execucao"
-              render={({ field }) => (
-                <FormItem className="space-y-3">
-                  <FormLabel>Está pronto para colocar em prática as soluções que o relatório irá propor?</FormLabel>
+          <FormField
+            control={form.control}
+            name="prontidao_execucao"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="font-medium">11. Prontidão para Execução</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
-                    <RadioGroup
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                      className="flex flex-col space-y-1"
-                    >
-                      <FormItem className="flex items-center space-x-3 space-y-0">
-                        <FormControl>
-                          <RadioGroupItem value="Sim" />
-                        </FormControl>
-                        <FormLabel className="font-normal">
-                          Sim
-                        </FormLabel>
-                      </FormItem>
-                      <FormItem className="flex items-center space-x-3 space-y-0">
-                        <FormControl>
-                          <RadioGroupItem value="Com adaptações" />
-                        </FormControl>
-                        <FormLabel className="font-normal">
-                          Com adaptações
-                        </FormLabel>
-                      </FormItem>
-                      <FormItem className="flex items-center space-x-3 space-y-0">
-                        <FormControl>
-                          <RadioGroupItem value="Ainda não" />
-                        </FormControl>
-                        <FormLabel className="font-normal">
-                          Ainda não
-                        </FormLabel>
-                      </FormItem>
-                    </RadioGroup>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione uma opção" />
+                    </SelectTrigger>
                   </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          )}
+                  <SelectContent>
+                    <SelectItem value="Sim">Sim</SelectItem>
+                    <SelectItem value="Com adaptações">Com adaptações</SelectItem>
+                    <SelectItem value="Ainda não">Ainda não</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormDescription>
+                  Quão pronto você se sente para colocar as estratégias em prática?
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="meta_crescimento_6_meses"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="font-medium">12. Meta de Crescimento (6 meses)</FormLabel>
+                <FormControl>
+                  <Input placeholder="Ex: Aumentar a receita em X%, expandir para Y mercados..." {...field} />
+                </FormControl>
+                <FormDescription>
+                  O que você espera alcançar em termos de crescimento nos próximos 6 meses?
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="meta_crescimento_12_meses"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="font-medium">13. Meta de Crescimento (12 meses)</FormLabel>
+                <FormControl>
+                  <Input placeholder="Ex: Dobrar o número de clientes, lançar nova linha de produtos..." {...field} />
+                </FormControl>
+                <FormDescription>
+                  O que você almeja em termos de crescimento para o próximo ano?
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="tipo_investimento"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="font-medium">14. Tipo de Investimento</FormLabel>
+                <FormControl>
+                  <Input placeholder="Ex: Marketing digital, equipe de vendas, tecnologia..." {...field} />
+                </FormControl>
+                <FormDescription>
+                  Em qual área você planeja investir nos próximos meses?
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="maior_gargalo"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="font-medium">15. Maior Gargalo</FormLabel>
+                <FormControl>
+                  <Input placeholder="Ex: Processos ineficientes, falta de leads qualificados..." {...field} />
+                </FormControl>
+                <FormDescription>
+                  Qual o maior obstáculo que impede o crescimento da sua empresa?
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
           <div className="flex justify-between pt-4 gap-4 flex-wrap-reverse sm:flex-nowrap">
             {onBack && (
@@ -437,12 +418,7 @@ const FormStepPrioridades: React.FC<Props> = ({ defaultValues, onComplete, onBac
                 ← Voltar
               </Button>
             )}
-            <Button 
-              type="submit" 
-              className="bg-[#ef0002] hover:bg-[#c50000] text-white px-8 py-2"
-            >
-              Finalizar Diagnóstico
-            </Button>
+            <Button type="submit">Finalizar Análise</Button>
           </div>
         </form>
       </Form>

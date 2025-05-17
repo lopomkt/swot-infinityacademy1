@@ -274,9 +274,20 @@ const Index = () => {
             defaultValues={formData.prioridades}
             onBack={() => handleBackButtonClick(6)}
             onComplete={(prioridades) => {
+              // Ensure numeric fields are properly converted
+              const processedPrioridades = {
+                ...prioridades,
+                engajamento_equipe: typeof prioridades.engajamento_equipe === 'string' 
+                  ? Number(prioridades.engajamento_equipe) 
+                  : prioridades.engajamento_equipe,
+                comprometimento_estrategico: typeof prioridades.comprometimento_estrategico === 'string' 
+                  ? Number(prioridades.comprometimento_estrategico) 
+                  : prioridades.comprometimento_estrategico
+              };
+              
               setFormData((prev) => ({ 
                 ...prev, 
-                prioridades,
+                prioridades: processedPrioridades,
                 step_prioridades_ok: true
               }));
               setStep(8);
