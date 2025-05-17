@@ -37,6 +37,10 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import ConclusaoFinal from '@/components/Results/ConclusaoFinal';
 import DiagnosticoConsultivo from '@/components/Results/DiagnosticoConsultivo';
 import NivelMaturidade from '@/components/Results/NivelMaturidade';
+import DiagnosticoPronto from '@/components/Results/DiagnosticoPronto';
+import DownloadContato from '@/components/Results/DownloadContato';
+import ParabensFinal from '@/components/Results/ParabensFinal';
+import FooterRodape from '@/components/Results/FooterRodape';
 
 // Lazy-loaded components
 const DiagnosticoTextual = lazy(() => import('@/components/Results/DiagnosticoTextual'));
@@ -603,6 +607,12 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData, onRestart }) =>
             inteligência artificial estratégica. Prepare-se para entender os verdadeiros 
             caminhos da sua empresa.
           </p>
+          
+          {/* Add the DiagnosticoPronto component here */}
+          <div className="mt-8 max-w-3xl mx-auto">
+            <DiagnosticoPronto empresa={formData.identificacao?.nomeEmpresa} />
+          </div>
+          
           <div id="print-header">
             <HeaderSection
               nomeEmpresa={formData.identificacao?.nomeEmpresa || ""}
@@ -790,6 +800,16 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData, onRestart }) =>
 
         {/* FINAL BLOCK: Conclusion Section with the new ConclusaoFinal component */}
         <ConclusaoFinal />
+        
+        {/* Add ParabensFinal and DownloadContato components here */}
+        <ParabensFinal />
+        
+        <div className="max-w-3xl mx-auto">
+          <DownloadContato 
+            onExportPDF={generatePDF}
+            onContactTeam={openWhatsApp}
+          />
+        </div>
 
         {/* Set the flag for next prompt */}
         <div className="hidden">
@@ -819,10 +839,10 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData, onRestart }) =>
         </div>
       </PrintableResults>
       
-      {/* Outside PrintableResults - add the export functionality */}
-      {allSectionsReady && (
-        <ExportacaoPDF onExport={generatePDF} />
-      )}
+      {/* Outside PrintableResults - add the footer component */}
+      <FooterRodape />
+      
+      {/* Remove the export functionality that's outside PrintableResults since we've added it to DownloadContato */}
     </section>
   );
 };
