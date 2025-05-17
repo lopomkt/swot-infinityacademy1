@@ -40,6 +40,7 @@ import DiagnosticoPronto from '@/components/Results/DiagnosticoPronto';
 import DownloadContato from '@/components/Results/DownloadContato';
 import ParabensFinal from '@/components/Results/ParabensFinal';
 import FooterRodape from '@/components/Results/FooterRodape';
+import ResultsScreenWrapper from '@/components/Results/ResultsScreenWrapper';
 
 // Lazy-loaded components
 const DiagnosticoTextual = lazy(() => import('@/components/Results/DiagnosticoTextual'));
@@ -104,7 +105,8 @@ interface CascadeEffect {
 
 interface ResultsScreenProps {
   formData: FormData;
-  onRestart?: () => void; // New prop to handle restart flow
+  onRestart?: () => void; 
+  onNovaAnalise?: () => void; // Added this new prop
 }
 
 // Define the Suggestion interface to match what StrategicSuggestions expects
@@ -115,7 +117,7 @@ interface Suggestion {
   textColor: string;
 }
 
-const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData, onRestart }) => {
+const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData, onRestart, onNovaAnalise }) => {
   // Enhanced fallback messages for better error handling
   if (!formData?.resultadoFinal) {
     return <p className="text-center text-gray-600 mt-12">Relatório ainda não disponível. Tente novamente em instantes.</p>;
@@ -804,13 +806,15 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData, onRestart }) =>
         {/* FINAL BLOCK: Conclusion Section with the new ConclusaoFinal component */}
         <ConclusaoFinal />
         
-        {/* Add ParabensFinal and DownloadContato components here */}
+        {/* Add ParabensFinal and ResultsScreenWrapper components here */}
         <ParabensFinal />
         
         <div className="max-w-3xl mx-auto">
-          <DownloadContato 
+          <ResultsScreenWrapper 
+            formData={formData}
             onExportPDF={generatePDF}
             onContactTeam={openWhatsApp}
+            onNovaAnalise={onNovaAnalise}
           />
         </div>
 
@@ -839,13 +843,14 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData, onRestart }) =>
           {/* refatoracao_funil_estrategico_ok = true */}
           {/* refatoracao_encerramento_ok = true */}
           {/* fase4_resultados_maturidade_ok = true */}
+          {/* fase4_nova_analise_ok = true */}
         </div>
       </PrintableResults>
       
       {/* Outside PrintableResults - add the footer component */}
       <FooterRodape />
       
-      {/* Remove the export functionality that's outside PrintableResults since we've added it to DownloadContato */}
+      {/* Remove the export functionality that's outside PrintableResults since we've added it to ResultsScreenWrapper */}
     </section>
   );
 };
