@@ -793,7 +793,7 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData, onRestart }) =>
           <Suspense fallback={<Skeleton className="h-[300px] w-full rounded-xl" />}>
             <PlanosEstrategicosABC
               planos={{
-                planoA: (formData.resultadoFinal?.planos_acao?.split('\n').filter(line => line.trim()) || []),
+                planoA: (formData.resultadoFinal?.planoA?.filter(item => item && item.trim()) || []),
                 planoB: (formData.resultadoFinal?.planoB?.filter(item => item && item.trim()) || []),
                 planoC: (formData.resultadoFinal?.planoC?.filter(item => item && item.trim()) || []),
               }}
@@ -853,7 +853,7 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData, onRestart }) =>
             return null;
           })()}
 
-          {/* Tag for tracking refactoring progress */}
+          {/* Tags for tracking refactoring progress */}
           {/* refatoracao_swot_score_ok = true */}
           {/* refatoracao_planos_funil_ok = true */}
           {/* refatoracao_pdf_finalizacao_ok = true */}
@@ -862,6 +862,7 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData, onRestart }) =>
           {/* fase7_2_consultivo_avancado_ok = true */}
           {/* fase7_3_polimento_final_ok = true */}
           {/* fase7_5_1_correcao_total_ok = true */}
+          {/* refatoracao_planos_abc_ok = true */}
         </div>
       </PrintableResults>
       
