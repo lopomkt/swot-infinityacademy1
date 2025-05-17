@@ -12,7 +12,7 @@ export function ProgressTracker({ currentStep, totalSteps, labels }: ProgressTra
   const progressPercentage = Math.floor((currentStep / (totalSteps - 1)) * 100);
   
   return (
-    <div className="w-full px-4 py-3 bg-white border-b border-gray-200 sticky top-0 z-30 overflow-x-hidden">
+    <div className="w-full px-4 py-3 bg-white border-b border-gray-200 sticky top-0 z-30">
       <div className="relative mb-1">
         <div className="h-1 bg-gray-200 rounded-full">
           <div 
@@ -22,7 +22,7 @@ export function ProgressTracker({ currentStep, totalSteps, labels }: ProgressTra
         </div>
       </div>
       
-      <div className="w-full overflow-hidden">
+      <div className="overflow-x-auto max-w-full">
         <div className="flex flex-nowrap justify-between gap-1 md:gap-2 w-full max-w-5xl mx-auto mt-1">
           {labels.map((label, index) => {
             // Determine if this step is completed, current, or future

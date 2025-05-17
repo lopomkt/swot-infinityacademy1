@@ -24,13 +24,11 @@ const ProgressBar = ({ currentStep, stepsCount }: ProgressBarProps) => {
   const normalizedStep = Math.floor(currentStep);
   
   return (
-    <div className="w-full max-w-4xl mx-auto px-4">
-      <ProgressTracker
-        currentStep={normalizedStep}
-        totalSteps={stepLabels.length}
-        labels={stepLabels}
-      />
-    </div>
+    <ProgressTracker
+      currentStep={normalizedStep}
+      totalSteps={stepLabels.length}
+      labels={stepLabels}
+    />
   );
 };
 
