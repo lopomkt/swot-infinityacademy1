@@ -58,7 +58,7 @@ const ScoreEstrategico = React.memo(function ScoreEstrategico({
   
   return (
     <motion.div 
-      className={`${cardBase} bg-gray-50 mt-10 p-4 sm:p-6 md:p-8 scroll-mt-20 mb-8 sm:mb-10 md:mb-16`}
+      className={`${cardBase} bg-gray-50 p-4 sm:p-6 scroll-mt-20`}
       role="region"
       aria-labelledby="score-strategic-title"
       initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
@@ -67,7 +67,7 @@ const ScoreEstrategico = React.memo(function ScoreEstrategico({
     >
       <motion.h2 
         id="score-strategic-title" 
-        className={`${headingBase} mb-4 text-xl sm:text-2xl font-bold text-black border-b pb-2 text-center`}
+        className={`${headingBase} mb-4 text-xl sm:text-2xl font-bold text-[#560005] border-b pb-2 text-center`}
         initial={prefersReducedMotion ? {} : { opacity: 0 }}
         animate={prefersReducedMotion ? {} : { opacity: 1 }}
         transition={{ duration: 0.3, delay: 0.1 }}
@@ -75,94 +75,93 @@ const ScoreEstrategico = React.memo(function ScoreEstrategico({
         Score Estratégico
       </motion.h2>
       
-      {/* Radar Chart */}
-      <div className="h-[300px] w-full mb-6">
-        <ChartContainer
-          config={{
-            area: {
-              theme: {
-                light: "#ef0002",
-                dark: "#ef0002",
+      <div className="flex flex-col items-center">
+        {/* Radar Chart */}
+        <div className="h-[300px] w-full mb-6">
+          <ChartContainer
+            config={{
+              area: {
+                theme: {
+                  light: "#ef0002",
+                  dark: "#ef0002",
+                },
               },
-            },
-          }}
+            }}
+          >
+            <ResponsiveContainer width="100%" height="100%">
+              <RadarChart outerRadius={90} data={chartData}>
+                <PolarGrid stroke="#ccc" />
+                <PolarAngleAxis dataKey="subject" />
+                <PolarRadiusAxis angle={30} domain={[0, 10]} />
+                <Radar
+                  name="Sua Empresa"
+                  dataKey="A"
+                  stroke="#ef0002"
+                  fill="#ef0002"
+                  fillOpacity={0.3}
+                />
+                <ChartLegend>
+                  <ChartLegendContent />
+                </ChartLegend>
+              </RadarChart>
+            </ResponsiveContainer>
+          </ChartContainer>
+        </div>
+        
+        <motion.div
+          className="mb-4 w-full"
+          initial={prefersReducedMotion ? {} : { opacity: 0 }}
+          animate={prefersReducedMotion ? {} : { opacity: 1 }}
+          transition={{ duration: 0.3, delay: 0.2 }}
         >
-          <ResponsiveContainer width="100%" height="100%">
-            <RadarChart outerRadius={90} data={chartData}>
-              <PolarGrid stroke="#ccc" />
-              <PolarAngleAxis dataKey="subject" />
-              <PolarRadiusAxis angle={30} domain={[0, 10]} />
-              <Radar
-                name="Sua Empresa"
-                dataKey="A"
-                stroke="#ef0002"
-                fill="#ef0002"
-                fillOpacity={0.3}
-              />
-              <ChartLegend>
-                <ChartLegendContent />
-              </ChartLegend>
-            </RadarChart>
-          </ResponsiveContainer>
-        </ChartContainer>
-      </div>
-      
-      <motion.div
-        className="mb-4"
-        initial={prefersReducedMotion ? {} : { opacity: 0 }}
-        animate={prefersReducedMotion ? {} : { opacity: 1 }}
-        transition={{ duration: 0.3, delay: 0.2 }}
-      >
-        <div className="flex flex-wrap items-center gap-2 mb-2">
-          <span className="text-gray-700 font-semibold">Nível Estratégico:</span>
-          <Badge variant="outline" className={`font-medium ${getBadgeColor()}`}>
-            {scoreLabel || "Sem classificação"}
-          </Badge>
-        </div>
-      </motion.div>
-      
-      <motion.div 
-        className="mt-4"
-        initial={prefersReducedMotion ? {} : { opacity: 0 }}
-        animate={prefersReducedMotion ? {} : { opacity: 1 }}
-        transition={{ duration: 0.3, delay: 0.3 }}
-      >
-        <div className="mb-1 flex items-center justify-between">
-          <p className="text-gray-700 text-sm sm:text-base">
-            Pontuação geral: <strong aria-label={`${pontuacao} de 100 pontos`}>{pontuacao}/100</strong>
+          <div className="flex flex-wrap items-center gap-2 mb-2">
+            <span className="text-gray-700 font-semibold">Nível Estratégico:</span>
+            <Badge variant="outline" className={`font-medium ${getBadgeColor()}`}>
+              {scoreLabel || "Sem classificação"}
+            </Badge>
+          </div>
+        </motion.div>
+        
+        <motion.div 
+          className="mt-4 w-full"
+          initial={prefersReducedMotion ? {} : { opacity: 0 }}
+          animate={prefersReducedMotion ? {} : { opacity: 1 }}
+          transition={{ duration: 0.3, delay: 0.3 }}
+        >
+          <div className="mb-1 flex items-center justify-between">
+            <p className="text-gray-700 text-sm sm:text-base">
+              Pontuação geral: <strong aria-label={`${pontuacao} de 100 pontos`}>{pontuacao}/100</strong>
+            </p>
+            <span className="text-xs text-gray-500">100</span>
+          </div>
+          
+          <div className="w-full bg-gray-200 rounded-full h-2.5 mb-4">
+            <div 
+              className="bg-[#ef0002] h-2.5 rounded-full" 
+              style={{ width: `${pontuacao}%` }}
+              role="progressbar"
+              aria-valuenow={pontuacao}
+              aria-valuemin={0}
+              aria-valuemax={100}
+            ></div>
+          </div>
+          
+          <p className="text-sm text-gray-600 mt-2">
+            Empresas com pontuação acima de 70 estão prontas para escalar crescimento com consistência.
           </p>
-          <span className="text-xs text-gray-500">100</span>
-        </div>
+        </motion.div>
         
-        <div className="w-full bg-gray-200 rounded-full h-2.5 mb-4">
-          <div 
-            className="bg-[#ef0002] h-2.5 rounded-full" 
-            style={{ width: `${pontuacao}%` }}
-            role="progressbar"
-            aria-valuenow={pontuacao}
-            aria-valuemin={0}
-            aria-valuemax={100}
-          ></div>
+        {/* Maturity level indicator */}
+        <div className="mt-6 text-center">
+          <p className="text-sm text-gray-600 mb-1">Nível de Maturidade Estratégica:</p>
+          <span className="text-xl font-bold text-[#ef0002]">{scoreLabel || "Não Avaliado"}</span>
         </div>
-        
-        <p className="text-sm text-gray-600 mt-2">
-          Empresas com pontuação acima de 70 estão prontas para escalar crescimento com consistência.
-        </p>
-      </motion.div>
-      
-      {/* Maturity level indicator */}
-      <div className="mt-6 text-center">
-        <p className="text-sm text-gray-600 mb-1">Nível de Maturidade Estratégica:</p>
-        <span className="text-xl font-bold text-[#ef0002]">{scoreLabel || "Não Avaliado"}</span>
       </div>
       
       {/* Hidden refactoring tag */}
       <div className="hidden">
         {/* refatoracao_score_estrategico_ok = true */}
-      </div>
-      
-      <div aria-hidden="true" className="sr-only">
-        Este score representa o nível de maturidade estratégica da sua empresa, baseado nas respostas fornecidas na análise SWOT.
+        {/* fase4_resultados_maturidade_ok = true */}
       </div>
     </motion.div>
   );

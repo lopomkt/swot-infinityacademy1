@@ -1,4 +1,3 @@
-
 // Adding fallback message at the top of the component
 import React, { useState, lazy, Suspense, useEffect } from "react";
 import { 
@@ -24,19 +23,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { 
-  ChartContainer, 
-  ChartLegend, 
-  ChartLegendContent
-} from "@/components/ui/chart";
-import {
-  RadarChart,
-  PolarGrid,
-  PolarAngleAxis,
-  PolarRadiusAxis,
-  Radar,
-  ResponsiveContainer
-} from "recharts";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
@@ -49,7 +35,8 @@ import PrintableResults from '@/components/Results/PrintableResults';
 import ExportacaoPDF from '@/components/Results/ExportacaoPDF';
 import { useIsMobile } from '@/hooks/use-mobile'; 
 import ConclusaoFinal from '@/components/Results/ConclusaoFinal';
-import DiagnosticoConsultivo from '@/components/Results/DiagnosticoConsultivo'; // Adding the missing import
+import DiagnosticoConsultivo from '@/components/Results/DiagnosticoConsultivo';
+import NivelMaturidade from '@/components/Results/NivelMaturidade';
 
 // Lazy-loaded components
 const DiagnosticoTextual = lazy(() => import('@/components/Results/DiagnosticoTextual'));
@@ -599,7 +586,7 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData, onRestart }) =>
   const isMobile = useIsMobile();
 
   return (
-    <section className="min-h-screen bg-white py-12 px-4 sm:px-6">
+    <section className="min-h-screen bg-white py-12 px-4 sm:px-6 overflow-x-hidden">
       <PrintableResults>
         {/* Header Section */}
         <div className="text-center mb-12">
@@ -697,10 +684,10 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData, onRestart }) =>
           <Separator className="mb-12" />
         </div>
 
-        {/* NEW BLOCK 3: Diagnostic Section - Now using the extracted component */}
+        {/* Diagnostic Section */}
         <DiagnosticoConsultivo diagnostico={formData.resultadoFinal?.diagnostico_textual || ''} />
 
-        {/* NEW BLOCK 4: Strategic Score */}
+        {/* NEW BLOCK 4: Strategic Score and Maturity Level Side by Side */}
         <div id="bloco_score_final" className="mb-16">
           <div id="ancora_score"></div> {/* Anchor for navigation */}
           
@@ -717,41 +704,11 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData, onRestart }) =>
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-8 items-center max-w-4xl mx-auto">
-            {/* Radar Chart */}
-            <div className="h-[300px] w-full">
-              <ChartContainer
-                config={{
-                  area: {
-                    theme: {
-                      light: "#ef0002",
-                      dark: "#ef0002",
-                    },
-                  },
-                }}
-              >
-                <ResponsiveContainer width="100%" height="100%">
-                  <RadarChart outerRadius={90} data={calculateStrategicScore()}>
-                    <PolarGrid stroke="#ccc" />
-                    <PolarAngleAxis dataKey="subject" />
-                    <PolarRadiusAxis angle={30} domain={[0, 10]} />
-                    <Radar
-                      name="Sua Empresa"
-                      dataKey="A"
-                      stroke="#ef0002"
-                      fill="#ef0002"
-                      fillOpacity={0.3}
-                    />
-                    <ChartLegend>
-                      <ChartLegendContent />
-                    </ChartLegend>
-                  </RadarChart>
-                </ResponsiveContainer>
-              </ChartContainer>
+          <div className="flex flex-col md:flex-row gap-6 max-w-4xl mx-auto">
+            <div className="w-full md:w-1/2">
+              <NivelMaturidade maturidade={formData.resultadoFinal?.maturidade_setorial} />
             </div>
-
-            {/* Maturity Badge */}
-            <div>
+            <div className="w-full md:w-1/2">
               <Suspense fallback={<Skeleton className="h-[200px] w-full rounded-xl" />}>
                 <ScoreEstrategico
                   scoreLabel={getMaturityLevel().title || "N/A"}
@@ -759,18 +716,18 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData, onRestart }) =>
                   scoreData={strategicScoreData}
                 />
               </Suspense>
-              
-              <div className="mt-8 flex justify-center">
-                <Button 
-                  id="btn_ver_planos"
-                  className="bg-[#ef0002] hover:bg-[#c50000] text-white"
-                  onClick={() => scrollToSection("ancora_planos")}
-                >
-                  Visualizar Plano Estratégico A/B/C
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              </div>
             </div>
+          </div>
+          
+          <div className="mt-8 flex justify-center">
+            <Button 
+              id="btn_ver_planos"
+              className="bg-[#ef0002] hover:bg-[#c50000] text-white"
+              onClick={() => scrollToSection("ancora_planos")}
+            >
+              Visualizar Plano Estratégico A/B/C
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
           </div>
         </div>
 
@@ -858,6 +815,7 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData, onRestart }) =>
           {/* refatoracao_planos_abc_ok = true */}
           {/* refatoracao_funil_estrategico_ok = true */}
           {/* refatoracao_encerramento_ok = true */}
+          {/* fase4_resultados_maturidade_ok = true */}
         </div>
       </PrintableResults>
       
