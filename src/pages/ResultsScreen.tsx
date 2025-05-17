@@ -863,6 +863,7 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData, onRestart }) =>
           {/* fase7_3_polimento_final_ok = true */}
           {/* fase7_5_1_correcao_total_ok = true */}
           {/* refatoracao_planos_abc_ok = true */}
+          {/* refatoracao_funil_estrategico_ok = true */}
         </div>
       </PrintableResults>
       
