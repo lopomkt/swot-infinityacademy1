@@ -715,7 +715,11 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData, onRestart }) =>
 
           <div className="flex flex-col md:flex-row gap-6 max-w-4xl mx-auto">
             <div className="w-full md:w-1/2">
-              <NivelMaturidade maturidade={formData.resultadoFinal?.maturidade_setorial} />
+              <NivelMaturidade maturidade={
+                Array.isArray(formData.resultadoFinal?.maturidade_setorial) 
+                  ? formData.resultadoFinal?.maturidade_setorial 
+                  : []
+              } />
             </div>
             <div className="w-full md:w-1/2">
               <Suspense fallback={<Skeleton className="h-[200px] w-full rounded-xl" />}>

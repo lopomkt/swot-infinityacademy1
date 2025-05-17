@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -15,14 +16,19 @@ import {
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
-import { PrioridadesData, Prioridades } from "@/types/formData";
+import { Prioridades } from "@/types/formData";
 import { prioridadesSchema, PrioridadesSchema } from "@/schemas/prioridadesSchema";
 
 interface Props {
-  defaultValues?: Partial<PrioridadesData>;
-  onComplete: (data: PrioridadesData) => void;
+  defaultValues?: Partial<Prioridades>;
+  onComplete: (data: Prioridades) => void;
   onBack?: () => void;
 }
+
+// Define the distribution time and decision style types for type safety
+type DistribuicaoTempoType = "Sim" | "Parcialmente" | "Estou sobrecarregado";
+type EstiloDecisaoType = "Analítico" | "Rápido e objetivo" | "Intuitivo" | "Compartilhado com sócios / equipe";
+type ProntidaoExecucaoType = "Sim" | "Com adaptações" | "Ainda não";
 
 const FormStepPrioridades = ({ defaultValues = {}, onComplete, onBack }: Props) => {
   const form = useForm<PrioridadesSchema>({
@@ -35,10 +41,10 @@ const FormStepPrioridades = ({ defaultValues = {}, onComplete, onBack }: Props) 
       ajuda_externa_urgente: defaultValues.ajuda_externa_urgente || "",
       acao_unica_desejada: defaultValues.acao_unica_desejada || "",
       engajamento_equipe: defaultValues.engajamento_equipe || 5,
-      distribuicao_tempo: defaultValues.distribuicao_tempo || "Sim",
+      distribuicao_tempo: (defaultValues.distribuicao_tempo as DistribuicaoTempoType) || "Sim",
       comprometimento_estrategico: defaultValues.comprometimento_estrategico || 5,
-      estilo_decisao: defaultValues.estilo_decisao || "Analítico",
-      prontidao_execucao: defaultValues.prontidao_execucao || "Sim",
+      estilo_decisao: (defaultValues.estilo_decisao as EstiloDecisaoType) || "Analítico",
+      prontidao_execucao: (defaultValues.prontidao_execucao as ProntidaoExecucaoType) || "Sim",
       meta_crescimento_6_meses: defaultValues.meta_crescimento_6_meses || "",
       meta_crescimento_12_meses: defaultValues.meta_crescimento_12_meses || "",
       tipo_investimento: defaultValues.tipo_investimento || "",
@@ -54,10 +60,10 @@ const FormStepPrioridades = ({ defaultValues = {}, onComplete, onBack }: Props) 
     ajuda_externa_urgente: defaultValues.ajuda_externa_urgente || "",
     acao_unica_desejada: defaultValues.acao_unica_desejada || "",
     engajamento_equipe: defaultValues.engajamento_equipe || 5,
-    distribuicao_tempo: defaultValues.distribuicao_tempo || "Sim",
+    distribuicao_tempo: (defaultValues.distribuicao_tempo as DistribuicaoTempoType) || "Sim",
     comprometimento_estrategico: defaultValues.comprometimento_estrategico || 5,
-    estilo_decisao: defaultValues.estilo_decisao || "Analítico",
-    prontidao_execucao: defaultValues.prontidao_execucao || "Sim",
+    estilo_decisao: (defaultValues.estilo_decisao as EstiloDecisaoType) || "Analítico",
+    prontidao_execucao: (defaultValues.prontidao_execucao as ProntidaoExecucaoType) || "Sim",
     meta_crescimento_6_meses: defaultValues.meta_crescimento_6_meses || "",
     meta_crescimento_12_meses: defaultValues.meta_crescimento_12_meses || "",
     tipo_investimento: defaultValues.tipo_investimento || "",
@@ -135,7 +141,10 @@ const FormStepPrioridades = ({ defaultValues = {}, onComplete, onBack }: Props) 
             render={({ field }) => (
               <FormItem>
                 <FormLabel className="font-medium">3. Áreas Frágeis</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select 
+                  onValueChange={(value) => field.onChange([value])} 
+                  defaultValue={Array.isArray(field.value) && field.value.length > 0 ? field.value[0] : undefined}
+                >
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Selecione as áreas frágeis" />
@@ -164,7 +173,10 @@ const FormStepPrioridades = ({ defaultValues = {}, onComplete, onBack }: Props) 
             render={({ field }) => (
               <FormItem>
                 <FormLabel className="font-medium">4. Áreas Promissoras</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select 
+                  onValueChange={(value) => field.onChange([value])} 
+                  defaultValue={Array.isArray(field.value) && field.value.length > 0 ? field.value[0] : undefined}
+                >
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Selecione as áreas promissoras" />

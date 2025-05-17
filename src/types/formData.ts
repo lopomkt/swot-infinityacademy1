@@ -134,22 +134,24 @@ export interface SaudeFinanceira {
 
 export interface Prioridades {
   foco_estrategico?: string;
-  comprometimento_estrategico?: number; // Changed from string to number to match schema
+  comprometimento_estrategico?: number; 
   meta_90_dias?: string;
   top3_desafios?: string;
   areas_fraqueza?: string[];
   areas_potenciais?: string[];
   ajuda_externa_urgente?: string;
   acao_unica_desejada?: string;
-  engajamento_equipe?: number; // Changed from string to number to match schema
-  estilo_decisao?: string;
+  engajamento_equipe?: number; 
+  estilo_decisao?: "Analítico" | "Rápido e objetivo" | "Intuitivo" | "Compartilhado com sócios / equipe" | string;
+  distribuicao_tempo?: "Sim" | "Parcialmente" | "Estou sobrecarregado" | string;
   maior_obstáculo?: string;
   maior_gargalo?: string;
-  distribuicao_tempo?: string;
-  prontidao_execucao?: string;
+  distribuicao_tempo_atual?: string;
+  prontidao_execucao?: "Sim" | "Com adaptações" | "Ainda não" | string;
   meta_crescimento_6_meses?: string;
   meta_crescimento_12_meses?: string;
   tipo_investimento?: string;
+  step_prioridades_ok?: boolean;
 }
 
 export interface AreaMaturidade {
@@ -176,7 +178,7 @@ export interface ResultadoFinalData {
   resultados_bloco5_e_4b_ok?: boolean;
   fase7_2_consultivo_avancado_ok?: boolean;
   fase7_5_1_correcao_total_ok?: boolean;
-  maturidade_setorial?: string | AreaMaturidade[]; // Allow both string and array of objects
+  maturidade_setorial?: AreaMaturidade[] | string; // Allow both string and array of objects
   acoes_priorizadas_lista?: string[];
 }
 
