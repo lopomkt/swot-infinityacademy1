@@ -123,8 +123,8 @@ const Index = () => {
       resetForm();
       resetAppFlow();
 
-      // Reset da tela
-      window.location.reload(); // Força o estado inicial do Lovable
+      // Reset da tela com pequeno timeout para evitar race conditions
+      setTimeout(() => window.location.reload(), 100); // Força o estado inicial do Lovable
 
     } catch (error) {
       console.error('Erro ao resetar análise:', error);
