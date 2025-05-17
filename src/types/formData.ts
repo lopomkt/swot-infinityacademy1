@@ -1,3 +1,4 @@
+
 // Tipagem central do projeto SWOT INSIGHTS – Infinity Academy
 // Cada etapa do formulário possui sua interface específica
 // Essa tipagem será usada progressivamente no projeto para substituir o uso de any
@@ -165,6 +166,12 @@ export interface ResultadoFinalData {
     subject: string;
     A: number;
     fullMark: number;
+  }>;
+  // Add the missing property for maturity level data
+  maturidade_setorial?: Array<{
+    area: string;
+    nivel: number;
+    descricao: string;
   }>;
 }
 
