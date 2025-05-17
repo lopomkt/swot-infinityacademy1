@@ -160,6 +160,12 @@ export interface ResultadoFinalData {
   fase7_2_consultivo_avancado_ok?: boolean;
   fase7_3_polimento_final_ok?: boolean;
   fase7_5_1_correcao_total_ok?: boolean;
+  // Add the missing property for the strategic score data
+  score_estrategico?: Array<{
+    subject: string;
+    A: number;
+    fullMark: number;
+  }>;
 }
 
 // Flag interna para controlar a tipagem
