@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { SaudeFinanceiraData } from "@/types/formData";
@@ -83,7 +82,6 @@ export default function FormStepSaudeFinanceira({ defaultValues, onComplete, onB
   } = useForm<SaudeFinanceiraSchema>({
     resolver: zodResolver(saudeFinanceiraSchema),
     defaultValues: {
-      // Use the existing defaultValues or start fresh with empty strings
       caixa_disponivel: defaultValues?.caixa_disponivel || "",
       autonomia_caixa: defaultValues?.autonomia_caixa || "",
       controle_financeiro: defaultValues?.controle_financeiro || "",
@@ -105,9 +103,8 @@ export default function FormStepSaudeFinanceira({ defaultValues, onComplete, onB
   const orcamento_planejado = watch("orcamento_planejado");
   
   const onSubmit = (data: SaudeFinanceiraSchema) => {
-    // Create a SaudeFinanceiraData object from the form data
+    // Fix: Ensure all required properties from SaudeFinanceiraData are explicitly set
     const finalData: SaudeFinanceiraData = {
-      // Add all form fields
       caixa_disponivel: data.caixa_disponivel,
       autonomia_caixa: data.autonomia_caixa,
       controle_financeiro: data.controle_financeiro,

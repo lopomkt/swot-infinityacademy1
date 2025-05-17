@@ -11,7 +11,7 @@ import FormStepPrioridades from "@/components/FormStepPrioridades";
 import FinalizacaoStep from "@/components/FinalizacaoStep";
 import ResultsScreen from "@/pages/ResultsScreen";
 import TransitionStep from "@/components/TransitionStep";
-import { FormData, PrioridadesData } from "@/types/formData";
+import { FormData } from "@/types/formData";
 import { saveState, loadState } from "@/lib/persistence";
 import { Lightbulb, Star, Flag, TrendingUp, TrendingDown, ArrowRight } from "lucide-react";
 
@@ -36,7 +36,19 @@ const STEPS = [
 
 const Index = () => {
   const [step, setStep] = useState<number>(loadState<number>('swotStep') || 0);
-  const [formData, setFormData] = useState<FormData>(loadState<FormData>('swotForm') || {});
+  const [formData, setFormData] = useState<FormData>(loadState<FormData>('swotForm') || {
+    tipagem_index_ok: true,
+    fase5_transicoes_ok: true,
+    fase5_voltar_ok: true,
+    fase5_gamificacao_ok: true,
+    fase5_finalizacao_ok: true,
+    fase5_resultado_final_ok: true,
+    fase6_1_welcome_transicoes_premium_ok: true,
+    fase6_2_resultado_premium_visual_ok: true,
+    fase6_3_design_final_pdf_ok: true,
+    fase7_1_ui_ux_gamificada_ok: true,
+    fase7_3_polimento_final_ok: true,
+  });
 
   // Save form data to localStorage whenever it changes
   useEffect(() => {
@@ -59,13 +71,37 @@ const Index = () => {
   };
 
   const resetForm = () => {
-    setFormData({});
+    setFormData({ 
+      tipagem_index_ok: true,
+      fase5_transicoes_ok: true,
+      fase5_voltar_ok: true,
+      fase5_gamificacao_ok: true,
+      fase5_finalizacao_ok: true,
+      fase5_resultado_final_ok: true,
+      fase6_1_welcome_transicoes_premium_ok: true,
+      fase6_2_resultado_premium_visual_ok: true,
+      fase6_3_design_final_pdf_ok: true,
+      fase7_1_ui_ux_gamificada_ok: true,
+    });
     setStep(0);
   };
 
   // NEW - Function to completely reset app flow after report generation
   const resetAppFlow = () => {
-    setFormData({});
+    setFormData({
+      tipagem_index_ok: true,
+      fase5_transicoes_ok: true,
+      fase5_voltar_ok: true,
+      fase5_gamificacao_ok: true,
+      fase5_finalizacao_ok: true,
+      fase5_resultado_final_ok: true,
+      fase6_1_welcome_transicoes_premium_ok: true,
+      fase6_2_resultado_premium_visual_ok: true,
+      fase6_3_design_final_pdf_ok: true,
+      fase7_1_ui_ux_gamificada_ok: true,
+      fase7_3_polimento_final_ok: true,
+      fase7_5_1_correcao_total_ok: true,
+    });
     setStep(0);
     // Clear localStorage items related to the form
     localStorage.removeItem('swotStep');
@@ -183,7 +219,7 @@ const Index = () => {
         {step === 4.5 && (
           <TransitionStep
             title="Identificando ameaças e desafios"
-            description="Por último, vamos mapear as ameaças externas que podem impactar seu negócio, preparando estrat��gias defensivas e de mitigação de riscos."
+            description="Por último, vamos mapear as ameaças externas que podem impactar seu negócio, preparando estratégias defensivas e de mitigação de riscos."
             fraseMotivacional="Prevenir é melhor que remediar. Vamos preparar seu negócio!"
             iconeEtapa={<Flag className="h-10 w-10" />}
             onContinue={() => setStep(5)}
@@ -238,10 +274,9 @@ const Index = () => {
             defaultValues={formData.prioridades}
             onBack={() => handleBackButtonClick(6)}
             onComplete={(prioridades) => {
-              // Ensure prioridades conforms to the expected type
               setFormData((prev) => ({ 
                 ...prev, 
-                prioridades: prioridades as PrioridadesData,
+                prioridades,
                 step_prioridades_ok: true
               }));
               setStep(8);
@@ -255,15 +290,11 @@ const Index = () => {
             onAIComplete={(resultadoFinal) => {
               setFormData(prev => ({
                 ...prev,
-                resultadoFinal: {
-                  ...resultadoFinal,
-                  fase5_finalizacao_ok: true,
-                  fase6_3_design_final_pdf_ok: true,
-                  fase7_1_ui_ux_gamificada_ok: true,
-                  fase7_3_polimento_final_ok: true,
-                  fase7_5_1_correcao_total_ok: true,
-                  fase7_5_2_ui_premium_ok: true
-                }
+                resultadoFinal,
+                fase5_finalizacao_ok: true,
+                fase6_3_design_final_pdf_ok: true,
+                fase7_1_ui_ux_gamificada_ok: true,
+                fase7_3_polimento_final_ok: true
               }));
               setStep(9);
             }}
@@ -291,7 +322,6 @@ const Index = () => {
         {/* fase7_1_ui_ux_gamificada_ok = true */}
         {/* fase7_3_polimento_final_ok = true */}
         {/* fase7_5_1_correcao_total_ok = true */}
-        {/* fase7_5_2_ui_premium_ok = true */}
       </div>
     </div>
   );

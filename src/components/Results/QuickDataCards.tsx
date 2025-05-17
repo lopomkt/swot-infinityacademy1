@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
+import { statCardBase } from "@/styles/uiClasses";
 import { useReducedMotion } from '@/hooks/use-reduced-motion';
 
 interface QuickDataCardsProps {
@@ -23,7 +24,7 @@ export default function QuickDataCards({
 
   return (
     <motion.div 
-      className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-8"
+      className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4"
       role="region"
       aria-label="Informações rápidas sobre a empresa"
       initial={prefersReducedMotion ? {} : "hidden"}

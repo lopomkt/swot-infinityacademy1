@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { FraquezasData } from "@/types/formData";
@@ -105,13 +106,10 @@ export default function FormStepFraquezas({
     });
     
     // Complete this step with valid data
-    // Add the required default fields not present in the form
     onComplete({
       ...data,
-      respostas: [],
-      problemas_identificados: [],
       step_fraquezas_ok: true
-    });
+    } as FraquezasData);
   }
 
   return (
