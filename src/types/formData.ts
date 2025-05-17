@@ -1,4 +1,3 @@
-
 export interface FormData {
   identificacao?: Identificacao;
   forcas?: Forcas;
@@ -22,6 +21,7 @@ export interface FormData {
   fase7_2_consultivo_avancado_ok?: boolean;
   fase7_3_polimento_final_ok?: boolean;
   fase7_5_1_correcao_total_ok?: boolean;
+  fase4_nova_analise_ok?: boolean; // New field for tracking the completion of phase 4
   step_forcas_ok?: boolean;
   step_prioridades_ok?: boolean;
 }

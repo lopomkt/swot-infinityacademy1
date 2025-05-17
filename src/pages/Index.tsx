@@ -110,6 +110,35 @@ const Index = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  // New function to handle starting a new analysis
+  const handleNovaAnalise = () => {
+    // 1. Verifica se há relatório atual preenchido
+    if (formData && formData.resultadoFinal) {
+      // 2. Salva no localStorage (ou em breve no Supabase)
+      const historico = JSON.parse(localStorage.getItem('historico_relatorios') || '[]');
+      historico.push({ ...formData, data: new Date().toISOString() });
+      localStorage.setItem('historico_relatorios', JSON.stringify(historico));
+      
+      // TODO: enviar relatório atual para Supabase quando conectado
+    }
+
+    // 3. Reseta os estados (flow inicial)
+    resetForm();
+    resetAppFlow(); // função existente
+
+    // 4. Redireciona para o passo inicial
+    setStep(1);
+    
+    // 5. Marcar visualmente a nova análise iniciada
+    console.log('🆕 Nova análise iniciada');
+    
+    // 6. Tag técnica de conclusão
+    setFormData(prev => ({
+      ...prev,
+      fase4_nova_analise_ok: true
+    }));
+  };
+
   // Check if AI results are ready to show results screen
   const areResultsReady = () => {
     return formData.resultadoFinal?.ai_block_pronto === true && formData.resultadoFinal?.gpt_prompt_ok === true;
@@ -314,7 +343,8 @@ const Index = () => {
         {step === 9 && formData.resultadoFinal?.ai_block_pronto && formData.resultadoFinal?.gpt_prompt_ok && (
           <ResultsScreen 
             formData={formData}
-            onRestart={resetAppFlow} // Added the resetAppFlow function here
+            onRestart={resetAppFlow}
+            onNovaAnalise={handleNovaAnalise}
           />
         )}
         
@@ -333,6 +363,7 @@ const Index = () => {
         {/* fase7_1_ui_ux_gamificada_ok = true */}
         {/* fase7_3_polimento_final_ok = true */}
         {/* fase7_5_1_correcao_total_ok = true */}
+        {/* fase4_nova_analise_ok = true */}
       </div>
     </div>
   );

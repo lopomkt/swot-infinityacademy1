@@ -7,9 +7,16 @@ import { FileText, ArrowDown } from "lucide-react";
 interface DownloadContatoProps {
   onExportPDF: () => void;
   onContactTeam: () => void;
+  onNovaAnalise?: () => void;  // New prop for starting a new analysis
+  showNovaAnaliseButton?: boolean; // Flag to control button visibility
 }
 
-const DownloadContato: React.FC<DownloadContatoProps> = ({ onExportPDF, onContactTeam }) => {
+const DownloadContato: React.FC<DownloadContatoProps> = ({ 
+  onExportPDF, 
+  onContactTeam, 
+  onNovaAnalise,
+  showNovaAnaliseButton = false
+}) => {
   return (
     <Card className="border-t-4 border-[#b70001] bg-[#fafafa] shadow-md mb-8">
       <CardHeader className="pb-2">
@@ -37,6 +44,18 @@ const DownloadContato: React.FC<DownloadContatoProps> = ({ onExportPDF, onContac
             Falar com a Equipe
           </Button>
         </div>
+        
+        {/* New button for starting a new analysis, only shown when showNovaAnaliseButton is true */}
+        {showNovaAnaliseButton && onNovaAnalise && (
+          <div className="text-center mt-4">
+            <button
+              className="text-sm text-gray-400 hover:text-gray-600 underline"
+              onClick={onNovaAnalise}
+            >
+              Iniciar nova análise
+            </button>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
