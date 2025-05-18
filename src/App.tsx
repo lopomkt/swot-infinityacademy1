@@ -10,6 +10,8 @@ import AuthScreen from "./components/Auth/AuthScreen";
 import ExpiredSubscription from "./pages/ExpiredSubscription";
 import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/Auth/ProtectedRoute";
+import HistoricoRelatorios from "./components/Relatorios/HistoricoRelatorios";
+import ResultsPage from "./pages/ResultsPage";
 
 const queryClient = new QueryClient();
 
@@ -31,6 +33,22 @@ const App = () => (
             />
             <Route path="/auth" element={<AuthScreen />} />
             <Route path="/expired" element={<ExpiredSubscription />} />
+            <Route 
+              path="/historico" 
+              element={
+                <ProtectedRoute>
+                  <HistoricoRelatorios />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/resultados" 
+              element={
+                <ProtectedRoute>
+                  <ResultsPage />
+                </ProtectedRoute>
+              } 
+            />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

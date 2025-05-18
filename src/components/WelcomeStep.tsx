@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import RedBullet from "./RedBullet";
 import { useAuth } from "@/contexts/AuthContext";
 import { LogOut } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface WelcomeStepProps {
   onStart: () => void;
@@ -10,6 +11,11 @@ interface WelcomeStepProps {
 
 const WelcomeStep = ({ onStart }: WelcomeStepProps) => {
   const { userData, signOut } = useAuth();
+  const navigate = useNavigate();
+
+  const abrirHistorico = () => {
+    navigate("/historico");
+  };
 
   return (
     <section className="w-full max-w-5xl bg-white py-20 px-6 mx-auto animate-fade-in">
@@ -64,13 +70,22 @@ const WelcomeStep = ({ onStart }: WelcomeStepProps) => {
             Duração média: <span className="ml-1">35 a 40 minutos</span>
           </div>
           
-          <Button
-            onClick={onStart}
-            className="mt-6 text-lg py-3 px-6 bg-[#ef0002] hover:bg-[#b70001] text-white rounded-xl shadow-md"
-            aria-label="Começar diagnóstico"
-          >
-            Iniciar Diagnóstico
-          </Button>
+          <div className="mt-6 flex flex-col">
+            <Button
+              onClick={onStart}
+              className="text-lg py-3 px-6 bg-[#ef0002] hover:bg-[#b70001] text-white rounded-xl shadow-md"
+              aria-label="Começar diagnóstico"
+            >
+              Iniciar Diagnóstico
+            </Button>
+            
+            <button 
+              className="text-sm text-gray-400 underline mt-4 self-center"
+              onClick={abrirHistorico}
+            >
+              Ver Histórico
+            </button>
+          </div>
         </div>
         
         {/* Right Column - Image */}
