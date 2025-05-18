@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from "react";
-import { Loader } from "lucide-react";
+import { Loader, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { ResultadoFinalData } from "@/types/formData";
@@ -14,22 +14,9 @@ interface AIBlockProps {
   onAIComplete?: (resultadoFinal: ResultadoFinalData) => void;
 }
 
-const AIBlock: React.FC<AIBlockProps> = ({ formData, onRestart, onAIComplete }) => {
-  const [isLoading, setIsLoading] = useState(true);
-  const [processingError, setProcessingError] = useState<string | null>(null);
-  const [resultadoFinal, setResultadoFinal] = useState<ResultadoFinalData>({
-    matriz_swot: "",
-    diagnostico_textual: "",
-    planos_acao: "",
-    acoes_priorizadas: []
-  });
-  const { toast } = useToast();
-  const { user } = useAuth();
-  const [timeoutWarning, setTimeoutWarning] = useState(false);
-
-  // GPT-4o prompt that will be used when API is connected
-  const generateAIPrompt = (formData) => {
-    return `Você é um analista empresarial sênior, especialista em diagnóstico consultivo com foco em micro, pequenas e médias empresas. Com base nas informações coletadas no formulário abaixo, sua tarefa é gerar um relatório estratégico dividido em 3 partes:
+// Extracted standalone function for generating AI prompt
+const generateAIPrompt = (formData) => {
+  return `Você é um analista empresarial sênior, especialista em diagnóstico consultivo com foco em micro, pequenas e médias empresas. Com base nas informações coletadas no formulário abaixo, sua tarefa é gerar um relatório estratégico dividido em 3 partes:
 
 1. **Matriz SWOT Completa**  
 Apresente os itens de Forças, Fraquezas, Oportunidades e Ameaças com clareza, separando-os por seções com subtítulos. Para cada item, adicione uma breve explicação do impacto estratégico.
@@ -72,10 +59,11 @@ Use os seguintes delimitadores para separar cada seção da sua resposta:
 ### MATRIZ SWOT
 ### DIAGNÓSTICO CONSULTIVO
 ### PLANO DE AÇÃO A/B/C`;
-  };
+};
 
-  // Function to process the AI response
-  const parseGPTOutput = (response: string) => {
+// Extracted standalone function for parsing GPT output
+const parseGPTOutput = (response: string) => {
+  try {
     // Split the response based on the delimiters
     const sections = response.split(/### [A-ZÃÇÕÁÉÍÓÚÂÊÔÀÈÌÒÙ /]+/g);
     
@@ -93,55 +81,80 @@ Use os seguintes delimitadores para separar cada seção da sua resposta:
     
     // Fallback if parsing fails
     throw new Error("Não foi possível processar a resposta da IA corretamente.");
-  };
+  } catch (error) {
+    console.error("Erro ao processar resposta da IA:", error);
+    throw new Error("Falha ao extrair informações da resposta da IA.");
+  }
+};
 
-  // Function to fetch results from OpenAI GPT-4o
-  const fetchGPTResult = async (formData) => {
-    const prompt = generateAIPrompt(formData);
+// Standalone function to fetch results from OpenAI GPT-4o
+const fetchGPTResult = async (formData) => {
+  const prompt = generateAIPrompt(formData);
+  
+  // Create AbortController for timeout handling
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+  
+  try {
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${import.meta.env.VITE_OPENAI_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      signal: controller.signal,
+      body: JSON.stringify({
+        model: "gpt-4o",
+        messages: [
+          { 
+            role: "system", 
+            content: "Você é um consultor empresarial sênior especializado em análise SWOT e planejamento estratégico para pequenas e médias empresas." 
+          },
+          { role: "user", content: prompt }
+        ],
+        temperature: 0.7,
+        max_tokens: 1800,
+      }),
+    });
     
-    try {
-      const response = await fetch("https://api.openai.com/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "gpt-4o",
-          messages: [
-            { 
-              role: "system", 
-              content: "Você é um consultor empresarial sênior especializado em análise SWOT e planejamento estratégico para pequenas e médias empresas." 
-            },
-            { role: "user", content: prompt }
-          ],
-          temperature: 0.7,
-          max_tokens: 1800,
-        }),
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error?.message || "Erro ao conectar com a API da OpenAI");
-      }
-      
-      const data = await response.json();
-      const resultText = data.choices[0].message.content;
-      
-      return parseGPTOutput(resultText);
-    } catch (error) {
-      console.error("Erro ao processar resposta da OpenAI:", error);
-      throw error;
+    // Clear timeout once response is received
+    clearTimeout(timeoutId);
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error?.message || "Erro ao conectar com a API da OpenAI");
     }
-  };
-
-  // For development/testing purposes
-  const gerarRelatorioMock = () => {
-    console.log("Usando modo mock para desenvolvimento");
     
-    // This is where we'd normally make the API call to GPT-4o
-    // For now, we'll use mock data
-    const mockResponse = `### MATRIZ SWOT
+    const data = await response.json();
+    
+    // Validate response structure
+    if (!data.choices?.[0]?.message?.content) {
+      throw new Error("Resposta inválida da IA.");
+    }
+    
+    const resultText = data.choices[0].message.content;
+    
+    return parseGPTOutput(resultText);
+  } catch (error) {
+    // Clear timeout in case of error
+    clearTimeout(timeoutId);
+    
+    if (error.name === 'AbortError') {
+      throw new Error("A IA demorou para responder. Tente novamente mais tarde.");
+    }
+    
+    console.error("Erro ao processar resposta da OpenAI:", error);
+    throw error;
+  }
+};
+
+// Fallback function for development
+const gerarRelatorioMock = () => {
+  console.log("Usando modo mock para desenvolvimento");
+  
+  // This is where we'd normally make the API call to GPT-4o
+  // For now, we'll use mock data
+  const mockResponse = `### MATRIZ SWOT
 ## Forças
 - ${formData.forcas?.forca1 || "Equipe competente e dedicada"}: Este ponto forte proporciona uma vantagem competitiva significativa ao garantir execução de qualidade e compromisso com os resultados.
 - ${formData.forcas?.forca2 || "Produto/serviço de alta qualidade"}: Diferencial que fortalece sua posição no mercado e justifica um posicionamento premium.
@@ -200,10 +213,27 @@ As áreas mais frágeis (${formData.prioridades?.areas_fraqueza?.join(", ") || "
 4. Utilizar ferramentas gratuitas para automação de processos básicos
 5. Explorar modelos alternativos de remuneração baseados em performance`;
 
-    return parseGPTOutput(mockResponse);
-  };
+  return parseGPTOutput(mockResponse);
+};
 
+const AIBlock: React.FC<AIBlockProps> = ({ formData, onRestart, onAIComplete }) => {
+  const [isLoading, setIsLoading] = useState(true);
+  const [processingError, setProcessingError] = useState<string | null>(null);
+  const [resultadoFinal, setResultadoFinal] = useState<ResultadoFinalData>({
+    matriz_swot: "",
+    diagnostico_textual: "",
+    planos_acao: "",
+    acoes_priorizadas: []
+  });
+  const { toast } = useToast();
+  const { user } = useAuth();
+  const [timeoutWarning, setTimeoutWarning] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
+  const [processingState, setProcessingState] = useState<'idle' | 'processing' | 'completed' | 'failed'>('idle');
+
+  // Main function to generate the report
   const generateReport = async () => {
+    setProcessingState('processing');
     setIsLoading(true);
     setProcessingError(null);
     
@@ -213,9 +243,12 @@ As áreas mais frágeis (${formData.prioridades?.areas_fraqueza?.join(", ") || "
     }, 15000);
     
     try {
-      // In production, use fetchGPTResult, but for development you can use gerarRelatorioMock
-      // Toggle between these two based on environment or configuration
-      const isDevelopment = process.env.NODE_ENV === 'development' || !process.env.OPENAI_API_KEY;
+      // Determine if we should use production or development mode
+      const isDevelopment = !import.meta.env.VITE_OPENAI_API_KEY || 
+                           import.meta.env.VITE_USE_MOCK === 'true' || 
+                           process.env.NODE_ENV === 'development';
+      
+      console.log(`Modo: ${isDevelopment ? 'desenvolvimento (mock)' : 'produção (API)'}`);
       
       // Use mock if in development or if OpenAI key is not available
       const updatedResultados = isDevelopment 
@@ -223,6 +256,7 @@ As áreas mais frágeis (${formData.prioridades?.areas_fraqueza?.join(", ") || "
         : await fetchGPTResult(formData);
       
       setResultadoFinal(updatedResultados);
+      setProcessingState('completed');
       
       // Save the report to Supabase if user is authenticated
       if (user) {
@@ -241,6 +275,7 @@ As áreas mais frágeis (${formData.prioridades?.areas_fraqueza?.join(", ") || "
               variant: "destructive",
             });
           } else {
+            console.log('Relatório salvo com IA');
             toast({
               title: "Relatório gerado e salvo com sucesso!",
               description: "Seu relatório estratégico está pronto para análise.",
@@ -264,16 +299,32 @@ As áreas mais frágeis (${formData.prioridades?.areas_fraqueza?.join(", ") || "
     } catch (error) {
       console.error("Erro ao gerar relatório:", error);
       setProcessingError(error.message || "Ocorreu um erro ao processar os dados.");
-      toast({
-        title: "Erro ao gerar relatório",
-        description: error.message || "Ocorreu um erro ao processar os dados. Tente novamente.",
-        variant: "destructive",
-      });
+      setProcessingState('failed');
+      
+      // Show toast with appropriate error message
+      if (error.message.includes("demorou para responder")) {
+        toast({
+          title: "Tempo limite excedido",
+          description: "A IA demorou para responder. Tente novamente mais tarde.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Erro ao gerar relatório",
+          description: error.message || "Ocorreu um erro ao processar os dados. Tente novamente.",
+          variant: "destructive",
+        });
+      }
     } finally {
       clearTimeout(timeoutId);
       setIsLoading(false);
       setTimeoutWarning(false);
     }
+  };
+
+  const handleRetry = () => {
+    setRetryCount(prev => prev + 1);
+    generateReport();
   };
 
   useEffect(() => {
@@ -288,32 +339,29 @@ As áreas mais frágeis (${formData.prioridades?.areas_fraqueza?.join(", ") || "
             <Loader className="h-12 w-12 animate-spin text-[#ef0002]" />
           </div>
           <h3 className="text-xl font-medium text-gray-800 mb-2">
-            Estamos gerando seu relatório estratégico...
+            ⏳ Processando sua análise com inteligência estratégica...
           </h3>
-          <p className="text-gray-600">{timeoutWarning ? "Isso está demorando mais do que o esperado. Por favor, aguarde..." : "Isso pode levar alguns segundos."}</p>
+          <p className="text-gray-600 max-w-md text-center">
+            {timeoutWarning 
+              ? "Isso está demorando mais do que o esperado. Por favor, aguarde..." 
+              : "Estamos analisando seus dados e gerando um relatório estratégico personalizado."}
+          </p>
           <div className="w-full max-w-md mt-8">
             <div className="h-1 w-full bg-gray-200 rounded-full overflow-hidden">
               <div className="h-1 bg-[#ef0002] animate-pulse w-full"></div>
             </div>
           </div>
-          
-          {/* Emergency button to force reset */}
-          <button
-            onClick={() => window.location.reload()}
-            className="text-xs mt-8 underline text-gray-500 hover:text-gray-700"
-          >
-            Forçar retorno ao início
-          </button>
         </div>
       ) : processingError ? (
         <div className="flex flex-col items-center justify-center min-h-[400px]">
           <div className="text-center mb-8">
+            <AlertCircle className="h-12 w-12 text-red-600 mx-auto mb-4" />
             <h3 className="text-xl font-medium text-red-600 mb-4">
               Erro ao gerar relatório
             </h3>
-            <p className="text-gray-600 mb-6">{processingError}</p>
+            <p className="text-gray-600 mb-6 max-w-md mx-auto">{processingError}</p>
             <Button 
-              onClick={generateReport} 
+              onClick={handleRetry} 
               className="bg-[#ef0002] hover:bg-[#c50000] text-white mr-2"
             >
               Tentar novamente
@@ -441,6 +489,7 @@ As áreas mais frágeis (${formData.prioridades?.areas_fraqueza?.join(", ") || "
                 variant="outline"
                 className="border-[#ef0002] text-[#ef0002] hover:bg-[#ffeeee] px-8 py-2"
                 onClick={onRestart}
+                disabled={!resultadoFinal.ai_block_pronto}
               >
                 Iniciar Novo Diagnóstico
               </Button>
@@ -450,6 +499,7 @@ As áreas mais frágeis (${formData.prioridades?.areas_fraqueza?.join(", ") || "
           {/* Tag técnica de encerramento */}
           <div className="hidden">
             fase5_openai_gpt4o_ok = true
+            fase5_openai_reforco_ok = true
           </div>
         </div>
       )}
