@@ -149,7 +149,7 @@ const fetchGPTResult = async (formData) => {
 };
 
 // Fallback function for development
-const gerarRelatorioMock = () => {
+const gerarRelatorioMock = (formData) => {
   console.log("Usando modo mock para desenvolvimento");
   
   // This is where we'd normally make the API call to GPT-4o
@@ -252,7 +252,7 @@ const AIBlock: React.FC<AIBlockProps> = ({ formData, onRestart, onAIComplete }) 
       
       // Use mock if in development or if OpenAI key is not available
       const updatedResultados = isDevelopment 
-        ? gerarRelatorioMock() 
+        ? gerarRelatorioMock(formData) 
         : await fetchGPTResult(formData);
       
       setResultadoFinal(updatedResultados);
