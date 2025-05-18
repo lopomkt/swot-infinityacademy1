@@ -56,7 +56,7 @@ const WelcomeStep = ({ onStart }: WelcomeStepProps) => (
       {/* Right Column - Image */}
       <div className="hidden md:flex items-center justify-center">
         <img 
-          src="https://source.unsplash.com/1200x600/?business,corporate,meeting" 
+          src="https://source.unsplash.com/1200x600/?business,corporate,team" 
           alt="Diagnóstico estratégico SWOT" 
           className="w-full h-auto object-cover rounded-xl shadow-md" 
         />
