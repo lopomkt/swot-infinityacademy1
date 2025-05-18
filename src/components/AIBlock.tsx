@@ -4,6 +4,9 @@ import { Loader } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { ResultadoFinalData } from "@/types/formData";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "@/components/ui/sonner";
 
 interface AIBlockProps {
   formData: any;
@@ -13,6 +16,7 @@ interface AIBlockProps {
 
 const AIBlock: React.FC<AIBlockProps> = ({ formData, onRestart, onAIComplete }) => {
   const [isLoading, setIsLoading] = useState(true);
+  const [processingError, setProcessingError] = useState<string | null>(null);
   const [resultadoFinal, setResultadoFinal] = useState<ResultadoFinalData>({
     matriz_swot: "",
     diagnostico_textual: "",
@@ -20,9 +24,11 @@ const AIBlock: React.FC<AIBlockProps> = ({ formData, onRestart, onAIComplete }) 
     acoes_priorizadas: []
   });
   const { toast } = useToast();
+  const { user } = useAuth();
+  const [timeoutWarning, setTimeoutWarning] = useState(false);
 
   // GPT-4o prompt that will be used when API is connected
-  const generateAIPrompt = () => {
+  const generateAIPrompt = (formData) => {
     return `Você é um analista empresarial sênior, especialista em diagnóstico consultivo com foco em micro, pequenas e médias empresas. Com base nas informações coletadas no formulário abaixo, sua tarefa é gerar um relatório estratégico dividido em 3 partes:
 
 1. **Matriz SWOT Completa**  
@@ -68,8 +74,8 @@ Use os seguintes delimitadores para separar cada seção da sua resposta:
 ### PLANO DE AÇÃO A/B/C`;
   };
 
-  // Mock function to process the AI response
-  const processAIResponse = (response: string) => {
+  // Function to process the AI response
+  const parseGPTOutput = (response: string) => {
     // Split the response based on the delimiters
     const sections = response.split(/### [A-ZÃÇÕÁÉÍÓÚÂÊÔÀÈÌÒÙ /]+/g);
     
@@ -81,33 +87,57 @@ Use os seguintes delimitadores para separar cada seção da sua resposta:
         planos_acao: sections[3].trim(),
         acoes_priorizadas: [],
         gpt_prompt_ok: true,
-        ai_block_pronto: true,
-        planoB: [],
-        planoC: [],
-        gargalos: [],
-        alertasCascata: []
+        ai_block_pronto: true
       };
     }
     
     // Fallback if parsing fails
-    return {
-      matriz_swot: "Erro ao processar a matriz SWOT.",
-      diagnostico_textual: "Erro ao processar o diagnóstico consultivo.",
-      planos_acao: "Erro ao processar o plano de ação.",
-      acoes_priorizadas: [],
-      gpt_prompt_ok: true,
-      ai_block_pronto: true,
-      planoB: [],
-      planoC: [],
-      gargalos: [],
-      alertasCascata: []
-    };
+    throw new Error("Não foi possível processar a resposta da IA corretamente.");
   };
 
-  // Mock function to simulate AI processing
+  // Function to fetch results from OpenAI GPT-4o
+  const fetchGPTResult = async (formData) => {
+    const prompt = generateAIPrompt(formData);
+    
+    try {
+      const response = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "gpt-4o",
+          messages: [
+            { 
+              role: "system", 
+              content: "Você é um consultor empresarial sênior especializado em análise SWOT e planejamento estratégico para pequenas e médias empresas." 
+            },
+            { role: "user", content: prompt }
+          ],
+          temperature: 0.7,
+          max_tokens: 1800,
+        }),
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error?.message || "Erro ao conectar com a API da OpenAI");
+      }
+      
+      const data = await response.json();
+      const resultText = data.choices[0].message.content;
+      
+      return parseGPTOutput(resultText);
+    } catch (error) {
+      console.error("Erro ao processar resposta da OpenAI:", error);
+      throw error;
+    }
+  };
+
+  // For development/testing purposes
   const gerarRelatorioMock = () => {
-    // Log the prompt that would be sent to GPT-4o (for development purposes)
-    console.log("GPT-4o Prompt:", generateAIPrompt());
+    console.log("Usando modo mock para desenvolvimento");
     
     // This is where we'd normally make the API call to GPT-4o
     // For now, we'll use mock data
@@ -170,45 +200,85 @@ As áreas mais frágeis (${formData.prioridades?.areas_fraqueza?.join(", ") || "
 4. Utilizar ferramentas gratuitas para automação de processos básicos
 5. Explorar modelos alternativos de remuneração baseados em performance`;
 
-    return processAIResponse(mockResponse);
+    return parseGPTOutput(mockResponse);
   };
 
-  useEffect(() => {
-    // Set up a timeout to simulate AI processing
-    const timer = setTimeout(() => {
-      try {
-        const updatedResultados = gerarRelatorioMock();
-        setResultadoFinal(updatedResultados);
-        setIsLoading(false);
-        
-        // We would save this to Supabase in a real implementation
-        console.log("Form data with AI results:", { 
-          ...formData, 
-          resultadoFinal: updatedResultados
-        });
-        
-        // Send results back to parent component if callback exists
-        if (onAIComplete) {
-          onAIComplete(updatedResultados);
+  const generateReport = async () => {
+    setIsLoading(true);
+    setProcessingError(null);
+    
+    // Set a timeout warning if processing takes too long
+    const timeoutId = setTimeout(() => {
+      setTimeoutWarning(true);
+    }, 15000);
+    
+    try {
+      // In production, use fetchGPTResult, but for development you can use gerarRelatorioMock
+      // Toggle between these two based on environment or configuration
+      const isDevelopment = process.env.NODE_ENV === 'development' || !process.env.OPENAI_API_KEY;
+      
+      // Use mock if in development or if OpenAI key is not available
+      const updatedResultados = isDevelopment 
+        ? gerarRelatorioMock() 
+        : await fetchGPTResult(formData);
+      
+      setResultadoFinal(updatedResultados);
+      
+      // Save the report to Supabase if user is authenticated
+      if (user) {
+        try {
+          const { error } = await supabase.from('relatorios').insert({
+            user_id: user.id,
+            dados: formData,
+            resultado_final: updatedResultados
+          });
+          
+          if (error) {
+            console.error("Erro ao salvar relatório no Supabase:", error);
+            toast({
+              title: "Relatório gerado com sucesso!",
+              description: "Mas houve um erro ao salvar. Você pode tentar salvar manualmente.",
+              variant: "destructive",
+            });
+          } else {
+            toast({
+              title: "Relatório gerado e salvo com sucesso!",
+              description: "Seu relatório estratégico está pronto para análise.",
+            });
+          }
+        } catch (dbError) {
+          console.error("Erro ao salvar no banco de dados:", dbError);
         }
-        
+      } else {
         toast({
           title: "Relatório gerado com sucesso!",
           description: "Seu relatório estratégico está pronto para análise.",
         });
-      } catch (error) {
-        console.error("Erro ao gerar relatório:", error);
-        setIsLoading(false);
-        toast({
-          title: "Erro ao gerar relatório",
-          description: "Ocorreu um erro ao processar os dados. Tente novamente.",
-          variant: "destructive",
-        });
       }
-    }, 3000);
+      
+      // Send results back to parent component if callback exists
+      if (onAIComplete) {
+        onAIComplete(updatedResultados);
+      }
+      
+    } catch (error) {
+      console.error("Erro ao gerar relatório:", error);
+      setProcessingError(error.message || "Ocorreu um erro ao processar os dados.");
+      toast({
+        title: "Erro ao gerar relatório",
+        description: error.message || "Ocorreu um erro ao processar os dados. Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      clearTimeout(timeoutId);
+      setIsLoading(false);
+      setTimeoutWarning(false);
+    }
+  };
 
-    return () => clearTimeout(timer);
-  }, [formData, toast, onAIComplete]);
+  useEffect(() => {
+    generateReport();
+  }, [formData]);
 
   return (
     <div className="w-full max-w-4xl mx-auto py-8 px-4 animate-fade-in">
@@ -220,7 +290,7 @@ As áreas mais frágeis (${formData.prioridades?.areas_fraqueza?.join(", ") || "
           <h3 className="text-xl font-medium text-gray-800 mb-2">
             Estamos gerando seu relatório estratégico...
           </h3>
-          <p className="text-gray-600">Isso pode levar alguns segundos.</p>
+          <p className="text-gray-600">{timeoutWarning ? "Isso está demorando mais do que o esperado. Por favor, aguarde..." : "Isso pode levar alguns segundos."}</p>
           <div className="w-full max-w-md mt-8">
             <div className="h-1 w-full bg-gray-200 rounded-full overflow-hidden">
               <div className="h-1 bg-[#ef0002] animate-pulse w-full"></div>
@@ -234,6 +304,27 @@ As áreas mais frágeis (${formData.prioridades?.areas_fraqueza?.join(", ") || "
           >
             Forçar retorno ao início
           </button>
+        </div>
+      ) : processingError ? (
+        <div className="flex flex-col items-center justify-center min-h-[400px]">
+          <div className="text-center mb-8">
+            <h3 className="text-xl font-medium text-red-600 mb-4">
+              Erro ao gerar relatório
+            </h3>
+            <p className="text-gray-600 mb-6">{processingError}</p>
+            <Button 
+              onClick={generateReport} 
+              className="bg-[#ef0002] hover:bg-[#c50000] text-white mr-2"
+            >
+              Tentar novamente
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={onRestart}
+            >
+              Voltar ao início
+            </Button>
+          </div>
         </div>
       ) : (
         <div className="space-y-12">
@@ -323,27 +414,42 @@ As áreas mais frágeis (${formData.prioridades?.areas_fraqueza?.join(", ") || "
             </div>
           </div>
 
-          <div className="flex justify-center space-x-4 pt-8">
-            <Button 
-              className="bg-[#ef0002] hover:bg-[#c50000] text-white px-8 py-2"
-              onClick={() => {
-                console.log("Salvando relatório:", resultadoFinal);
-                toast({
-                  title: "Relatório salvo",
-                  description: "Seu relatório estratégico foi salvo com sucesso.",
-                });
-                // Em implementação real, aqui seria o código para salvar no Supabase
-              }}
-            >
-              Salvar Relatório
-            </Button>
-            <Button 
-              variant="outline"
-              className="border-[#ef0002] text-[#ef0002] hover:bg-[#ffeeee] px-8 py-2"
-              onClick={onRestart}
-            >
-              Iniciar Novo Diagnóstico
-            </Button>
+          {resultadoFinal.ai_block_pronto === true && resultadoFinal.gpt_prompt_ok === true && (
+            <div className="flex justify-center space-x-4 pt-8">
+              <Button 
+                className="bg-[#ef0002] hover:bg-[#c50000] text-white px-8 py-2"
+                onClick={() => {
+                  if (user) {
+                    console.log("Relatório já salvo automaticamente");
+                    toast({
+                      title: "Relatório já salvo",
+                      description: "Seu relatório estratégico já foi salvo automaticamente.",
+                    });
+                  } else {
+                    console.log("Usuário não autenticado, não é possível salvar");
+                    toast({
+                      title: "Login necessário para salvar",
+                      description: "Faça login para salvar seus relatórios.",
+                      variant: "destructive",
+                    });
+                  }
+                }}
+              >
+                {user ? "Relatório Salvo" : "Salvar Relatório (Login Necessário)"}
+              </Button>
+              <Button 
+                variant="outline"
+                className="border-[#ef0002] text-[#ef0002] hover:bg-[#ffeeee] px-8 py-2"
+                onClick={onRestart}
+              >
+                Iniciar Novo Diagnóstico
+              </Button>
+            </div>
+          )}
+          
+          {/* Tag técnica de encerramento */}
+          <div className="hidden">
+            fase5_openai_gpt4o_ok = true
           </div>
         </div>
       )}
