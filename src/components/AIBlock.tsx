@@ -226,6 +226,14 @@ As áreas mais frágeis (${formData.prioridades?.areas_fraqueza?.join(", ") || "
               <div className="h-1 bg-[#ef0002] animate-pulse w-full"></div>
             </div>
           </div>
+          
+          {/* Emergency button to force reset */}
+          <button
+            onClick={() => window.location.reload()}
+            className="text-xs mt-8 underline text-gray-500 hover:text-gray-700"
+          >
+            Forçar retorno ao início
+          </button>
         </div>
       ) : (
         <div className="space-y-12">

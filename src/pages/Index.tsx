@@ -14,6 +14,7 @@ import TransitionStep from "@/components/TransitionStep";
 import { FormData } from "@/types/formData";
 import { saveState, loadState } from "@/lib/persistence";
 import { Lightbulb, Star, Flag, TrendingUp, TrendingDown, ArrowRight } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const STEPS = [
   { label: "Boas-vindas" },
@@ -35,7 +36,8 @@ const STEPS = [
 ];
 
 const Index = () => {
-  const [step, setStep] = useState<number>(loadState<number>('swotStep') || 0);
+  const isMobile = useIsMobile();
+  const [step, setStep] = useState<number>(0); // Start with default 0
   const [formData, setFormData] = useState<FormData>(loadState<FormData>('swotForm') || {
     tipagem_index_ok: true,
     fase5_transicoes_ok: true,
@@ -50,15 +52,27 @@ const Index = () => {
     fase7_3_polimento_final_ok: true,
   });
 
+  // Only load step from localStorage on mobile devices
+  useEffect(() => {
+    if (isMobile) {
+      const savedStep = loadState<number>('swotStep');
+      if (savedStep !== null) {
+        setStep(savedStep);
+      }
+    }
+  }, [isMobile]);
+
   // Save form data to localStorage whenever it changes
   useEffect(() => {
     saveState('swotForm', formData);
   }, [formData]);
 
-  // Save step to localStorage whenever it changes
+  // Save step to localStorage whenever it changes, but only on mobile
   useEffect(() => {
-    saveState('swotStep', step);
-  }, [step]);
+    if (isMobile) {
+      saveState('swotStep', step);
+    }
+  }, [step, isMobile]);
 
   // Scroll to top whenever step changes
   useEffect(() => {
