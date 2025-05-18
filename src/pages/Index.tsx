@@ -371,6 +371,7 @@ const Index = () => {
         {/* fase7_5_1_correcao_total_ok = true */}
         {/* fase4_nova_analise_ok = true */}
         {/* fase5_supabase_tabelas_ok = true */}
+        {/* fase5_supabase_auth_ok = true */}
       </div>
     </div>
   );
