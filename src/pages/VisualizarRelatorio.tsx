@@ -6,12 +6,13 @@ import { useAuth } from "@/contexts/AuthContext";
 import { FormData } from "@/types/formData";
 import ResultsScreen from "./ResultsScreen";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft, Loader2, Trash2 } from "lucide-react";
 import { toast } from "@/components/ui/sonner";
 
 const VisualizarRelatorio = () => {
   const [formData, setFormData] = useState<FormData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
@@ -114,6 +115,44 @@ const VisualizarRelatorio = () => {
     }
   };
 
+  // Função para excluir relatório
+  const excluirRelatorio = async () => {
+    try {
+      const relatorioId = sessionStorage.getItem('relatorio_id');
+      if (!relatorioId) {
+        toast.error("ID do relatório não encontrado");
+        return;
+      }
+      
+      // Confirmar se o usuário realmente deseja excluir
+      if (!window.confirm("Tem certeza que deseja excluir este relatório?")) {
+        return;
+      }
+      
+      setDeleting(true);
+      
+      // Excluir relatório no Supabase
+      const { error } = await supabase
+        .from("relatorios")
+        .delete()
+        .eq("id", relatorioId);
+
+      if (error) {
+        console.error("Erro ao excluir relatório:", error);
+        toast.error("Não foi possível excluir o relatório");
+        return;
+      }
+      
+      toast.success("Relatório excluído com sucesso");
+      navigate("/historico");
+    } catch (error) {
+      console.error("Erro ao excluir relatório:", error);
+      toast.error("Ocorreu um erro ao excluir o relatório");
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   // Função para voltar ao histórico de relatórios
   const voltarParaHistorico = () => {
     navigate("/historico");
@@ -149,10 +188,25 @@ const VisualizarRelatorio = () => {
     return (
       <>
         <div className="bg-white py-4 px-6 border-b shadow-sm">
-          <Button variant="outline" onClick={voltarParaHistorico} className="flex items-center">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Voltar para o histórico
-          </Button>
+          <div className="flex justify-between items-center">
+            <Button variant="outline" onClick={voltarParaHistorico} className="flex items-center">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Voltar para o histórico
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={excluirRelatorio}
+              className="flex items-center text-red-600 hover:text-red-700 hover:bg-red-50"
+              disabled={deleting}
+            >
+              {deleting ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Trash2 className="mr-2 h-4 w-4" />
+              )}
+              Excluir relatório
+            </Button>
+          </div>
         </div>
         <ResultsScreen formData={formData} />
       </>
