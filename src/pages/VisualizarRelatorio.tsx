@@ -92,7 +92,7 @@ const VisualizarRelatorio = () => {
       // Create formData object with proper typings
       const formDataRestaurado: FormData = {
         identificacao: dadosObj.identificacao || {},
-        situacaoFinanceira: dadosObj.situacaoFinanceira || {},
+        saudeFinanceira: dadosObj.saudeFinanceira || {},
         forcas: dadosObj.forcas || [],
         fraquezas: dadosObj.fraquezas || [],
         oportunidades: dadosObj.oportunidades || [],
