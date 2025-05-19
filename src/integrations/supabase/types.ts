@@ -48,6 +48,7 @@ export type Database = {
           data_validade: string
           email: string
           id: string
+          is_admin: boolean | null
           nome_empresa: string
         }
         Insert: {
@@ -56,6 +57,7 @@ export type Database = {
           data_validade: string
           email: string
           id: string
+          is_admin?: boolean | null
           nome_empresa: string
         }
         Update: {
@@ -64,6 +66,7 @@ export type Database = {
           data_validade?: string
           email?: string
           id?: string
+          is_admin?: boolean | null
           nome_empresa?: string
         }
         Relationships: []

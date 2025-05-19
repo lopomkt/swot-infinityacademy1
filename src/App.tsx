@@ -10,8 +10,10 @@ import AuthScreen from "./components/Auth/AuthScreen";
 import ExpiredSubscription from "./pages/ExpiredSubscription";
 import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/Auth/ProtectedRoute";
+import AdminRoute from "./components/Admin/AdminRoute";
 import HistoricoRelatorios from "./components/Relatorios/HistoricoRelatorios";
 import ResultsPage from "./pages/ResultsPage";
+import AdminPage from "./pages/AdminPage";
 
 const queryClient = new QueryClient();
 
@@ -47,6 +49,14 @@ const App = () => (
                 <ProtectedRoute>
                   <ResultsPage />
                 </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/admin" 
+              element={
+                <AdminRoute>
+                  <AdminPage />
+                </AdminRoute>
               } 
             />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
