@@ -14,6 +14,7 @@ import AdminRoute from "./components/Admin/AdminRoute";
 import HistoricoRelatorios from "./components/Relatorios/HistoricoRelatorios";
 import ResultsPage from "./pages/ResultsPage";
 import AdminPage from "./pages/AdminPage";
+import VisualizarRelatorio from "./pages/VisualizarRelatorio";
 
 const queryClient = new QueryClient();
 
@@ -48,6 +49,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <ResultsPage />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/visualizar" 
+              element={
+                <ProtectedRoute>
+                  <VisualizarRelatorio />
                 </ProtectedRoute>
               } 
             />

@@ -57,14 +57,11 @@ const HistoricoRelatorios = () => {
   };
 
   const handleVisualizar = (relatorio: Relatorio) => {
-    // Salvar o formData completo na sessionStorage para uso no ResultsScreen
-    sessionStorage.setItem("relatorioCarregado", JSON.stringify({
-      ...relatorio.dados,
-      resultadoFinal: relatorio.resultado_final
-    }));
+    // Salvar o ID do relatório na sessionStorage para uso na página VisualizarRelatorio
+    sessionStorage.setItem('relatorio_id', relatorio.id);
     
-    // Redirecionar para a página de resultados
-    navigate("/resultados");
+    // Redirecionar para a página de visualização
+    navigate("/visualizar");
   };
 
   const handleExcluir = async (id: string) => {
