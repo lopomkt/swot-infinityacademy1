@@ -85,10 +85,16 @@ const VisualizarRelatorio = () => {
         return;
       }
 
-      // Preparar o formData para o ResultsScreen
+      // Fix: Create formDataRestaurado properly by setting individual properties
       const formDataRestaurado: FormData = {
-        ...data.dados,
-        resultadoFinal: data.resultado_final,
+        identificacao: data.dados.identificacao || {},
+        situacaoFinanceira: data.dados.situacaoFinanceira || {},
+        forcas: data.dados.forcas || [],
+        fraquezas: data.dados.fraquezas || [],
+        oportunidades: data.dados.oportunidades || [],
+        ameacas: data.dados.ameacas || [],
+        prioridades: data.dados.prioridades || {},
+        resultadoFinal: data.resultado_final
       };
 
       // Guardar o formData restaurado na sessionStorage (opcional, para manter consistência)

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -179,15 +178,24 @@ const PainelAdmin = () => {
     return agrupados;
   };
 
-  const isAdminReport = (relatorio: Relatorio) => {
-    // Verifica se o relatório foi criado por um administrador
-    const { data: userInfo } = supabase
-      .from("users")
-      .select("is_admin")
-      .eq("id", relatorio.user_id)
-      .single();
-    
-    return userInfo?.is_admin === true;
+  const isAdminReport = async (relatorio: Relatorio) => {
+    try {
+      const { data, error } = await supabase
+        .from("users")
+        .select("is_admin")
+        .eq("id", relatorio.user_id)
+        .single();
+      
+      if (error) {
+        console.error("Erro ao verificar status de admin:", error);
+        return false;
+      }
+      
+      return data?.is_admin === true;
+    } catch (error) {
+      console.error("Erro ao verificar status de admin:", error);
+      return false;
+    }
   };
 
   const hasCompleteResult = (relatorio: Relatorio) => {
