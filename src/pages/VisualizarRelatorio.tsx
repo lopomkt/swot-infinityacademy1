@@ -85,16 +85,20 @@ const VisualizarRelatorio = () => {
         return;
       }
 
-      // Fix: Create formDataRestaurado properly by setting individual properties
+      // Typecast the JSON data from Supabase to the expected structure
+      const dadosObj = data.dados as Record<string, any>;
+      const resultadoFinalObj = data.resultado_final as Record<string, any>;
+
+      // Create formData object with proper typings
       const formDataRestaurado: FormData = {
-        identificacao: data.dados.identificacao || {},
-        situacaoFinanceira: data.dados.situacaoFinanceira || {},
-        forcas: data.dados.forcas || [],
-        fraquezas: data.dados.fraquezas || [],
-        oportunidades: data.dados.oportunidades || [],
-        ameacas: data.dados.ameacas || [],
-        prioridades: data.dados.prioridades || {},
-        resultadoFinal: data.resultado_final
+        identificacao: dadosObj.identificacao || {},
+        situacaoFinanceira: dadosObj.situacaoFinanceira || {},
+        forcas: dadosObj.forcas || [],
+        fraquezas: dadosObj.fraquezas || [],
+        oportunidades: dadosObj.oportunidades || [],
+        ameacas: dadosObj.ameacas || [],
+        prioridades: dadosObj.prioridades || {},
+        resultadoFinal: resultadoFinalObj
       };
 
       // Guardar o formData restaurado na sessionStorage (opcional, para manter consistência)
