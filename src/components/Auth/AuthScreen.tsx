@@ -13,6 +13,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/components/ui/sonner";
 import { Loader2 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { supabase } from "@/integrations/supabase/client";
 
 const loginSchema = z.object({
   email: z.string().email("Email inválido"),
@@ -32,7 +33,7 @@ const AuthScreen = () => {
   const [activeTab, setActiveTab] = useState<string>("login");
   const [isLoading, setIsLoading] = useState(false);
   const [manterLogado, setManterLogado] = useState(false);
-  const { signIn, signUp } = useAuth();
+  const { signIn } = useAuth();
   const navigate = useNavigate();
 
   const loginForm = useForm<LoginFormValues>({
@@ -72,24 +73,51 @@ const AuthScreen = () => {
   const onRegisterSubmit = async (data: RegisterFormValues) => {
     setIsLoading(true);
     try {
+      // Verificar se todos os campos estão preenchidos
       const { email, password, nome_empresa } = data;
       
-      // Implementação melhorada do cadastro conforme solicitado
-      const result = await signUp(email, password, nome_empresa);
-      
-      if (result.success) {
-        if (result.emailConfirmed) {
-          toast.success("Cadastro realizado com sucesso! Você já pode acessar a plataforma.");
-          navigate("/diagnostico");
-        } else if (result.confirmationSent) {
-          toast.success("Cadastro iniciado! Verifique seu e-mail para confirmar o acesso.");
-          // Mantém na tela atual aguardando confirmação
-        } else {
-          toast.warning("Cadastro aguardando confirmação. Verifique sua caixa de entrada.");
-        }
-      } else {
-        toast.error("Erro ao cadastrar: " + result.message);
+      if (!email || !password || !nome_empresa) {
+        toast.error("Preencha todos os campos.");
+        setIsLoading(false);
+        return;
       }
+
+      // Nova implementação do cadastro
+      const { data: authData, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { nome_empresa },
+        },
+      });
+
+      if (error) {
+        toast.error("Erro ao cadastrar: " + error.message);
+        return;
+      }
+      
+      const { user } = authData;
+
+      if (user) {
+        // Salvar na tabela users
+        const { error: insertError } = await supabase.from("users").insert({
+          id: user.id,
+          email: user.email,
+          nome_empresa,
+          is_admin: false,
+          data_validade: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 dias
+        });
+
+        if (insertError) {
+          console.error("Erro ao criar registro na tabela users:", insertError);
+          toast.error("Erro ao finalizar cadastro: " + insertError.message);
+          return;
+        }
+      }
+      
+      toast.success("Cadastro realizado com sucesso!");
+      navigate("/diagnostico");
+      
     } catch (error: any) {
       toast.error("Erro inesperado: " + (error?.message || "Falha no cadastro"));
     } finally {

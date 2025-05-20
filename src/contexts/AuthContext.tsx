@@ -14,13 +14,12 @@ interface UserData {
   nome_empresa: string;
   data_validade: string;
   ativo: boolean | null;
+  is_admin: boolean | null;
 }
 
 interface SignUpResult {
   success: boolean;
   message: string;
-  emailConfirmed?: boolean;
-  confirmationSent?: boolean;
 }
 
 interface AuthContextType {
@@ -117,6 +116,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
   }, []);
 
+  // Função atualizada para buscar dados do usuário da tabela users
   const fetchUserData = async (userId: string) => {
     try {
       const { data, error } = await supabase
@@ -180,71 +180,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
+  // Simplificando a função signUp já que o cadastro agora é feito diretamente no AuthScreen
   const signUp = async (email: string, password: string, nome_empresa: string): Promise<SignUpResult> => {
     try {
-      // Register the user with Supabase Auth with improved handling
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            nome_empresa
-          }
-        }
-      });
-
-      if (error) {
-        return { success: false, message: error.message };
-      }
-
-      if (!data.user) {
-        return { success: false, message: "Erro ao criar usuário." };
-      }
-
-      // Check if email is already confirmed
-      if (data.user.email_confirmed_at) {
-        // Create entry in the users table
-        const { error: insertError } = await supabase.from('users').insert({
-          id: data.user.id,
-          email,
-          nome_empresa,
-          data_validade: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
-        });
-
-        if (insertError) {
-          console.error("Error creating user profile:", insertError);
-          return { 
-            success: false, 
-            message: "Erro ao criar perfil do usuário" 
-          };
-        }
-
-        return { 
-          success: true, 
-          message: "Cadastro realizado com sucesso!",
-          emailConfirmed: true 
-        };
-      } 
-      
-      // Check if confirmation was sent
-      else if (data.user.confirmation_sent_at) {
-        return {
-          success: true,
-          message: "Cadastro iniciado! Verifique seu e-mail para confirmar o acesso.",
-          confirmationSent: true,
-          emailConfirmed: false
-        };
-      } 
-      
-      // Generic success but waiting for confirmation
-      else {
-        return {
-          success: true,
-          message: "Cadastro aguardando confirmação. Verifique sua caixa de entrada.",
-          confirmationSent: false,
-          emailConfirmed: false
-        };
-      }
+      // Esta função agora é simplificada, pois a lógica real está no componente AuthScreen
+      return { 
+        success: true, 
+        message: "Função de cadastro simplificada. Utilize o formulário na tela de autenticação." 
+      };
     } catch (error: any) {
       return { success: false, message: error.message || "Erro ao fazer cadastro" };
     }
