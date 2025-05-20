@@ -5,6 +5,9 @@ import { supabase, isSubscriptionValid } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/components/ui/sonner";
 
+// Configuração de dias para expiração do login persistente
+const DIAS_EXPIRACAO_LOGIN = 7;
+
 interface UserData {
   id: string;
   email: string;
@@ -19,7 +22,7 @@ interface AuthContextType {
   userData: UserData | null;
   loading: boolean;
   subscriptionExpired: boolean;
-  signIn: (email: string, password: string) => Promise<{ success: boolean; message: string }>;
+  signIn: (email: string, password: string, manterLogado?: boolean) => Promise<{ success: boolean; message: string }>;
   signUp: (email: string, password: string, nome_empresa: string) => Promise<{ success: boolean; message: string }>;
   signOut: () => Promise<void>;
 }
@@ -33,6 +36,45 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [loading, setLoading] = useState(true);
   const [subscriptionExpired, setSubscriptionExpired] = useState(false);
   const navigate = useNavigate();
+
+  // Verificar expiração da sessão persistente
+  useEffect(() => {
+    const verificarExpiracaoSessao = () => {
+      try {
+        const lastLoginStr = localStorage.getItem('last_login_date');
+        
+        if (!lastLoginStr) return;
+        
+        const lastLogin = new Date(lastLoginStr);
+        const diasDesdeUltimoAcesso = (Date.now() - lastLogin.getTime()) / (1000 * 60 * 60 * 24);
+        
+        if (diasDesdeUltimoAcesso > DIAS_EXPIRACAO_LOGIN) {
+          console.log(`Sessão expirada após ${diasDesdeUltimoAcesso.toFixed(1)} dias de inatividade`);
+          
+          // Realizar logout e limpar dados
+          supabase.auth.signOut();
+          localStorage.removeItem('last_login_date');
+          
+          // Notificar o usuário
+          setTimeout(() => {
+            toast.info("Sua sessão expirou por inatividade. Faça login novamente.");
+          }, 500);
+        }
+      } catch (error) {
+        console.error("Erro ao verificar expiração da sessão:", error);
+      }
+    };
+
+    // Verificar ao montar o componente
+    verificarExpiracaoSessao();
+    
+    // Também verificar quando a janela ganha foco
+    window.addEventListener('focus', verificarExpiracaoSessao);
+    
+    return () => {
+      window.removeEventListener('focus', verificarExpiracaoSessao);
+    };
+  }, []);
 
   useEffect(() => {
     // Set up auth state listener
@@ -98,7 +140,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (email: string, password: string, manterLogado = false) => {
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -107,6 +149,22 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       if (error) {
         return { success: false, message: error.message };
+      }
+
+      // Configurar a persistência da sessão baseado na escolha do usuário
+      if (manterLogado) {
+        // Armazenar data do último login para verificação de expiração
+        localStorage.setItem('last_login_date', new Date().toISOString());
+        
+        // Garantir que a sessão persista
+        await supabase.auth.setSession({
+          access_token: data.session.access_token,
+          refresh_token: data.session.refresh_token,
+        });
+      } else {
+        // Se não manter logado, garantir que a sessão seja removida ao fechar o navegador
+        localStorage.removeItem('last_login_date');
+        sessionStorage.setItem('sb-auth-token', JSON.stringify(data.session));
       }
 
       return { success: true, message: "Login realizado com sucesso!" };
@@ -154,6 +212,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const signOut = async () => {
+    localStorage.removeItem('last_login_date');
     await supabase.auth.signOut();
     navigate("/auth");
   };

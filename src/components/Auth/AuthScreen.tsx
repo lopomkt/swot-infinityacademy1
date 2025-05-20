@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/components/ui/sonner";
 import { Loader2 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const loginSchema = z.object({
   email: z.string().email("Email inválido"),
@@ -30,6 +31,7 @@ type RegisterFormValues = z.infer<typeof registerSchema>;
 const AuthScreen = () => {
   const [activeTab, setActiveTab] = useState<string>("login");
   const [isLoading, setIsLoading] = useState(false);
+  const [manterLogado, setManterLogado] = useState(false);
   const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
 
@@ -53,7 +55,7 @@ const AuthScreen = () => {
   const onLoginSubmit = async (data: LoginFormValues) => {
     setIsLoading(true);
     try {
-      const result = await signIn(data.email, data.password);
+      const result = await signIn(data.email, data.password, manterLogado);
       if (result.success) {
         toast.success(result.message);
         navigate("/");
@@ -133,6 +135,19 @@ const AuthScreen = () => {
                         </FormItem>
                       )}
                     />
+                    <div className="flex items-center gap-2 mt-2">
+                      <Checkbox 
+                        id="manter-logado"
+                        checked={manterLogado}
+                        onCheckedChange={() => setManterLogado(!manterLogado)}
+                      />
+                      <label 
+                        htmlFor="manter-logado" 
+                        className="text-sm text-gray-600 cursor-pointer"
+                      >
+                        Manter logado
+                      </label>
+                    </div>
                     <Button 
                       type="submit" 
                       className="w-full bg-[#ef0002] hover:bg-[#b70001]" 
