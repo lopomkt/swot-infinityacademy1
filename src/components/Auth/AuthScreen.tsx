@@ -99,13 +99,16 @@ const AuthScreen = () => {
       const { user } = authData;
 
       if (user) {
+        // Convertendo a data para string ISO
+        const expirationDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 dias
+        
         // Salvar na tabela users
         const { error: insertError } = await supabase.from("users").insert({
           id: user.id,
           email: user.email,
           nome_empresa,
           is_admin: false,
-          data_validade: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 dias
+          data_validade: expirationDate.toISOString(), // Convertendo para string ISO
         });
 
         if (insertError) {
@@ -299,3 +302,4 @@ const AuthScreen = () => {
 };
 
 export default AuthScreen;
+
