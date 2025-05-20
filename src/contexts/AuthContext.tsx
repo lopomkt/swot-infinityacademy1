@@ -16,6 +16,13 @@ interface UserData {
   ativo: boolean | null;
 }
 
+interface SignUpResult {
+  success: boolean;
+  message: string;
+  emailConfirmed?: boolean;
+  confirmationSent?: boolean;
+}
+
 interface AuthContextType {
   session: Session | null;
   user: User | null;
@@ -23,7 +30,7 @@ interface AuthContextType {
   loading: boolean;
   subscriptionExpired: boolean;
   signIn: (email: string, password: string, manterLogado?: boolean) => Promise<{ success: boolean; message: string }>;
-  signUp: (email: string, password: string, nome_empresa: string) => Promise<{ success: boolean; message: string }>;
+  signUp: (email: string, password: string, nome_empresa: string) => Promise<SignUpResult>;
   signOut: () => Promise<void>;
 }
 
@@ -173,9 +180,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  const signUp = async (email: string, password: string, nome_empresa: string) => {
+  const signUp = async (email: string, password: string, nome_empresa: string): Promise<SignUpResult> => {
     try {
-      // Register the user with Supabase Auth
+      // Register the user with Supabase Auth with improved handling
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -190,7 +197,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         return { success: false, message: error.message };
       }
 
-      if (data.user) {
+      if (!data.user) {
+        return { success: false, message: "Erro ao criar usuário." };
+      }
+
+      // Check if email is already confirmed
+      if (data.user.email_confirmed_at) {
         // Create entry in the users table
         const { error: insertError } = await supabase.from('users').insert({
           id: data.user.id,
@@ -201,11 +213,38 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
         if (insertError) {
           console.error("Error creating user profile:", insertError);
-          return { success: false, message: "Erro ao criar perfil do usuário" };
+          return { 
+            success: false, 
+            message: "Erro ao criar perfil do usuário" 
+          };
         }
-      }
 
-      return { success: true, message: "Cadastro realizado com sucesso!" };
+        return { 
+          success: true, 
+          message: "Cadastro realizado com sucesso!",
+          emailConfirmed: true 
+        };
+      } 
+      
+      // Check if confirmation was sent
+      else if (data.user.confirmation_sent_at) {
+        return {
+          success: true,
+          message: "Cadastro iniciado! Verifique seu e-mail para confirmar o acesso.",
+          confirmationSent: true,
+          emailConfirmed: false
+        };
+      } 
+      
+      // Generic success but waiting for confirmation
+      else {
+        return {
+          success: true,
+          message: "Cadastro aguardando confirmação. Verifique sua caixa de entrada.",
+          confirmationSent: false,
+          emailConfirmed: false
+        };
+      }
     } catch (error: any) {
       return { success: false, message: error.message || "Erro ao fazer cadastro" };
     }

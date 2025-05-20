@@ -72,15 +72,26 @@ const AuthScreen = () => {
   const onRegisterSubmit = async (data: RegisterFormValues) => {
     setIsLoading(true);
     try {
-      const result = await signUp(data.email, data.password, data.nome_empresa);
+      const { email, password, nome_empresa } = data;
+      
+      // Implementação melhorada do cadastro conforme solicitado
+      const result = await signUp(email, password, nome_empresa);
+      
       if (result.success) {
-        toast.success(result.message);
-        navigate("/");
+        if (result.emailConfirmed) {
+          toast.success("Cadastro realizado com sucesso! Você já pode acessar a plataforma.");
+          navigate("/diagnostico");
+        } else if (result.confirmationSent) {
+          toast.success("Cadastro iniciado! Verifique seu e-mail para confirmar o acesso.");
+          // Mantém na tela atual aguardando confirmação
+        } else {
+          toast.warning("Cadastro aguardando confirmação. Verifique sua caixa de entrada.");
+        }
       } else {
-        toast.error(result.message);
+        toast.error("Erro ao cadastrar: " + result.message);
       }
-    } catch (error) {
-      toast.error("Erro ao fazer cadastro");
+    } catch (error: any) {
+      toast.error("Erro inesperado: " + (error?.message || "Falha no cadastro"));
     } finally {
       setIsLoading(false);
     }
@@ -228,12 +239,12 @@ const AuthScreen = () => {
                     <Button 
                       type="submit" 
                       className="w-full bg-[#ef0002] hover:bg-[#b70001]" 
-                      disabled={isLoading}
+                      disabled={isLoading || !registerForm.formState.isValid}
                     >
                       {isLoading ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Carregando...
+                          Criando conta...
                         </>
                       ) : (
                         "Cadastrar"
