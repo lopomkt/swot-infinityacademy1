@@ -6,7 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { FormData } from "@/types/formData";
 import ResultsScreen from "@/pages/ResultsScreen";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Loader2, Trash2 } from "lucide-react";
+import { ArrowLeft, Loader2, Trash2, ChevronLeft } from "lucide-react";
 import { toast } from "@/components/ui/sonner";
 
 const VisualizarRelatorio = () => {
@@ -39,6 +39,8 @@ const VisualizarRelatorio = () => {
         return;
       }
 
+      console.log("Carregando relatório com ID:", relatorioId);
+
       // Buscar o relatório no Supabase
       const { data, error } = await supabase
         .from("relatorios")
@@ -58,6 +60,8 @@ const VisualizarRelatorio = () => {
         toast.error("Relatório não encontrado");
         return;
       }
+
+      console.log("Relatório carregado:", data);
 
       // Verificar se o usuário tem permissão para visualizar este relatório
       // Permite se for o dono do relatório ou se for um administrador
@@ -172,7 +176,7 @@ const VisualizarRelatorio = () => {
         <div className="text-center max-w-md">
           <p className="text-red-500 text-xl mb-4">{error}</p>
           <Button onClick={voltarParaHistorico}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
+            <ChevronLeft className="mr-2 h-4 w-4" />
             Voltar para o histórico
           </Button>
         </div>
@@ -187,7 +191,7 @@ const VisualizarRelatorio = () => {
         <div className="bg-white py-4 px-6 border-b shadow-sm">
           <div className="flex justify-between items-center">
             <Button variant="outline" onClick={voltarParaHistorico} className="flex items-center">
-              <ArrowLeft className="mr-2 h-4 w-4" />
+              <ChevronLeft className="mr-2 h-4 w-4" />
               Voltar para o histórico
             </Button>
             <Button 
@@ -215,7 +219,7 @@ const VisualizarRelatorio = () => {
     <div className="flex flex-col items-center justify-center min-h-screen">
       <p className="text-red-500 text-center">Relatório não encontrado ou inválido.</p>
       <Button onClick={voltarParaHistorico} className="mt-4">
-        <ArrowLeft className="mr-2 h-4 w-4" />
+        <ChevronLeft className="mr-2 h-4 w-4" />
         Voltar para o histórico
       </Button>
     </div>
