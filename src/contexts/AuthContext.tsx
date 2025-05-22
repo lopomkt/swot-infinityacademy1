@@ -1,9 +1,9 @@
-
 import React, { createContext, useState, useEffect, useContext, ReactNode } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase, isSubscriptionValid } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/components/ui/sonner";
+import LoadingScreen from "@/components/Auth/LoadingScreen";
 
 // Configuração de dias para expiração do login persistente
 const DIAS_EXPIRACAO_LOGIN = 7;
@@ -116,7 +116,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
   }, []);
 
-  // Função atualizada para buscar dados do usuário da tabela users
+  // Função atualizada para buscar dados do usuário e redirecionar conforme perfil
   const fetchUserData = async (userId: string) => {
     try {
       const { data, error } = await supabase
@@ -129,21 +129,37 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         console.error('Error fetching user data:', error);
         setUserData(null);
         setSubscriptionExpired(false);
+        // Se não encontrou dados do usuário, melhor manter na tela de autenticação
+        navigate('/auth');
         return;
       }
 
       if (data) {
         setUserData(data as UserData);
-        const expired = !isSubscriptionValid(data.data_validade);
+        
+        // Limpando possíveis dados de navegação anteriores
+        sessionStorage.removeItem("relatorio_id");
+        
+        // Verifica se o acesso expirou
+        const hoje = new Date();
+        const validade = new Date(data.data_validade);
+        const expired = validade < hoje || !isSubscriptionValid(data.data_validade);
         setSubscriptionExpired(expired);
         
-        if (expired) {
+        // Redireciona com base no perfil do usuário
+        if (data.is_admin) {
+          navigate("/admin");
+        } else if (expired) {
           toast.error("Seu acesso expirou. Entre em contato para renovar.");
           navigate("/expired");
+        } else {
+          // Usuário comum com acesso válido
+          navigate("/");
         }
       }
     } catch (error) {
       console.error('Error in fetchUserData:', error);
+      toast.error("Erro ao carregar dados do usuário");
     }
   };
 
@@ -198,6 +214,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     await supabase.auth.signOut();
     navigate("/auth");
   };
+
+  // Exibir tela de carregamento enquanto autenticando
+  if (loading) {
+    return <LoadingScreen />;
+  }
 
   return (
     <AuthContext.Provider

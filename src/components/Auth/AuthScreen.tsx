@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -59,7 +58,7 @@ const AuthScreen = () => {
       const result = await signIn(data.email, data.password, manterLogado);
       if (result.success) {
         toast.success(result.message);
-        navigate("/");
+        // Navigation is handled by AuthContext based on user role
       } else {
         toast.error(result.message);
       }
@@ -119,7 +118,7 @@ const AuthScreen = () => {
       }
       
       toast.success("Cadastro realizado com sucesso!");
-      navigate("/diagnostico");
+      navigate("/auth"); // Corrigido: redirecionando para tela de login após cadastro
       
     } catch (error: any) {
       toast.error("Erro inesperado: " + (error?.message || "Falha no cadastro"));
@@ -302,4 +301,3 @@ const AuthScreen = () => {
 };
 
 export default AuthScreen;
-
