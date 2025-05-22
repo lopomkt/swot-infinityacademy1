@@ -56,10 +56,13 @@ const AuthScreen = () => {
   const onLoginSubmit = async (data: LoginFormValues) => {
     setIsLoading(true);
     try {
+      // Limpar qualquer armazenamento temporário de relatórios
+      sessionStorage.removeItem("relatorio_id");
+      
       const result = await signIn(data.email, data.password, manterLogado);
       if (result.success) {
         toast.success(result.message);
-        navigate("/");
+        // Não precisa de navigate aqui - AuthContext irá redirecionar com base no tipo de usuário
       } else {
         toast.error(result.message);
       }
@@ -93,6 +96,7 @@ const AuthScreen = () => {
 
       if (error) {
         toast.error("Erro ao cadastrar: " + error.message);
+        setIsLoading(false);
         return;
       }
       
@@ -114,12 +118,13 @@ const AuthScreen = () => {
         if (insertError) {
           console.error("Erro ao criar registro na tabela users:", insertError);
           toast.error("Erro ao finalizar cadastro: " + insertError.message);
+          setIsLoading(false);
           return;
         }
+        
+        toast.success("Cadastro realizado com sucesso!");
+        navigate("/auth"); // Redirecionar para login após cadastro
       }
-      
-      toast.success("Cadastro realizado com sucesso!");
-      navigate("/diagnostico");
       
     } catch (error: any) {
       toast.error("Erro inesperado: " + (error?.message || "Falha no cadastro"));
@@ -302,4 +307,3 @@ const AuthScreen = () => {
 };
 
 export default AuthScreen;
-

@@ -4,6 +4,7 @@ import { Session, User } from "@supabase/supabase-js";
 import { supabase, isSubscriptionValid } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/components/ui/sonner";
+import LoadingScreen from "@/components/Auth/LoadingScreen";
 
 // Configuração de dias para expiração do login persistente
 const DIAS_EXPIRACAO_LOGIN = 7;
@@ -82,20 +83,32 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
   }, []);
 
+  // Timeout de segurança para prevenir loading infinito
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (loading) {
+        console.error("Timeout de carregamento do perfil de usuário");
+        toast.error("Tempo esgotado. Refaça o login.");
+        
+        // Limpar dados de sessão
+        sessionStorage.removeItem("relatorio_id");
+        
+        // Redirecionar para autenticação
+        navigate("/auth");
+        setLoading(false);
+      }
+    }, 15000); // 15 segundos
+
+    return () => clearTimeout(timeout);
+  }, [loading, navigate]);
+
   useEffect(() => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, currentSession) => {
+      (event, currentSession) => {
         console.log("Auth state changed:", event);
         setSession(currentSession);
         setUser(currentSession?.user ?? null);
-        
-        if (currentSession?.user) {
-          await fetchUserData(currentSession.user.id);
-        } else {
-          setUserData(null);
-          setSubscriptionExpired(false);
-        }
       }
     );
 
@@ -103,11 +116,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     supabase.auth.getSession().then(async ({ data: { session: currentSession } }) => {
       setSession(currentSession);
       setUser(currentSession?.user ?? null);
-      
-      if (currentSession?.user) {
-        await fetchUserData(currentSession.user.id);
-      }
-      
       setLoading(false);
     });
 
@@ -116,36 +124,58 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
   }, []);
 
-  // Função atualizada para buscar dados do usuário da tabela users
-  const fetchUserData = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', userId)
-        .single();
+  // Efeito separado para carregar dados do usuário quando a sessão mudar
+  useEffect(() => {
+    const carregarDados = async () => {
+      if (!session?.user) return;
 
-      if (error) {
-        console.error('Error fetching user data:', error);
-        setUserData(null);
-        setSubscriptionExpired(false);
-        return;
-      }
+      setLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from("users")
+          .select("*")
+          .eq("id", session.user.id)
+          .single();
 
-      if (data) {
+        if (error || !data) {
+          console.error("Erro ao carregar dados do usuário:", error);
+          toast.error("Não foi possível carregar seu perfil.");
+          navigate("/auth");
+          return;
+        }
+
         setUserData(data as UserData);
-        const expired = !isSubscriptionValid(data.data_validade);
+        
+        // Verificar expiração da assinatura
+        const hoje = new Date();
+        const validade = new Date(data.data_validade);
+        const expired = validade < hoje;
+        
         setSubscriptionExpired(expired);
         
-        if (expired) {
-          toast.error("Seu acesso expirou. Entre em contato para renovar.");
+        // Redirecionar baseado no tipo de usuário
+        if (data.is_admin) {
+          navigate("/admin");
+        } else if (expired) {
           navigate("/expired");
+        } else {
+          navigate("/");
         }
+        
+        // Limpar qualquer armazenamento temporário de relatórios
+        sessionStorage.removeItem("relatorio_id");
+        
+      } catch (error) {
+        console.error('Erro crítico ao processar dados do usuário:', error);
+        toast.error("Ocorreu um erro ao processar seus dados. Tente novamente.");
+        navigate("/auth");
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error('Error in fetchUserData:', error);
-    }
-  };
+    };
+
+    carregarDados();
+  }, [session, navigate]);
 
   const signIn = async (email: string, password: string, manterLogado = false) => {
     try {
@@ -195,9 +225,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const signOut = async () => {
     localStorage.removeItem('last_login_date');
+    sessionStorage.removeItem("relatorio_id");
     await supabase.auth.signOut();
     navigate("/auth");
   };
+
+  // Renderizar loading screen enquanto carrega dados do usuário
+  if (loading) {
+    return <LoadingScreen />;
+  }
 
   return (
     <AuthContext.Provider
