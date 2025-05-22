@@ -1,6 +1,6 @@
 
 import { ReactNode } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import LoadingScreen from "@/components/Auth/LoadingScreen";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,6 +12,7 @@ interface AdminRouteProps {
 
 const AdminRoute = ({ children }: AdminRouteProps) => {
   const { user, loading } = useAuth();
+  const location = useLocation();
 
   // Query to check if the user is an admin
   const { data: adminStatus, isLoading } = useQuery({
@@ -43,6 +44,8 @@ const AdminRoute = ({ children }: AdminRouteProps) => {
     return <Navigate to="/auth" replace />;
   }
 
+  // Admin users can access their specific routes or client routes
+  // This allows them to test the client experience while logged in as admin
   if (!adminStatus?.isAdmin) {
     return <Navigate to="/" replace />;
   }

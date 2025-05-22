@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/components/ui/sonner";
-import { Eye, Trash2, Search, Clock, Building, User, Loader2 } from "lucide-react";
+import { Eye, Trash2, Search, Clock, Building, User, Loader2, LogOut } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -45,7 +45,7 @@ const PainelAdmin = () => {
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -199,6 +199,18 @@ const PainelAdmin = () => {
     }
   };
 
+  const handleTestarComoCliente = () => {
+    // Limpar qualquer relatório em sessão antes de ir para a ferramenta como cliente
+    sessionStorage.removeItem("relatorio_id");
+    navigate("/");
+  };
+
+  const handleLogout = async () => {
+    // Limpar dados de sessão antes do logout
+    sessionStorage.removeItem("relatorio_id");
+    await signOut();
+  };
+
   const hasCompleteResult = (relatorio: Relatorio) => {
     return !!relatorio.resultado_final?.ai_block_pronto;
   };
@@ -214,7 +226,17 @@ const PainelAdmin = () => {
   }
 
   return (
-    <div className="container mx-auto py-8 px-4">
+    <div className="container mx-auto py-8 px-4 relative">
+      <Button 
+        onClick={handleLogout}
+        variant="outline"
+        size="sm"
+        className="absolute top-4 right-6 flex gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+      >
+        <LogOut size={16} />
+        Sair
+      </Button>
+
       <div className="mb-8 text-center">
         <h1 className="text-2xl font-bold text-[#560005]">Painel Administrativo</h1>
         <p className="text-gray-600 mt-2">
@@ -251,6 +273,16 @@ const PainelAdmin = () => {
               </SelectContent>
             </Select>
           </div>
+        </div>
+
+        <div className="mb-8 flex justify-center">
+          <Button 
+            variant="outline"
+            className="flex items-center gap-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+            onClick={handleTestarComoCliente}
+          >
+            Testar ferramenta SWOT como cliente
+          </Button>
         </div>
 
         <Tabs defaultValue="lista" className="w-full">
@@ -408,6 +440,9 @@ const PainelAdmin = () => {
           </TabsContent>
         </Tabs>
       </div>
+      
+      {/* Tag de controle */}
+      {/* fase6_admin_image_ok = true */}
     </div>
   );
 };

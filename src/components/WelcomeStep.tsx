@@ -88,11 +88,11 @@ const WelcomeStep = ({ onStart }: WelcomeStepProps) => {
           </div>
         </div>
         
-        {/* Right Column - Image */}
+        {/* Right Column - Image - Updated with real corporate image */}
         <div className="hidden md:flex items-center justify-center">
           <img 
-            src="https://source.unsplash.com/1200x600/?business,corporate,team" 
-            alt="Diagnóstico estratégico SWOT" 
+            src="https://images.unsplash.com/photo-1611974789855-9c2a0a3a5f74?auto=format&fit=crop&w=1470&q=80" 
+            alt="Dashboard estratégico" 
             className="w-full h-auto object-cover rounded-xl shadow-md" 
           />
         </div>
