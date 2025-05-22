@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { FormData } from "@/types/formData";
-import ResultsScreen from "./ResultsScreen";
+import ResultsScreen from "@/pages/ResultsScreen";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Loader2, Trash2 } from "lucide-react";
 import { toast } from "@/components/ui/sonner";
@@ -14,19 +14,16 @@ const VisualizarRelatorio = () => {
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { user, loading: authLoading } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!authLoading) {
-      if (!user) {
-        navigate("/auth");
-        return;
-      }
-      
+    if (user) {
       carregarRelatorio();
+    } else {
+      navigate("/auth");
     }
-  }, [user, authLoading]);
+  }, [user]);
 
   const carregarRelatorio = async () => {
     try {
