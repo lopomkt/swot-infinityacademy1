@@ -16,7 +16,16 @@ import ResultsPage from "./pages/ResultsPage";
 import AdminPage from "./pages/AdminPage";
 import VisualizarRelatorio from "./pages/VisualizarRelatorio";
 
-const queryClient = new QueryClient();
+// Create a client for React Query
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: false,
+      staleTime: 1000 * 60 * 5, // 5 minutes
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -68,7 +77,7 @@ const App = () => (
                 </AdminRoute>
               } 
             />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            {/* Catch-all route for 404 */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

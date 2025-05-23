@@ -2,6 +2,8 @@
 import React from 'react';
 import { FormData } from '@/types/formData';
 import DownloadContato from './DownloadContato';
+import { useAuth } from '@/contexts/AuthContext';
+import { useLocation } from 'react-router-dom';
 
 interface ResultsScreenWrapperProps {
   formData: FormData;
@@ -16,8 +18,18 @@ const ResultsScreenWrapper: React.FC<ResultsScreenWrapperProps> = ({
   onContactTeam,
   onNovaAnalise
 }) => {
-  // Show the Nova Análise button only if a result is available
-  const showNovaAnaliseButton = !!formData.resultadoFinal?.ai_block_pronto;
+  const { userData } = useAuth();
+  const location = useLocation();
+  
+  // Only show "Nova Análise" button if:
+  // 1. Result is ready AND
+  // 2. User is not on /visualizar page AND
+  // 3. User is not an admin
+  const isResultReady = !!formData.resultadoFinal?.ai_block_pronto;
+  const isVisualizarPage = location.pathname === '/visualizar';
+  const isAdmin = userData?.is_admin === true;
+  
+  const showNovaAnaliseButton = isResultReady && !isVisualizarPage && !isAdmin;
 
   // Handler with confirmation for Nova Análise
   const handleNovaAnalise = () => {

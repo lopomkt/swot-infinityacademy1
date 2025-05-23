@@ -58,7 +58,7 @@ const ScoreEstrategico = React.memo(function ScoreEstrategico({
   
   return (
     <motion.div 
-      className={`${cardBase} bg-gray-50 p-4 sm:p-6 scroll-mt-20`}
+      className={`${cardBase} bg-gray-50 p-4 sm:p-6 scroll-mt-20 h-full`}
       role="region"
       aria-labelledby="score-strategic-title"
       initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
@@ -77,7 +77,7 @@ const ScoreEstrategico = React.memo(function ScoreEstrategico({
       
       <div className="flex flex-col items-center">
         {/* Radar Chart */}
-        <div className="h-[300px] w-full mb-6">
+        <div className="h-[250px] w-full mb-6">
           <ChartContainer
             config={{
               area: {
@@ -145,23 +145,7 @@ const ScoreEstrategico = React.memo(function ScoreEstrategico({
               aria-valuemax={100}
             ></div>
           </div>
-          
-          <p className="text-sm text-gray-600 mt-2">
-            Empresas com pontuação acima de 70 estão prontas para escalar crescimento com consistência.
-          </p>
         </motion.div>
-        
-        {/* Maturity level indicator */}
-        <div className="mt-6 text-center">
-          <p className="text-sm text-gray-600 mb-1">Nível de Maturidade Estratégica:</p>
-          <span className="text-xl font-bold text-[#ef0002]">{scoreLabel || "Não Avaliado"}</span>
-        </div>
-      </div>
-      
-      {/* Hidden refactoring tag */}
-      <div className="hidden">
-        {/* refatoracao_score_estrategico_ok = true */}
-        {/* fase4_resultados_maturidade_ok = true */}
       </div>
     </motion.div>
   );

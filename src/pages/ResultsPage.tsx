@@ -5,6 +5,7 @@ import ResultsScreen from "@/pages/ResultsScreen";
 import LoadingScreen from "@/components/Auth/LoadingScreen";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 
 const ResultsPage = () => {
   const [formData, setFormData] = useState(null);
@@ -21,6 +22,11 @@ const ResultsPage = () => {
         setFormData(parsedData);
       } catch (error) {
         console.error("Erro ao processar dados do relatório:", error);
+        toast({
+          title: "Erro no carregamento",
+          description: "Não foi possível processar os dados do relatório.",
+          variant: "destructive"
+        });
       }
     }
     
@@ -34,6 +40,10 @@ const ResultsPage = () => {
   const handleNewAnalysis = () => {
     // Clear loaded report and go to home
     sessionStorage.removeItem("relatorioCarregado");
+    toast({
+      title: "Nova análise iniciada",
+      description: "Seu relatório anterior foi salvo no histórico."
+    });
     navigate("/");
   };
 
@@ -54,7 +64,7 @@ const ResultsPage = () => {
   }
 
   return (
-    <div>
+    <div className="overflow-x-hidden">
       <div className="fixed top-4 left-4 z-50">
         <Button 
           onClick={handleBackToHistory}

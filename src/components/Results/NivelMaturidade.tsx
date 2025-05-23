@@ -2,6 +2,7 @@
 import React from "react";
 import { motion } from 'framer-motion';
 import { useReducedMotion } from '@/hooks/use-reduced-motion';
+import { Card, CardContent } from "@/components/ui/card";
 
 interface NivelMaturidadeProps {
   maturidade?: Array<{
@@ -55,12 +56,12 @@ const NivelMaturidade = ({ maturidade }: NivelMaturidadeProps) => {
   
   return (
     <motion.div 
-      className="bg-white rounded-lg shadow-sm p-4 sm:p-6"
+      className="bg-white rounded-lg shadow-sm p-4 sm:p-6 h-full"
       initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
       animate={prefersReducedMotion ? {} : { opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
     >
-      <h2 className="text-xl font-bold mb-4 text-center text-[#560005]">Nível de Maturidade e Prontidão Estratégica</h2>
+      <h2 className="text-xl sm:text-2xl font-bold mb-4 text-center text-[#560005] border-b pb-2">Maturidade Estratégica</h2>
       
       <div className="space-y-4 mt-6">
         {maturityData.map((item, index) => (
@@ -84,10 +85,6 @@ const NivelMaturidade = ({ maturidade }: NivelMaturidadeProps) => {
       
       <div className="mt-6 text-center text-sm text-gray-500">
         <p>Esta análise considera suas respostas em múltiplas áreas estratégicas do negócio.</p>
-      </div>
-      
-      <div aria-hidden="true" className="sr-only">
-        Análise de maturidade organizacional e nível de prontidão estratégica
       </div>
     </motion.div>
   );

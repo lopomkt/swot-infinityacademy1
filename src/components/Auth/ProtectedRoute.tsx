@@ -23,6 +23,8 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 
   // Verificar se é um administrador (administradores nunca são bloqueados)
   if (userData?.is_admin === true) {
+    // Limpar qualquer flag de expiração para admins
+    localStorage.removeItem("subscription_expired");
     return <>{children}</>;
   }
 
@@ -30,6 +32,7 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   if (subscriptionExpired) {
     // Armazenar o estado de expiração localmente para referência futura
     localStorage.setItem("subscription_expired", "true");
+    console.log("Subscription expired, redirecting to /expired");
     return <Navigate to="/expired" replace />;
   } else {
     // Se não está expirado, remover a flag de expirado se existir
