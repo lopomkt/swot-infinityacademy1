@@ -177,8 +177,8 @@ const PainelAdmin = () => {
     // Salvar o ID do relatório na sessionStorage para uso na página VisualizarRelatorio
     sessionStorage.setItem('relatorio_id', relatorio.id);
     
-    // Redirecionar para a página de visualização
-    navigate("/visualizar");
+    // Redirecionar para a página de visualização com ID na query string
+    navigate(`/visualizar?id=${relatorio.id}`);
   };
 
   const handleExcluir = async (id: string) => {
@@ -243,14 +243,12 @@ const PainelAdmin = () => {
     // Limpar qualquer relatório em sessão antes de ir para a ferramenta como cliente
     sessionStorage.removeItem("relatorio_id");
     localStorage.clear();
-    navigate("/?admin_teste=true");
+    navigate("/?modo_teste_admin=true");
   };
 
   const handleLogout = async () => {
-    // Limpar dados de sessão antes do logout
-    sessionStorage.removeItem("relatorio_id");
+    // Usar a função global de signOut do contexto de autenticação
     await signOut();
-    navigate("/auth");
   };
 
   const hasCompleteResult = (relatorio: Relatorio) => {
@@ -808,6 +806,7 @@ const PainelAdmin = () => {
       </Dialog>
       
       {/* Tag de controle */}
+      {/* correcao_total_autenticacao_redirecionamento_ok = true */}
       {/* fase6_reativacao_acesso_ok = true */}
     </div>
   );

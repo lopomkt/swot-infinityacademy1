@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useEffect, useContext, ReactNode } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase, isSubscriptionValid } from "@/integrations/supabase/client";
@@ -58,9 +59,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           console.log(`Sessão expirada após ${diasDesdeUltimoAcesso.toFixed(1)} dias de inatividade`);
           
           // Realizar logout e limpar dados
-          supabase.auth.signOut();
-          localStorage.clear();
-          sessionStorage.clear();
+          signOut();
           
           // Notificar o usuário
           setTimeout(() => {
@@ -92,6 +91,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         
         // Limpar dados de sessão
         sessionStorage.removeItem("relatorio_id");
+        localStorage.clear();
         
         // Redirecionar para autenticação
         navigate("/auth");
@@ -102,11 +102,31 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return () => clearTimeout(timeout);
   }, [loading, navigate]);
 
+  // Limpeza dos dados locais sempre que uma nova sessão de usuário é iniciada
+  useEffect(() => {
+    if (session) {
+      console.log("Nova sessão iniciada. Limpando dados residuais...");
+      localStorage.clear();
+      sessionStorage.clear();
+    }
+  }, [session]);
+
   useEffect(() => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, currentSession) => {
         console.log("Auth state changed:", event);
+        
+        if (event === 'SIGNED_OUT') {
+          // Clear all data on sign out
+          setSession(null);
+          setUser(null);
+          setUserData(null);
+          localStorage.clear();
+          sessionStorage.clear();
+          return;
+        }
+        
         setSession(currentSession);
         setUser(currentSession?.user ?? null);
       }
@@ -133,6 +153,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       try {
         // Limpar dados residuais de sessões anteriores
         localStorage.clear();
+        sessionStorage.clear();
         
         const { data, error } = await supabase
           .from("users")
@@ -152,7 +173,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         // Verificar expiração da assinatura
         const hoje = new Date();
         const validade = new Date(data.data_validade);
-        const expired = validade < hoje;
+        const expired = validade < hoje && !data.is_admin;
         
         setSubscriptionExpired(expired);
         
@@ -162,7 +183,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         } else if (expired) {
           navigate("/expired");
         } else {
-          navigate("/");
+          // Verifica se já está em uma rota específica
+          const currentPath = window.location.pathname;
+          if (currentPath === "/auth") {
+            navigate("/");
+          }
         }
         
         // Limpar qualquer armazenamento temporário de relatórios
@@ -182,6 +207,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const signIn = async (email: string, password: string, manterLogado = false) => {
     try {
+      // Limpar qualquer dado residual antes do login
+      localStorage.clear();
+      sessionStorage.clear();
+      
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
@@ -213,7 +242,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  // Simplificando a função signUp já que o cadastro agora é feito diretamente no AuthScreen
   const signUp = async (email: string, password: string, nome_empresa: string): Promise<SignUpResult> => {
     try {
       // Esta função agora é simplificada, pois a lógica real está no componente AuthScreen
@@ -226,11 +254,23 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
+  // Função global de logout, corrigida para limpar dados e redirecionar corretamente
   const signOut = async () => {
-    localStorage.removeItem('last_login_date');
-    sessionStorage.removeItem("relatorio_id");
-    await supabase.auth.signOut();
-    navigate("/auth");
+    try {
+      // Primeiro limpar todos os dados locais
+      localStorage.clear();
+      sessionStorage.clear();
+      
+      // Depois executar o logout no Supabase
+      await supabase.auth.signOut();
+      
+      // Redirecionamento forçado para garantir saída completa
+      window.location.href = "/auth";
+    } catch (error) {
+      console.error("Erro ao fazer logout:", error);
+      // Mesmo com erro, forçar redirecionamento
+      window.location.href = "/auth";
+    }
   };
 
   // Renderizar loading screen enquanto carrega dados do usuário

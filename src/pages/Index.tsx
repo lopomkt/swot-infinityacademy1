@@ -63,24 +63,28 @@ const Index = () => {
   const [relatorioConcluido, setRelatorioConcluido] = useState(false);
   
   // Verificar se é um teste de admin
-  const adminTeste = new URLSearchParams(location.search).get("admin_teste") === "true";
+  const modoAdminTeste = new URLSearchParams(location.search).get("modo_teste_admin") === "true";
   
   // Limpar dados residuais ao iniciar uma nova sessão
   useEffect(() => {
-    if (!adminTeste) {
+    if (!modoAdminTeste) {
+      console.log("Limpando dados para nova sessão normal");
       localStorage.clear();
       sessionStorage.clear();
       setFormData(estruturaInicialVazia);
     } else {
+      console.log("Modo teste de admin ativado");
       // Se for teste de admin, carregar dados salvos ou usar estrutura inicial
       setFormData(loadState<FormData>('swotForm') || estruturaInicialVazia);
     }
-  }, [adminTeste]);
+  }, [modoAdminTeste]);
   
   // Limpar localStorage quando o usuário fizer login
   useEffect(() => {
     if (session) {
+      console.log("Novo login detectado. Limpando armazenamento local.");
       localStorage.clear();
+      sessionStorage.clear();
     }
   }, [session]);
 
@@ -136,6 +140,7 @@ const Index = () => {
     // Clear localStorage items related to the form
     localStorage.removeItem('swotStep');
     localStorage.removeItem('swotForm');
+    sessionStorage.removeItem("relatorio_id");
     // Scroll back to top
     window.scrollTo({ top: 0, behavior: 'smooth' });
     setRelatorioConcluido(true);
@@ -155,7 +160,7 @@ const Index = () => {
       resetAppFlow();
 
       // Reset da tela com pequeno timeout para evitar race conditions
-      setTimeout(() => window.location.reload(), 100); // Força o estado inicial do Lovable
+      setTimeout(() => window.location.reload(), 100);
 
     } catch (error) {
       console.error('Erro ao resetar análise:', error);
@@ -389,6 +394,7 @@ const Index = () => {
         {/* fase4_nova_analise_ok = true */}
         {/* fase5_supabase_tabelas_ok = true */}
         {/* fase5_supabase_auth_ok = true */}
+        {/* correcao_total_autenticacao_redirecionamento_ok = true */}
       </div>
     </div>
   );

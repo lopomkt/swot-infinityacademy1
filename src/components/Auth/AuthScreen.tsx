@@ -58,7 +58,7 @@ const AuthScreen = () => {
     try {
       // Limpar qualquer armazenamento temporário de relatórios e dados residuais
       localStorage.clear();
-      sessionStorage.removeItem("relatorio_id");
+      sessionStorage.clear();
       
       const result = await signIn(data.email, data.password, manterLogado);
       if (result.success) {

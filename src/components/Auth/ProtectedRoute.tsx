@@ -13,7 +13,7 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const location = useLocation();
   
   // Check if user is testing as an admin
-  const adminTeste = location.search.includes("admin_teste=true");
+  const modoAdminTeste = location.search.includes("modo_teste_admin=true");
 
   // Mostrar tela de carregamento durante a verificação
   if (loading) {
@@ -36,9 +36,7 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   }
 
   // Redirecionar para a tela de expiração se a assinatura estiver vencida e não for um teste de admin
-  if (subscriptionExpired && !adminTeste) {
-    // Armazenar o estado de expiração localmente para referência futura
-    localStorage.setItem("subscription_expired", "true");
+  if (subscriptionExpired && !modoAdminTeste) {
     console.log("Subscription expired, redirecting to /expired");
     return <Navigate to="/expired" replace />;
   } else {

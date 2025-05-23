@@ -68,6 +68,7 @@ const ExpiredSubscription = () => {
       {/* Tag de controle */}
       <div className="hidden">
         {/* correcao_geral_sessao_dados_ok = true */}
+        {/* correcao_total_autenticacao_redirecionamento_ok = true */}
       </div>
     </div>
   );
