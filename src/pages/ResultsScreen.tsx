@@ -106,7 +106,8 @@ interface CascadeEffect {
 interface ResultsScreenProps {
   formData: FormData;
   onRestart?: () => void; 
-  onNovaAnalise?: () => void; // Added this new prop
+  onNovaAnalise?: () => void;
+  isViewMode?: boolean; // Added this prop
 }
 
 // Define the Suggestion interface to match what StrategicSuggestions expects
@@ -117,7 +118,7 @@ interface Suggestion {
   textColor: string;
 }
 
-const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData, onRestart, onNovaAnalise }) => {
+const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData, onRestart, onNovaAnalise, isViewMode }) => {
   // Enhanced fallback messages for better error handling
   if (!formData?.resultadoFinal) {
     return <p className="text-center text-gray-600 mt-12">Relatório ainda não disponível. Tente novamente em instantes.</p>;

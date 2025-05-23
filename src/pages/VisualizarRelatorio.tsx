@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
-import { FormData } from '@/types/formData';
+import { FormData } from "@/types/formData";
 import ResultsScreen from './ResultsScreen';
 import LoadingScreen from "@/components/Auth/LoadingScreen";
 import { Button } from "@/components/ui/button";
@@ -63,7 +63,7 @@ const VisualizarRelatorio = () => {
         
         // Combinar dados do formulário com resultado final
         const fullData: FormData = {
-          ...data.dados,
+          ...(data.dados || {}),
           resultadoFinal: data.resultado_final,
         };
         
