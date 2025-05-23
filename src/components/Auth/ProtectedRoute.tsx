@@ -31,6 +31,9 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     // Armazenar o estado de expiração localmente para referência futura
     localStorage.setItem("subscription_expired", "true");
     return <Navigate to="/expired" replace />;
+  } else {
+    // Se não está expirado, remover a flag de expirado se existir
+    localStorage.removeItem("subscription_expired");
   }
 
   // Se tudo estiver em ordem, renderizar o conteúdo protegido

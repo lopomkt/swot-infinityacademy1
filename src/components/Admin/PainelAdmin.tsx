@@ -256,6 +256,11 @@ const PainelAdmin = () => {
     return !!relatorio.resultado_final?.ai_block_pronto;
   };
 
+  // Função para verificar se um usuário está com acesso expirado
+  const isUsuarioExpirado = (usuario: Usuario) => {
+    return new Date(usuario.data_validade) < new Date();
+  };
+
   // Novas funções de gestão de usuários
   const editarUsuario = (usuario: Usuario) => {
     setUsuarioSelecionado(usuario);
@@ -288,12 +293,14 @@ const PainelAdmin = () => {
     }
   };
 
+  // Nova função para abrir o modal de prolongar prazo (reativar acesso)
   const abrirModalProlongarPrazo = (usuario: Usuario) => {
     setUsuarioSelecionado(usuario);
     setDiasExtras(30); // Reset para valor padrão
     setMostrarModalDias(true);
   };
 
+  // Função para prolongar o prazo de acesso (reativar usuário)
   const prolongarPrazo = async () => {
     if (!usuarioSelecionado) return;
     
@@ -427,15 +434,17 @@ const PainelAdmin = () => {
                               {!usuario.ativo && (
                                 <Badge variant="outline" className="bg-red-50 text-red-600 border-red-200">Inativo</Badge>
                               )}
-                              {new Date(usuario.data_validade) < new Date() && (
+                              {isUsuarioExpirado(usuario) && (
                                 <Badge variant="outline" className="bg-amber-50 text-amber-600 border-amber-200">Expirado</Badge>
                               )}
                             </div>
                             <p className="text-gray-500 flex items-center gap-1">
                               <User size={14} /> {usuario.email}
                             </p>
-                            <p className="text-gray-500 flex items-center gap-1">
-                              <Clock size={14} /> Validade: {format(new Date(usuario.data_validade), "dd/MM/yyyy")}
+                            <p className={`flex items-center gap-1 ${isUsuarioExpirado(usuario) ? 'text-red-500' : 'text-gray-500'}`}>
+                              <Clock size={14} /> 
+                              Validade: {format(new Date(usuario.data_validade), "dd/MM/yyyy")}
+                              {isUsuarioExpirado(usuario) && <span className="text-red-500 text-xs ml-2">(Acesso expirado)</span>}
                             </p>
                           </div>
                           
@@ -454,7 +463,7 @@ const PainelAdmin = () => {
                               onClick={() => abrirModalProlongarPrazo(usuario)}
                               disabled={processandoOperacao}
                             >
-                              + Dias
+                              {isUsuarioExpirado(usuario) ? "Reativar Acesso" : "+ Dias"}
                             </Button>
                             <Button 
                               size="sm" 
@@ -725,11 +734,15 @@ const PainelAdmin = () => {
         </DialogContent>
       </Dialog>
       
-      {/* Modal para Prolongar Prazo */}
+      {/* Modal para Prolongar Prazo / Reativar Acesso */}
       <Dialog open={mostrarModalDias} onOpenChange={setMostrarModalDias}>
         <DialogContent className="sm:max-w-[400px]">
           <DialogHeader>
-            <DialogTitle>Prolongar Prazo de Validade</DialogTitle>
+            <DialogTitle>
+              {usuarioSelecionado && isUsuarioExpirado(usuarioSelecionado) 
+                ? "Reativar Acesso do Usuário" 
+                : "Prolongar Prazo de Validade"}
+            </DialogTitle>
           </DialogHeader>
           
           {usuarioSelecionado && (
@@ -740,13 +753,16 @@ const PainelAdmin = () => {
                 </p>
                 <p className="text-sm mb-4">
                   <strong>Validade atual:</strong> {format(new Date(usuarioSelecionado.data_validade), "dd/MM/yyyy")}
+                  {isUsuarioExpirado(usuarioSelecionado) && (
+                    <span className="text-red-500 text-xs ml-2">(Expirado)</span>
+                  )}
                 </p>
               </div>
               
               <div className="space-y-2">
                 <label className="text-sm font-medium">Adicionar dias</label>
-                <div className="flex gap-2">
-                  {[30, 60, 90, 180, 365].map((dias) => (
+                <div className="flex gap-2 flex-wrap">
+                  {[15, 30, 60, 90, 180, 365].map((dias) => (
                     <Button 
                       key={dias}
                       type="button"
@@ -782,14 +798,16 @@ const PainelAdmin = () => {
             </Button>
             <Button onClick={prolongarPrazo} disabled={processandoOperacao || diasExtras <= 0}>
               {processandoOperacao ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-              Prolongar Assinatura
+              {usuarioSelecionado && isUsuarioExpirado(usuarioSelecionado) 
+                ? "Reativar Acesso" 
+                : "Prolongar Assinatura"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
       
       {/* Tag de controle */}
-      {/* fase6_admin_gestao_ok = true */}
+      {/* fase6_reativacao_acesso_ok = true */}
     </div>
   );
 };
