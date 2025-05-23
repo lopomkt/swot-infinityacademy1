@@ -1,85 +1,73 @@
 
+import React, { useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/contexts/AuthContext";
-import { CalendarX, Mail, RefreshCw, Phone } from "lucide-react";
-import { useEffect } from "react";
+import { ChevronRight } from "lucide-react";
 
 const ExpiredSubscription = () => {
-  const { signOut } = useAuth();
-
-  // Set document title for this page
+  // Set page title
   useEffect(() => {
     document.title = "Acesso Expirado | SWOT INSIGHTS";
-    
-    // Restore original title when component unmounts
     return () => {
-      document.title = "SWOT INSIGHTS | Infinity Academy";
+      document.title = "SWOT INSIGHTS";
     };
   }, []);
 
-  // Função para verificar novamente o status da assinatura
-  const checkAgain = () => {
-    localStorage.removeItem("subscription_expired");
-    window.location.reload();
-  };
-
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-6 overflow-x-hidden">
-      <div className="w-full max-w-md text-center">
-        <div className="bg-white rounded-xl p-8 shadow-md">
-          <div className="flex justify-center mb-6">
-            <CalendarX size={64} className="text-[#ef0002]" />
+    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-6 py-12 text-center">
+      <div className="max-w-md w-full bg-white rounded-lg shadow-md overflow-hidden">
+        <div className="p-6">
+          <h1 className="text-2xl font-bold mb-4 text-red-600">Acesso Expirado</h1>
+          
+          <div className="mb-6">
+            <img
+              src="https://images.unsplash.com/photo-1556761175-129418cb2dfe?auto=format&fit=crop&w=1350&q=80"
+              alt="Dashboard estratégico"
+              className="w-full h-auto object-cover rounded"
+              onError={(e) => {
+                e.currentTarget.src = "https://via.placeholder.com/800x400?text=Estrategia+Empresarial";
+              }}
+            />
           </div>
           
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Acesso Expirado</h1>
-          
-          <p className="text-gray-800 mb-4">
-            O período de acesso à ferramenta SWOT INSIGHTS chegou ao fim, conforme sua 
-            contratação com a consultoria INFINITY ACADEMY.
+          <p className="text-gray-800 font-medium mb-4">
+            O período de acesso à ferramenta SWOT INSIGHTS chegou ao fim, conforme sua contratação com a consultoria INFINITY ACADEMY.
           </p>
           
-          <p className="text-gray-700 mb-6">
-            Para continuar usando esta solução estratégica e liberar acesso a ferramentas 
-            profissionais exclusivas que serão lançadas, entre em contato com nossa equipe.
+          <p className="text-gray-600 mb-8">
+            Para continuar usando esta solução estratégica e liberar acesso a ferramentas profissionais exclusivas que serão lançadas, entre em contato com nossa equipe.
           </p>
           
-          <div className="space-y-4">
-            <a 
-              href="https://wa.me/5511999999999" 
+          <div className="space-y-3">
+            <a
+              href="https://wa.me/5511999999999" // Substituir pelo número oficial da Infinity
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 w-full p-3 bg-[#25D366] hover:bg-[#20BD5C] text-white rounded-lg transition-colors shadow-sm"
+              className="inline-flex w-full items-center justify-center px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition duration-200"
             >
-              <Phone size={18} />
-              Falar com a Equipe da INFINITY
+              <span>Falar via WhatsApp</span>
+              <ChevronRight className="ml-2 h-5 w-5" />
             </a>
             
-            <a 
+            <a
               href="mailto:contato@infinityacademy.com.br"
-              className="flex items-center justify-center gap-2 w-full p-3 bg-[#ef0002] hover:bg-[#b70001] text-white rounded-lg transition-colors shadow-sm"
+              className="inline-flex w-full items-center justify-center px-6 py-3 border border-gray-300 bg-white text-gray-700 rounded-md hover:bg-gray-50 transition duration-200"
             >
-              <Mail size={18} />
-              Solicitar Renovação por E-mail
+              <span>Enviar email</span>
+              <ChevronRight className="ml-2 h-5 w-5" />
             </a>
-            
-            <Button 
-              variant="outline" 
-              className="w-full flex items-center justify-center gap-2 hover:bg-gray-50"
-              onClick={checkAgain}
-            >
-              <RefreshCw size={18} />
-              Verificar Novamente
-            </Button>
-            
-            <Button 
-              variant="link" 
-              className="w-full text-gray-500 hover:text-gray-700"
-              onClick={() => signOut()}
-            >
-              Voltar para a tela de login
-            </Button>
           </div>
         </div>
+        
+        <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
+          <p className="text-sm text-gray-500">
+            Equipe INFINITY ACADEMY - Consultoria Estratégica
+          </p>
+        </div>
+      </div>
+      
+      {/* Tag de controle */}
+      <div className="hidden">
+        {/* correcao_geral_sessao_dados_ok = true */}
       </div>
     </div>
   );

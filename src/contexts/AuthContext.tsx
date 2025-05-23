@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useEffect, useContext, ReactNode } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase, isSubscriptionValid } from "@/integrations/supabase/client";
@@ -60,7 +59,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           
           // Realizar logout e limpar dados
           supabase.auth.signOut();
-          localStorage.removeItem('last_login_date');
+          localStorage.clear();
+          sessionStorage.clear();
           
           // Notificar o usuário
           setTimeout(() => {
@@ -131,6 +131,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       setLoading(true);
       try {
+        // Limpar dados residuais de sessões anteriores
+        localStorage.clear();
+        
         const { data, error } = await supabase
           .from("users")
           .select("*")

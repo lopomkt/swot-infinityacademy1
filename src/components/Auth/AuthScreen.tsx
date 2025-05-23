@@ -56,7 +56,8 @@ const AuthScreen = () => {
   const onLoginSubmit = async (data: LoginFormValues) => {
     setIsLoading(true);
     try {
-      // Limpar qualquer armazenamento temporário de relatórios
+      // Limpar qualquer armazenamento temporário de relatórios e dados residuais
+      localStorage.clear();
       sessionStorage.removeItem("relatorio_id");
       
       const result = await signIn(data.email, data.password, manterLogado);

@@ -242,7 +242,8 @@ const PainelAdmin = () => {
   const handleTestarComoCliente = () => {
     // Limpar qualquer relatório em sessão antes de ir para a ferramenta como cliente
     sessionStorage.removeItem("relatorio_id");
-    navigate("/");
+    localStorage.clear();
+    navigate("/?admin_teste=true");
   };
 
   const handleLogout = async () => {

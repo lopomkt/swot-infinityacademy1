@@ -26,10 +26,11 @@ const ResultsScreenWrapper: React.FC<ResultsScreenWrapperProps> = ({
   // 2. User is not on /visualizar page AND
   // 3. User is not an admin
   const isResultReady = !!formData.resultadoFinal?.ai_block_pronto;
-  const isVisualizarPage = location.pathname === '/visualizar';
+  const isVisualizarPage = location.pathname.includes('/visualizar');
   const isAdmin = userData?.is_admin === true;
+  const adminTeste = new URLSearchParams(location.search).get("admin_teste") === "true";
   
-  const showNovaAnaliseButton = isResultReady && !isVisualizarPage && !isAdmin;
+  const showNovaAnaliseButton = isResultReady && !isVisualizarPage && !isAdmin && !adminTeste;
 
   // Handler with confirmation for Nova Análise
   const handleNovaAnalise = () => {

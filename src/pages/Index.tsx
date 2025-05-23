@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import ProgressBar from "@/components/ProgressBar";
 import WelcomeStep from "@/components/WelcomeStep";
@@ -15,6 +16,24 @@ import { FormData } from "@/types/formData";
 import { saveState, loadState } from "@/lib/persistence";
 import { Lightbulb, Star, Flag, TrendingUp, TrendingDown, ArrowRight } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useLocation } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+
+// Estrutura inicial vazia para garantir reset correto dos dados
+const estruturaInicialVazia: FormData = {
+  tipagem_index_ok: true,
+  fase5_transicoes_ok: true,
+  fase5_voltar_ok: true,
+  fase5_gamificacao_ok: true,
+  fase5_finalizacao_ok: true,
+  fase5_resultado_final_ok: true,
+  fase6_1_welcome_transicoes_premium_ok: true,
+  fase6_2_resultado_premium_visual_ok: true,
+  fase6_3_design_final_pdf_ok: true,
+  fase7_1_ui_ux_gamificada_ok: true,
+  fase7_3_polimento_final_ok: true,
+  fase7_5_1_correcao_total_ok: true,
+};
 
 const STEPS = [
   { label: "Boas-vindas" },
@@ -37,22 +56,35 @@ const STEPS = [
 
 const Index = () => {
   const isMobile = useIsMobile();
-  const [step, setStep] = useState<number>(0); // Start with default 0
-  const [formData, setFormData] = useState<FormData>(loadState<FormData>('swotForm') || {
-    tipagem_index_ok: true,
-    fase5_transicoes_ok: true,
-    fase5_voltar_ok: true,
-    fase5_gamificacao_ok: true,
-    fase5_finalizacao_ok: true,
-    fase5_resultado_final_ok: true,
-    fase6_1_welcome_transicoes_premium_ok: true,
-    fase6_2_resultado_premium_visual_ok: true,
-    fase6_3_design_final_pdf_ok: true,
-    fase7_1_ui_ux_gamificada_ok: true,
-    fase7_3_polimento_final_ok: true,
-  });
+  const location = useLocation();
+  const { session } = useAuth();
+  const [step, setStep] = useState<number>(0);
+  const [formData, setFormData] = useState<FormData>(estruturaInicialVazia);
+  const [relatorioConcluido, setRelatorioConcluido] = useState(false);
+  
+  // Verificar se é um teste de admin
+  const adminTeste = new URLSearchParams(location.search).get("admin_teste") === "true";
+  
+  // Limpar dados residuais ao iniciar uma nova sessão
+  useEffect(() => {
+    if (!adminTeste) {
+      localStorage.clear();
+      sessionStorage.clear();
+      setFormData(estruturaInicialVazia);
+    } else {
+      // Se for teste de admin, carregar dados salvos ou usar estrutura inicial
+      setFormData(loadState<FormData>('swotForm') || estruturaInicialVazia);
+    }
+  }, [adminTeste]);
+  
+  // Limpar localStorage quando o usuário fizer login
+  useEffect(() => {
+    if (session) {
+      localStorage.clear();
+    }
+  }, [session]);
 
-  // Only load step from localStorage on mobile devices
+  // Apenas carregar step do localStorage em dispositivos móveis
   useEffect(() => {
     if (isMobile) {
       const savedStep = loadState<number>('swotStep');
@@ -62,19 +94,27 @@ const Index = () => {
     }
   }, [isMobile]);
 
-  // Save form data to localStorage whenever it changes
+  // Salvar form data para localStorage sempre que mudar
   useEffect(() => {
     saveState('swotForm', formData);
   }, [formData]);
 
-  // Save step to localStorage whenever it changes, but only on mobile
+  // Salvar step para localStorage sempre que mudar (apenas em mobile)
   useEffect(() => {
     if (isMobile) {
       saveState('swotStep', step);
     }
   }, [step, isMobile]);
 
-  // Scroll to top whenever step changes
+  // Limpar formData quando um relatório for concluído
+  useEffect(() => {
+    if (relatorioConcluido) {
+      localStorage.removeItem("swotForm");
+      setRelatorioConcluido(false);
+    }
+  }, [relatorioConcluido]);
+
+  // Scroll to top quando step mudar
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [step]);
@@ -85,43 +125,20 @@ const Index = () => {
   };
 
   const resetForm = () => {
-    setFormData({ 
-      tipagem_index_ok: true,
-      fase5_transicoes_ok: true,
-      fase5_voltar_ok: true,
-      fase5_gamificacao_ok: true,
-      fase5_finalizacao_ok: true,
-      fase5_resultado_final_ok: true,
-      fase6_1_welcome_transicoes_premium_ok: true,
-      fase6_2_resultado_premium_visual_ok: true,
-      fase6_3_design_final_pdf_ok: true,
-      fase7_1_ui_ux_gamificada_ok: true,
-    });
+    setFormData(estruturaInicialVazia);
     setStep(0);
   };
 
   // Function to completely reset app flow after report generation
   const resetAppFlow = () => {
-    setFormData({
-      tipagem_index_ok: true,
-      fase5_transicoes_ok: true,
-      fase5_voltar_ok: true,
-      fase5_gamificacao_ok: true,
-      fase5_finalizacao_ok: true,
-      fase5_resultado_final_ok: true,
-      fase6_1_welcome_transicoes_premium_ok: true,
-      fase6_2_resultado_premium_visual_ok: true,
-      fase6_3_design_final_pdf_ok: true,
-      fase7_1_ui_ux_gamificada_ok: true,
-      fase7_3_polimento_final_ok: true,
-      fase7_5_1_correcao_total_ok: true,
-    });
+    setFormData(estruturaInicialVazia);
     setStep(0);
     // Clear localStorage items related to the form
     localStorage.removeItem('swotStep');
     localStorage.removeItem('swotForm');
     // Scroll back to top
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    setRelatorioConcluido(true);
   };
 
   // Updated function to handle starting a new analysis

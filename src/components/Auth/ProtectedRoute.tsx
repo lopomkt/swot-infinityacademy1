@@ -1,6 +1,6 @@
 
-import { ReactNode } from "react";
-import { Navigate } from "react-router-dom";
+import { ReactNode, useEffect } from "react";
+import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import LoadingScreen from "@/components/Auth/LoadingScreen";
 
@@ -10,6 +10,10 @@ interface ProtectedRouteProps {
 
 const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const { user, loading, userData, subscriptionExpired } = useAuth();
+  const location = useLocation();
+  
+  // Check if user is testing as an admin
+  const adminTeste = location.search.includes("admin_teste=true");
 
   // Mostrar tela de carregamento durante a verificação
   if (loading) {
@@ -18,6 +22,9 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 
   // Redirecionar para autenticação se não estiver logado
   if (!user) {
+    // Clear any leftover data from previous sessions
+    localStorage.clear();
+    sessionStorage.clear();
     return <Navigate to="/auth" replace />;
   }
 
@@ -28,8 +35,8 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     return <>{children}</>;
   }
 
-  // Redirecionar para a tela de expiração se a assinatura estiver vencida
-  if (subscriptionExpired) {
+  // Redirecionar para a tela de expiração se a assinatura estiver vencida e não for um teste de admin
+  if (subscriptionExpired && !adminTeste) {
     // Armazenar o estado de expiração localmente para referência futura
     localStorage.setItem("subscription_expired", "true");
     console.log("Subscription expired, redirecting to /expired");
