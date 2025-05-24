@@ -1,3 +1,4 @@
+
 import React, { useState, lazy, Suspense, useEffect } from "react";
 import { 
   Check, 
@@ -101,6 +102,14 @@ interface CascadeEffect {
   from: string;
   to: string;
   message: string;
+}
+
+// Define the Suggestion interface to match what StrategicSuggestions expects
+interface Suggestion {
+  title: string;
+  description: string;
+  borderColor: string; 
+  textColor: string;
 }
 
 interface ResultsScreenProps {
