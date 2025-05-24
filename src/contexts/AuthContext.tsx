@@ -60,7 +60,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       if (!data) {
         console.warn("Usuário não encontrado na tabela users:", userId);
-        toast.error("Cadastro incompleto. Entre em contato com o suporte.");
+        toast.error("Usuário não possui cadastro completo. Entre em contato com o suporte.");
         return null;
       }
 

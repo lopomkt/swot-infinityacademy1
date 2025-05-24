@@ -76,11 +76,11 @@ const VisualizarRelatorio = () => {
         // Verificar se resultado_final é um objeto antes de atribuir
         const resultadoFinal = typeof data.resultado_final === 'object' && data.resultado_final !== null 
           ? data.resultado_final 
-          : {};
+          : null;
         
         // Combinar dados do formulário com resultado final
         const fullData: FormData = {
-          ...dadosForm as Record<string, unknown>,
+          ...(dadosForm as Partial<FormData>),
           resultadoFinal: resultadoFinal as FormData['resultadoFinal'],
         };
         

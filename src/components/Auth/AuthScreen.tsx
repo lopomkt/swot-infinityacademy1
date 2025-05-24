@@ -1,323 +1,287 @@
 
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { useAuth } from "@/contexts/AuthContext";
-import { toast } from "@/components/ui/sonner";
-import { Loader2 } from "lucide-react";
-import { Checkbox } from "@/components/ui/checkbox";
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
-
-const loginSchema = z.object({
-  email: z.string().email("Email inválido"),
-  password: z.string().min(6, "A senha precisa ter pelo menos 6 caracteres")
-});
-
-const registerSchema = z.object({
-  nome_empresa: z.string().min(3, "Nome da empresa precisa ter pelo menos 3 caracteres"),
-  email: z.string().email("Email inválido"),
-  password: z.string().min(6, "A senha precisa ter pelo menos 6 caracteres")
-});
-
-type LoginFormValues = z.infer<typeof loginSchema>;
-type RegisterFormValues = z.infer<typeof registerSchema>;
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Checkbox } from "@/components/ui/checkbox";
+import { toast } from "@/components/ui/sonner";
+import { useAuth } from "@/contexts/AuthContext";
+import { Eye, EyeOff, Mail, Lock, Building } from "lucide-react";
 
 const AuthScreen = () => {
-  const [activeTab, setActiveTab] = useState<string>("login");
-  const [isLoading, setIsLoading] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [nomeEmpresa, setNomeEmpresa] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [manterLogado, setManterLogado] = useState(false);
-  const { signIn } = useAuth();
+  const { signIn, user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
-  const loginForm = useForm<LoginFormValues>({
-    resolver: zodResolver(loginSchema),
-    defaultValues: {
-      email: "",
-      password: ""
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (user) {
+      navigate('/');
     }
-  });
+  }, [user, navigate]);
 
-  const registerForm = useForm<RegisterFormValues>({
-    resolver: zodResolver(registerSchema),
-    defaultValues: {
-      nome_empresa: "",
-      email: "",
-      password: ""
+  const handleSignIn = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || !password) {
+      toast.error("Por favor, preencha todos os campos");
+      return;
     }
-  });
 
-  const onLoginSubmit = async (data: LoginFormValues) => {
-    setIsLoading(true);
+    setLoading(true);
     try {
-      // Limpar qualquer armazenamento temporário de relatórios e dados residuais
-      localStorage.clear();
-      sessionStorage.clear();
+      const result = await signIn(email, password, manterLogado);
       
-      const result = await signIn(data.email, data.password, manterLogado);
       if (result.success) {
-        toast.success(result.message);
-        // Não precisa de navigate aqui - AuthContext irá redirecionar com base no tipo de usuário
+        toast.success("Login realizado com sucesso!");
+        // Redirecionamento será handled pelo AuthContext
       } else {
-        toast.error(result.message);
+        toast.error(result.message || "Erro ao fazer login");
       }
-    } catch (error) {
+    } catch (error: any) {
       toast.error("Erro ao fazer login");
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
-  const onRegisterSubmit = async (data: RegisterFormValues) => {
-    setIsLoading(true);
-    try {
-      // Verificar se todos os campos estão preenchidos
-      const { email, password, nome_empresa } = data;
-      
-      if (!email || !password || !nome_empresa) {
-        toast.error("Preencha todos os campos.");
-        setIsLoading(false);
-        return;
-      }
+  const handleSignUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || !password || !nomeEmpresa) {
+      toast.error("Por favor, preencha todos os campos");
+      return;
+    }
 
-      // Cadastro no Supabase Auth
-      const { data: authData, error } = await supabase.auth.signUp({
+    if (password.length < 6) {
+      toast.error("A senha deve ter pelo menos 6 caracteres");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // 1. Criar usuário no Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          data: { nome_empresa },
-        },
+          data: {
+            nome_empresa: nomeEmpresa
+          }
+        }
       });
 
-      if (error) {
-        toast.error("Erro ao cadastrar: " + error.message);
-        setIsLoading(false);
+      if (authError) {
+        if (authError.message?.includes('User already registered')) {
+          toast.error("Este e-mail já está cadastrado. Tente fazer login.");
+        } else {
+          toast.error(authError.message || "Erro ao criar conta");
+        }
         return;
       }
-      
-      const { user } = authData;
 
-      if (user) {
-        // Obter a sessão atual para garantir que o usuário está autenticado
-        const { data: sessionData } = await supabase.auth.getSession();
-        const userId = sessionData?.session?.user?.id || user.id;
-        
-        // Verificar se o usuário já existe na tabela users
-        const { data: existingUser } = await supabase
+      if (!authData?.user?.id) {
+        toast.error("Erro ao obter dados do usuário após cadastro");
+        return;
+      }
+
+      // 2. Verificar se já existe registro na tabela users
+      const { data: existingUser } = await supabase
+        .from("users")
+        .select("*")
+        .eq("id", authData.user.id)
+        .maybeSingle();
+
+      // 3. Criar registro na tabela users se não existir
+      if (!existingUser) {
+        const { error: insertError } = await supabase
           .from("users")
-          .select("*")
-          .eq("id", userId)
-          .maybeSingle();
-
-        if (!existingUser) {
-          // Criar registro na tabela users com sincronização total
-          const dataValidade = new Date(Date.now() + 1000 * 60 * 60 * 24 * 30).toISOString(); // 30 dias
-          const dataEntrada = new Date().toISOString();
-          
-          const { error: insertError } = await supabase.from("users").insert({
-            id: userId,
-            email: user.email,
-            nome_empresa,
+          .insert({
+            id: authData.user.id,
+            email,
+            nome_empresa: nomeEmpresa,
             is_admin: false,
-            data_validade: dataValidade,
-            data_entrada: dataEntrada,
+            data_validade: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30).toISOString(), // 30 dias
+            data_entrada: new Date().toISOString(),
             ativo: true
           });
 
-          if (insertError) {
-            console.error("Erro ao criar registro na tabela users:", insertError);
-            toast.error("Erro ao finalizar cadastro: " + insertError.message);
-            setIsLoading(false);
-            return;
-          }
+        if (insertError) {
+          console.error("Erro ao criar registro do usuário:", insertError);
+          toast.error("Erro ao finalizar cadastro. Entre em contato com o suporte.");
+          return;
         }
-        
-        toast.success("Cadastro realizado com sucesso!");
-        setActiveTab("login"); // Mudar para aba de login após cadastro
       }
+
+      toast.success("Conta criada com sucesso! Você será redirecionado automaticamente.");
       
+      // O AuthContext detectará o novo usuário e fará o redirecionamento
     } catch (error: any) {
-      toast.error("Erro inesperado: " + (error?.message || "Falha no cadastro"));
+      console.error("Erro durante cadastro:", error);
+      toast.error("Erro ao criar conta. Tente novamente.");
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50 p-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-gray-800">SWOT INSIGHTS</h1>
-          <p className="text-gray-600 mt-2">Plataforma de Diagnóstico Estratégico</p>
-        </div>
-        
-        <Tabs defaultValue="login" value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="login">Login</TabsTrigger>
-            <TabsTrigger value="register">Cadastro</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="login">
-            <Card>
-              <CardHeader>
-                <CardTitle>Acesse sua conta</CardTitle>
-                <CardDescription>Digite seu email e senha para continuar</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Form {...loginForm}>
-                  <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-4">
-                    <FormField
-                      control={loginForm.control}
-                      name="email"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Email</FormLabel>
-                          <FormControl>
-                            <Input placeholder="seu@email.com" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader className="text-center">
+          <CardTitle className="text-2xl font-bold text-blue-900">
+            INFINITY ACADEMY
+          </CardTitle>
+          <CardDescription className="text-blue-600">
+            SWOT INSIGHTS - Análise Estratégica Inteligente
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Tabs defaultValue="login" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="login">Entrar</TabsTrigger>
+              <TabsTrigger value="signup">Cadastro</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="login">
+              <form onSubmit={handleSignIn} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="login-email">E-mail</Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <Input
+                      id="login-email"
+                      type="email"
+                      placeholder="seu@email.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="pl-10"
+                      required
                     />
-                    <FormField
-                      control={loginForm.control}
-                      name="password"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Senha</FormLabel>
-                          <FormControl>
-                            <Input type="password" placeholder="******" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="login-password">Senha</Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <Input
+                      id="login-password"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Sua senha"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="pl-10 pr-10"
+                      required
                     />
-                    <div className="flex items-center gap-2 mt-2">
-                      <Checkbox 
-                        id="manter-logado"
-                        checked={manterLogado}
-                        onCheckedChange={() => setManterLogado(!manterLogado)}
-                      />
-                      <label 
-                        htmlFor="manter-logado" 
-                        className="text-sm text-gray-600 cursor-pointer"
-                      >
-                        Manter logado
-                      </label>
-                    </div>
-                    <Button 
-                      type="submit" 
-                      className="w-full bg-[#ef0002] hover:bg-[#b70001]" 
-                      disabled={isLoading}
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-3 h-4 w-4 text-gray-400 hover:text-gray-600"
                     >
-                      {isLoading ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Carregando...
-                        </>
-                      ) : (
-                        "Entrar"
-                      )}
-                    </Button>
-                  </form>
-                </Form>
-              </CardContent>
-              <CardFooter className="flex justify-center">
-                <Button 
-                  variant="link" 
-                  onClick={() => setActiveTab("register")}
-                  className="text-sm text-gray-600"
-                >
-                  Não tem uma conta? Cadastre-se
-                </Button>
-              </CardFooter>
-            </Card>
-          </TabsContent>
+                      {showPassword ? <EyeOff /> : <Eye />}
+                    </button>
+                  </div>
+                </div>
 
-          <TabsContent value="register">
-            <Card>
-              <CardHeader>
-                <CardTitle>Crie sua conta</CardTitle>
-                <CardDescription>Preencha os campos abaixo para cadastrar</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Form {...registerForm}>
-                  <form onSubmit={registerForm.handleSubmit(onRegisterSubmit)} className="space-y-4">
-                    <FormField
-                      control={registerForm.control}
-                      name="nome_empresa"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Nome da Empresa</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Sua Empresa Ltda." {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={registerForm.control}
-                      name="email"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Email</FormLabel>
-                          <FormControl>
-                            <Input placeholder="seu@email.com" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={registerForm.control}
-                      name="password"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Senha</FormLabel>
-                          <FormControl>
-                            <Input type="password" placeholder="******" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <Button 
-                      type="submit" 
-                      className="w-full bg-[#ef0002] hover:bg-[#b70001]" 
-                      disabled={isLoading || !registerForm.formState.isValid}
-                    >
-                      {isLoading ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Criando conta...
-                        </>
-                      ) : (
-                        "Cadastrar"
-                      )}
-                    </Button>
-                  </form>
-                </Form>
-              </CardContent>
-              <CardFooter className="flex justify-center">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="manter-logado"
+                    checked={manterLogado}
+                    onCheckedChange={setManterLogado}
+                  />
+                  <Label htmlFor="manter-logado" className="text-sm">
+                    Manter-me conectado
+                  </Label>
+                </div>
+                
                 <Button 
-                  variant="link" 
-                  onClick={() => setActiveTab("login")}
-                  className="text-sm text-gray-600"
+                  type="submit" 
+                  className="w-full bg-blue-600 hover:bg-blue-700" 
+                  disabled={loading}
                 >
-                  Já tem uma conta? Faça login
+                  {loading ? "Entrando..." : "Entrar"}
                 </Button>
-              </CardFooter>
-            </Card>
-          </TabsContent>
-        </Tabs>
-      </div>
+              </form>
+            </TabsContent>
+            
+            <TabsContent value="signup">
+              <form onSubmit={handleSignUp} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="signup-empresa">Nome da Empresa</Label>
+                  <div className="relative">
+                    <Building className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <Input
+                      id="signup-empresa"
+                      type="text"
+                      placeholder="Nome da sua empresa"
+                      value={nomeEmpresa}
+                      onChange={(e) => setNomeEmpresa(e.target.value)}
+                      className="pl-10"
+                      required
+                    />
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="signup-email">E-mail</Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <Input
+                      id="signup-email"
+                      type="email"
+                      placeholder="seu@email.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="pl-10"
+                      required
+                    />
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="signup-password">Senha</Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <Input
+                      id="signup-password"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Mínimo 6 caracteres"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="pl-10 pr-10"
+                      required
+                      minLength={6}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-3 h-4 w-4 text-gray-400 hover:text-gray-600"
+                    >
+                      {showPassword ? <EyeOff /> : <Eye />}
+                    </button>
+                  </div>
+                </div>
+                
+                <Button 
+                  type="submit" 
+                  className="w-full bg-green-600 hover:bg-green-700" 
+                  disabled={loading}
+                >
+                  {loading ? "Criando conta..." : "Criar conta"}
+                </Button>
+              </form>
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
     </div>
   );
 };
