@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useEffect, useContext, ReactNode } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase, isSubscriptionValid } from "@/integrations/supabase/client";
@@ -42,29 +41,38 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
   const [subscriptionExpired, setSubscriptionExpired] = useState(false);
+  const [jaRedirecionou, setJaRedirecionou] = useState(false);
   const navigate = useNavigate();
 
-  // Função para carregar dados do usuário com tratamento robusto
-  const fetchUserData = async (userId: string): Promise<UserData | null> => {
+  // Função para carregar dados do usuário com retry automático
+  const fetchUserData = async (userId: string, retries = 3): Promise<UserData | null> => {
     try {
-      const { data, error } = await supabase
-        .from("users")
-        .select("*")
-        .eq("id", userId)
-        .maybeSingle(); // <- permite retorno null sem erro
+      for (let i = 0; i < retries; i++) {
+        const { data, error } = await supabase
+          .from("users")
+          .select("*")
+          .eq("id", userId)
+          .maybeSingle();
 
-      if (error) {
-        console.error("Erro na consulta do usuário:", error);
-        return null;
+        if (error) {
+          console.error(`Tentativa ${i + 1} - Erro na consulta do usuário:`, error);
+          if (i === retries - 1) return null;
+          await new Promise((res) => setTimeout(res, 300));
+          continue;
+        }
+
+        if (data) {
+          return data as UserData;
+        }
+
+        // Se não encontrou dados, aguarda antes da próxima tentativa
+        if (i < retries - 1) {
+          await new Promise((res) => setTimeout(res, 300));
+        }
       }
 
-      if (!data) {
-        console.warn("Usuário não encontrado na tabela users:", userId);
-        toast.error("Erro: seu cadastro está incompleto. Contate a equipe.");
-        return null;
-      }
-
-      return data as UserData;
+      console.warn("Usuário não encontrado na tabela users após todas as tentativas:", userId);
+      return null;
     } catch (err) {
       console.error("Erro ao carregar dados do usuário:", err);
       return null;
@@ -85,10 +93,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         if (diasDesdeUltimoAcesso > DIAS_EXPIRACAO_LOGIN) {
           console.log(`Sessão expirada após ${diasDesdeUltimoAcesso.toFixed(1)} dias de inatividade`);
           
-          // Realizar logout e limpar dados
           signOut();
           
-          // Notificar o usuário
           setTimeout(() => {
             toast.info("Sua sessão expirou por inatividade. Faça login novamente.");
           }, 500);
@@ -116,15 +122,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         console.error("Timeout de carregamento do perfil de usuário");
         toast.error("Tempo esgotado. Refaça o login.");
         
-        // Limpar dados de sessão
         sessionStorage.removeItem("relatorio_id");
         localStorage.clear();
         
-        // Redirecionar para autenticação
         navigate("/auth");
         setLoading(false);
       }
-    }, 15000); // 15 segundos
+    }, 15000);
 
     return () => clearTimeout(timeout);
   }, [loading, navigate]);
@@ -145,10 +149,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         console.log("Auth state changed:", event);
         
         if (event === 'SIGNED_OUT') {
-          // Clear all data on sign out
           setSession(null);
           setUser(null);
           setUserData(null);
+          setJaRedirecionou(false);
           localStorage.clear();
           sessionStorage.clear();
           return;
@@ -180,21 +184,31 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
 
       setLoading(true);
+      setJaRedirecionou(false);
+      
       try {
-        // Limpar dados residuais de sessões anteriores
         localStorage.clear();
         sessionStorage.clear();
+        
+        // Delay para evitar race condition com Supabase Auth
+        await new Promise((res) => setTimeout(res, 300));
         
         const data = await fetchUserData(session.user.id);
 
         if (!data) {
           console.error("Não foi possível carregar dados do usuário");
+          if (!loading) {
+            toast.error("Erro: seu cadastro está incompleto. Contate a equipe.");
+          }
           setUserData(null);
           navigate("/auth");
           return;
         }
 
         setUserData(data);
+        
+        // Toast de sucesso apenas após confirmar userData
+        toast.success("Login realizado com sucesso!");
         
         // Verificar expiração da assinatura
         const hoje = new Date();
@@ -203,25 +217,28 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         
         setSubscriptionExpired(expired);
         
-        // Redirecionar baseado no tipo de usuário
-        if (data.is_admin) {
-          navigate("/admin");
-        } else if (expired) {
-          navigate("/expired");
-        } else {
-          // Verifica se já está em uma rota específica
-          const currentPath = window.location.pathname;
-          if (currentPath === "/auth") {
-            navigate("/");
+        // Redirecionar baseado no tipo de usuário - com controle de múltiplas chamadas
+        if (!jaRedirecionou) {
+          setJaRedirecionou(true);
+          if (data.is_admin) {
+            navigate("/admin");
+          } else if (expired) {
+            navigate("/expired");
+          } else {
+            const currentPath = window.location.pathname;
+            if (currentPath === "/auth") {
+              navigate("/");
+            }
           }
         }
         
-        // Limpar qualquer armazenamento temporário de relatórios
         sessionStorage.removeItem("relatorio_id");
         
       } catch (error) {
         console.error('Erro crítico ao processar dados do usuário:', error);
-        toast.error("Ocorreu um erro ao processar seus dados. Tente novamente.");
+        if (!loading) {
+          toast.error("Ocorreu um erro ao processar seus dados. Tente novamente.");
+        }
         setUserData(null);
         navigate("/auth");
       } finally {
@@ -234,7 +251,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const signIn = async (email: string, password: string, manterLogado = false) => {
     try {
-      // Limpar qualquer dado residual antes do login
       localStorage.clear();
       sessionStorage.clear();
       
@@ -247,23 +263,20 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         return { success: false, message: error.message };
       }
 
-      // Configurar a persistência da sessão baseado na escolha do usuário
       if (manterLogado) {
-        // Armazenar data do último login para verificação de expiração
         localStorage.setItem('last_login_date', new Date().toISOString());
         
-        // Garantir que a sessão persista
         await supabase.auth.setSession({
           access_token: data.session.access_token,
           refresh_token: data.session.refresh_token,
         });
       } else {
-        // Se não manter logado, garantir que a sessão seja removida ao fechar o navegador
         localStorage.removeItem('last_login_date');
         sessionStorage.setItem('sb-auth-token', JSON.stringify(data.session));
       }
 
-      return { success: true, message: "Login realizado com sucesso!" };
+      // Removido toast.success daqui - será exibido após userData confirmado
+      return { success: true, message: "Processando login..." };
     } catch (error: any) {
       return { success: false, message: error.message || "Erro ao fazer login" };
     }
@@ -271,7 +284,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const signUp = async (email: string, password: string, nome_empresa: string): Promise<SignUpResult> => {
     try {
-      // Esta função agora é simplificada, pois a lógica real está no componente AuthScreen
       return { 
         success: true, 
         message: "Função de cadastro simplificada. Utilize o formulário na tela de autenticação." 
@@ -284,14 +296,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   // Função global de logout, corrigida para limpar dados e redirecionar corretamente
   const signOut = async () => {
     try {
-      // Primeiro limpar todos os dados locais
       localStorage.clear();
       sessionStorage.clear();
       
-      // Depois executar o logout no Supabase
       await supabase.auth.signOut();
       
-      // Redirecionamento forçado para garantir saída completa
       window.location.href = "/auth";
     } catch (error) {
       console.error("Erro ao fazer logout:", error);

@@ -15,14 +15,13 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   // Check if user is testing as an admin
   const modoAdminTeste = location.search.includes("modo_teste_admin=true");
 
-  // Mostrar tela de carregamento durante a verificação
+  // Bloquear qualquer redirecionamento enquanto carregando
   if (loading) {
     return <LoadingScreen />;
   }
 
   // Redirecionar para autenticação se não estiver logado
   if (!user) {
-    // Clear any leftover data from previous sessions
     localStorage.clear();
     sessionStorage.clear();
     return <Navigate to="/auth" replace />;
@@ -38,7 +37,6 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 
   // Verificar se é um administrador (administradores nunca são bloqueados)
   if (userData?.is_admin === true) {
-    // Limpar qualquer flag de expiração para admins
     localStorage.removeItem("subscription_expired");
     return <>{children}</>;
   }
@@ -48,7 +46,6 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     console.log("Subscription expired, redirecting to /expired");
     return <Navigate to="/expired" replace />;
   } else {
-    // Se não está expirado, remover a flag de expirado se existir
     localStorage.removeItem("subscription_expired");
   }
 

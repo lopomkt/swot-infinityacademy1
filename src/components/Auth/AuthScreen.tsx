@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -56,15 +55,11 @@ const AuthScreen = () => {
   const onLoginSubmit = async (data: LoginFormValues) => {
     setIsLoading(true);
     try {
-      // Limpar qualquer armazenamento temporário de relatórios e dados residuais
       localStorage.clear();
       sessionStorage.clear();
       
       const result = await signIn(data.email, data.password, manterLogado);
-      if (result.success) {
-        toast.success(result.message);
-        // Não precisa de navigate aqui - AuthContext irá redirecionar com base no tipo de usuário
-      } else {
+      if (!result.success) {
         toast.error(result.message);
       }
     } catch (error) {
@@ -77,7 +72,6 @@ const AuthScreen = () => {
   const onRegisterSubmit = async (data: RegisterFormValues) => {
     setIsLoading(true);
     try {
-      // Verificar se todos os campos estão preenchidos
       const { email, password, nome_empresa } = data;
       
       if (!email || !password || !nome_empresa) {
@@ -86,7 +80,6 @@ const AuthScreen = () => {
         return;
       }
 
-      // Cadastro no Supabase Auth
       const { data: authData, error } = await supabase.auth.signUp({
         email,
         password,
@@ -104,12 +97,10 @@ const AuthScreen = () => {
       const { user } = authData;
 
       if (user) {
-        // Obter a sessão atual para garantir que o usuário está autenticado
         const { data: sessionData } = await supabase.auth.getSession();
         const userId = sessionData?.session?.user?.id || user.id;
         
         if (userId) {
-          // Verificar se o usuário já existe na tabela users para prevenir duplicações
           const { data: existing } = await supabase
             .from("users")
             .select("*")
@@ -117,8 +108,7 @@ const AuthScreen = () => {
             .maybeSingle();
 
           if (!existing) {
-            // Criar registro na tabela users com sincronização total
-            const dataValidade = new Date(Date.now() + 1000 * 60 * 60 * 24 * 30).toISOString(); // 30 dias
+            const dataValidade = new Date(Date.now() + 1000 * 60 * 60 * 24 * 30).toISOString();
             const dataEntrada = new Date().toISOString();
             
             const { error: insertError } = await supabase.from("users").insert({
@@ -141,7 +131,7 @@ const AuthScreen = () => {
         }
         
         toast.success("Cadastro realizado com sucesso!");
-        setActiveTab("login"); // Mudar para aba de login após cadastro
+        setActiveTab("login");
       }
       
     } catch (error: any) {
