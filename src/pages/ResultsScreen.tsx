@@ -107,7 +107,7 @@ interface ResultsScreenProps {
   formData: FormData;
   onRestart?: () => void; 
   onNovaAnalise?: () => void;
-  isViewMode?: boolean; // Added this prop
+  isViewMode?: boolean; // Prop para modo de visualização
 }
 
 // Define the Suggestion interface to match what StrategicSuggestions expects
@@ -118,7 +118,12 @@ interface Suggestion {
   textColor: string;
 }
 
-const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData, onRestart, onNovaAnalise, isViewMode }) => {
+const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData, onRestart, onNovaAnalise, isViewMode = false }) => {
+  // FALLBACK: Verificar se dados são válidos antes de processar
+  if (!formData || typeof formData !== "object") {
+    return <p className="text-center text-red-600 mt-12">Relatório inválido ou dados malformados.</p>;
+  }
+
   // Enhanced fallback messages for better error handling
   if (!formData?.resultadoFinal) {
     return <p className="text-center text-gray-600 mt-12">Relatório ainda não disponível. Tente novamente em instantes.</p>;
@@ -816,6 +821,7 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData, onRestart, onNo
             onExportPDF={generatePDF}
             onContactTeam={openWhatsApp}
             onNovaAnalise={onNovaAnalise}
+            isViewMode={isViewMode}
           />
         </div>
 

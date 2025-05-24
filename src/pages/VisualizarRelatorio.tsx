@@ -61,6 +61,13 @@ const VisualizarRelatorio = () => {
           return;
         }
         
+        // FALLBACK: Verificar se dados são válidos antes de processar
+        if (!data.dados || typeof data.dados !== "object") {
+          setError("Relatório com dados inválidos ou malformados.");
+          setLoading(false);
+          return;
+        }
+        
         // Verificar se dados é um objeto antes de usar spread operator
         const dadosForm = typeof data.dados === 'object' && data.dados !== null 
           ? data.dados 
@@ -87,7 +94,7 @@ const VisualizarRelatorio = () => {
     };
     
     fetchRelatorio();
-  }, [location.search]);
+  }, [location.search, userData]);
   
   const handleBack = () => {
     // Se for admin, voltar para o painel administrativo

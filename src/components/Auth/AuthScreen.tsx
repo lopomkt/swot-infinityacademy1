@@ -86,7 +86,7 @@ const AuthScreen = () => {
         return;
       }
 
-      // Nova implementação do cadastro
+      // Cadastro no Supabase Auth
       const { data: authData, error } = await supabase.auth.signUp({
         email,
         password,
@@ -104,27 +104,42 @@ const AuthScreen = () => {
       const { user } = authData;
 
       if (user) {
-        // Convertendo a data para string ISO
-        const expirationDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 dias
+        // Obter a sessão atual para garantir que o usuário está autenticado
+        const { data: sessionData } = await supabase.auth.getSession();
+        const userId = sessionData?.session?.user?.id || user.id;
         
-        // Salvar na tabela users
-        const { error: insertError } = await supabase.from("users").insert({
-          id: user.id,
-          email: user.email,
-          nome_empresa,
-          is_admin: false,
-          data_validade: expirationDate.toISOString(), // Convertendo para string ISO
-        });
+        // Verificar se o usuário já existe na tabela users
+        const { data: existingUser } = await supabase
+          .from("users")
+          .select("*")
+          .eq("id", userId)
+          .maybeSingle();
 
-        if (insertError) {
-          console.error("Erro ao criar registro na tabela users:", insertError);
-          toast.error("Erro ao finalizar cadastro: " + insertError.message);
-          setIsLoading(false);
-          return;
+        if (!existingUser) {
+          // Criar registro na tabela users com sincronização total
+          const dataValidade = new Date(Date.now() + 1000 * 60 * 60 * 24 * 30).toISOString(); // 30 dias
+          const dataEntrada = new Date().toISOString();
+          
+          const { error: insertError } = await supabase.from("users").insert({
+            id: userId,
+            email: user.email,
+            nome_empresa,
+            is_admin: false,
+            data_validade: dataValidade,
+            data_entrada: dataEntrada,
+            ativo: true
+          });
+
+          if (insertError) {
+            console.error("Erro ao criar registro na tabela users:", insertError);
+            toast.error("Erro ao finalizar cadastro: " + insertError.message);
+            setIsLoading(false);
+            return;
+          }
         }
         
         toast.success("Cadastro realizado com sucesso!");
-        navigate("/auth"); // Redirecionar para login após cadastro
+        setActiveTab("login"); // Mudar para aba de login após cadastro
       }
       
     } catch (error: any) {

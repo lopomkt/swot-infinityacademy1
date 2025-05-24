@@ -44,6 +44,33 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [subscriptionExpired, setSubscriptionExpired] = useState(false);
   const navigate = useNavigate();
 
+  // Função para carregar dados do usuário com tratamento robusto
+  const fetchUserData = async (userId: string): Promise<UserData | null> => {
+    try {
+      const { data, error } = await supabase
+        .from("users")
+        .select("*")
+        .eq("id", userId)
+        .maybeSingle(); // <- permite retorno null sem erro
+
+      if (error) {
+        console.error("Erro na consulta do usuário:", error);
+        return null;
+      }
+
+      if (!data) {
+        console.warn("Usuário não encontrado na tabela users:", userId);
+        toast.error("Cadastro incompleto. Entre em contato com o suporte.");
+        return null;
+      }
+
+      return data as UserData;
+    } catch (err) {
+      console.error("Erro ao carregar dados do usuário:", err);
+      return null;
+    }
+  };
+
   // Verificar expiração da sessão persistente
   useEffect(() => {
     const verificarExpiracaoSessao = () => {
@@ -147,7 +174,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   // Efeito separado para carregar dados do usuário quando a sessão mudar
   useEffect(() => {
     const carregarDados = async () => {
-      if (!session?.user) return;
+      if (!session?.user) {
+        setUserData(null);
+        return;
+      }
 
       setLoading(true);
       try {
@@ -155,20 +185,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         localStorage.clear();
         sessionStorage.clear();
         
-        const { data, error } = await supabase
-          .from("users")
-          .select("*")
-          .eq("id", session.user.id)
-          .single();
+        const data = await fetchUserData(session.user.id);
 
-        if (error || !data) {
-          console.error("Erro ao carregar dados do usuário:", error);
-          toast.error("Não foi possível carregar seu perfil.");
+        if (!data) {
+          console.error("Não foi possível carregar dados do usuário");
+          toast.error("Cadastro incompleto. Entre em contato com o suporte.");
+          setUserData(null);
           navigate("/auth");
           return;
         }
 
-        setUserData(data as UserData);
+        setUserData(data);
         
         // Verificar expiração da assinatura
         const hoje = new Date();
@@ -196,6 +223,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       } catch (error) {
         console.error('Erro crítico ao processar dados do usuário:', error);
         toast.error("Ocorreu um erro ao processar seus dados. Tente novamente.");
+        setUserData(null);
         navigate("/auth");
       } finally {
         setLoading(false);

@@ -28,6 +28,14 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     return <Navigate to="/auth" replace />;
   }
 
+  // CRÍTICO: Bloquear se userData for null (usuário sem cadastro completo)
+  if (!userData) {
+    console.warn("Usuário logado mas sem dados na tabela users");
+    localStorage.clear();
+    sessionStorage.clear();
+    return <Navigate to="/auth" replace />;
+  }
+
   // Verificar se é um administrador (administradores nunca são bloqueados)
   if (userData?.is_admin === true) {
     // Limpar qualquer flag de expiração para admins
