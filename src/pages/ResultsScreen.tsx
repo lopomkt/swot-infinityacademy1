@@ -110,14 +110,6 @@ interface ResultsScreenProps {
   isViewMode?: boolean; // Prop para modo de visualização
 }
 
-// Define the Suggestion interface to match what StrategicSuggestions expects
-interface Suggestion {
-  title: string;
-  description: string;
-  borderColor: string; 
-  textColor: string;
-}
-
 const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData, onRestart, onNovaAnalise, isViewMode = false }) => {
   // FALLBACK: Verificar se dados são válidos antes de processar
   if (!formData || typeof formData !== "object") {
@@ -716,7 +708,7 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData, onRestart, onNo
               Nível de Maturidade e Prontidão Estratégica
             </h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              Essa avaliaç��o considera suas respostas em múltiplas áreas como gestão, 
+              Essa avaliação considera suas respostas em múltiplas áreas como gestão, 
               finanças, marketing, operação e decisão estratégica.
             </p>
           </div>
@@ -818,8 +810,6 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData, onRestart, onNo
         <div className="max-w-3xl mx-auto">
           <ResultsScreenWrapper 
             formData={formData}
-            onExportPDF={generatePDF}
-            onContactTeam={openWhatsApp}
             onNovaAnalise={onNovaAnalise}
             isViewMode={isViewMode}
           />
