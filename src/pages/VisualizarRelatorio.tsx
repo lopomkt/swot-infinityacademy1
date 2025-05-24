@@ -70,19 +70,19 @@ const VisualizarRelatorio = () => {
         
         // Verificar se dados é um objeto antes de usar spread operator
         const dadosForm = typeof data.dados === 'object' && data.dados !== null 
-          ? data.dados 
+          ? data.dados as Record<string, unknown>
           : {};
           
         // Verificar se resultado_final é um objeto antes de atribuir
         const resultadoFinal = typeof data.resultado_final === 'object' && data.resultado_final !== null 
-          ? data.resultado_final 
-          : {};
+          ? data.resultado_final as FormData['resultadoFinal']
+          : undefined;
         
         // Combinar dados do formulário com resultado final
         const fullData: FormData = {
-          ...dadosForm as Record<string, unknown>,
-          resultadoFinal: resultadoFinal as FormData['resultadoFinal'],
-        };
+          ...dadosForm,
+          resultadoFinal: resultadoFinal,
+        } as FormData;
         
         setFormData(fullData);
       } catch (err) {

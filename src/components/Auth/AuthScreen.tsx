@@ -108,33 +108,35 @@ const AuthScreen = () => {
         const { data: sessionData } = await supabase.auth.getSession();
         const userId = sessionData?.session?.user?.id || user.id;
         
-        // Verificar se o usuário já existe na tabela users
-        const { data: existingUser } = await supabase
-          .from("users")
-          .select("*")
-          .eq("id", userId)
-          .maybeSingle();
+        if (userId) {
+          // Verificar se o usuário já existe na tabela users para prevenir duplicações
+          const { data: existing } = await supabase
+            .from("users")
+            .select("*")
+            .eq("id", userId)
+            .maybeSingle();
 
-        if (!existingUser) {
-          // Criar registro na tabela users com sincronização total
-          const dataValidade = new Date(Date.now() + 1000 * 60 * 60 * 24 * 30).toISOString(); // 30 dias
-          const dataEntrada = new Date().toISOString();
-          
-          const { error: insertError } = await supabase.from("users").insert({
-            id: userId,
-            email: user.email,
-            nome_empresa,
-            is_admin: false,
-            data_validade: dataValidade,
-            data_entrada: dataEntrada,
-            ativo: true
-          });
+          if (!existing) {
+            // Criar registro na tabela users com sincronização total
+            const dataValidade = new Date(Date.now() + 1000 * 60 * 60 * 24 * 30).toISOString(); // 30 dias
+            const dataEntrada = new Date().toISOString();
+            
+            const { error: insertError } = await supabase.from("users").insert({
+              id: userId,
+              email: user.email,
+              nome_empresa,
+              is_admin: false,
+              data_validade: dataValidade,
+              data_entrada: dataEntrada,
+              ativo: true
+            });
 
-          if (insertError) {
-            console.error("Erro ao criar registro na tabela users:", insertError);
-            toast.error("Erro ao finalizar cadastro: " + insertError.message);
-            setIsLoading(false);
-            return;
+            if (insertError) {
+              console.error("Erro ao criar registro na tabela users:", insertError);
+              toast.error("Erro ao finalizar cadastro: " + insertError.message);
+              setIsLoading(false);
+              return;
+            }
           }
         }
         
@@ -202,7 +204,7 @@ const AuthScreen = () => {
                       <Checkbox 
                         id="manter-logado"
                         checked={manterLogado}
-                        onCheckedChange={() => setManterLogado(!manterLogado)}
+                        onCheckedChange={(checked) => setManterLogado(checked === true)}
                       />
                       <label 
                         htmlFor="manter-logado" 
