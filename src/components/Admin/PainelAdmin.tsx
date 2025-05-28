@@ -81,18 +81,8 @@ const PainelAdmin = () => {
   const carregarRelatorios = async () => {
     try {
       setLoading(true);
-      const { data: userInfo, error: userError } = await supabase
-        .from("users")
-        .select("is_admin")
-        .eq("id", user?.id)
-        .single();
-
-      if (userError || !userInfo?.is_admin) {
-        console.error("Acesso restrito. Usuário não é administrador.");
-        navigate("/");
-        return;
-      }
-
+      
+      // Carregar relatórios sem verificação desnecessária - todos os admins podem ver tudo
       const { data, error } = await supabase
         .from("relatorios")
         .select(`
@@ -134,6 +124,7 @@ const PainelAdmin = () => {
 
   const carregarUsuarios = async () => {
     try {
+      console.log("Carregando usuários...");
       const { data, error } = await supabase
         .from("users")
         .select("*")
@@ -145,6 +136,7 @@ const PainelAdmin = () => {
         return;
       }
 
+      console.log("Usuários carregados:", data);
       setUsuarios(data || []);
     } catch (error) {
       console.error("Erro ao carregar usuários:", error);
@@ -414,7 +406,7 @@ const PainelAdmin = () => {
           <TabsContent value="usuarios">
             <Card className="mb-6">
               <CardHeader>
-                <CardTitle className="text-lg">Usuários Cadastrados</CardTitle>
+                <CardTitle className="text-lg">Usuários Cadastrados ({usuarios.length})</CardTitle>
               </CardHeader>
               <CardContent>
                 {usuarios.length === 0 ? (

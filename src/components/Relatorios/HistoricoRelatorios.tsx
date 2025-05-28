@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "@/components/ui/sonner";
-import { Loader2, Eye, Trash2 } from "lucide-react";
+import { Loader2, Eye, Trash2, ArrowLeft } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -98,6 +98,10 @@ const HistoricoRelatorios = () => {
     }
   };
 
+  const voltarAoInicio = () => {
+    navigate("/");
+  };
+
   if (!user) {
     return (
       <div className="p-8 text-center">
@@ -118,6 +122,16 @@ const HistoricoRelatorios = () => {
   return (
     <div className="container mx-auto py-8 px-4">
       <div className="mb-8 text-center">
+        <div className="flex items-center justify-center gap-4 mb-4">
+          <Button 
+            variant="outline"
+            onClick={voltarAoInicio}
+            className="flex items-center gap-2"
+          >
+            <ArrowLeft size={16} />
+            Voltar ao Início
+          </Button>
+        </div>
         <h1 className="text-2xl font-bold text-[#560005]">Histórico de Relatórios</h1>
         <p className="text-gray-600 mt-2">
           Seus diagnósticos estratégicos salvos
@@ -180,14 +194,6 @@ const HistoricoRelatorios = () => {
               ))}
             </TableBody>
           </Table>
-          <div className="text-center mt-6">
-            <Button 
-              variant="outline"
-              onClick={() => navigate("/")}
-            >
-              Voltar para página inicial
-            </Button>
-          </div>
         </div>
       )}
     </div>

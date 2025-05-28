@@ -111,7 +111,7 @@ const WelcomeStep = ({ onStart }: WelcomeStepProps) => {
           </div>
         </div>
         
-        {/* Right Column - Image - Updated with Supabase image */}
+        {/* Right Column - Image - Updated with correct Supabase image */}
         <div className="hidden md:flex items-center justify-center">
           <img 
             src="https://pkbomgocnpvxylwqlksb.supabase.co/storage/v1/object/public/public-assets/swotimg.jpg" 
