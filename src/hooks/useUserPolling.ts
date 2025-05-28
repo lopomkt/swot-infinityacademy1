@@ -14,15 +14,15 @@ export const useUserPolling = () => {
   const pollUserData = async (userId: string): Promise<UserData | null> => {
     console.log("[Polling] Iniciando polling para user ID:", userId);
     
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 15; i++) {
       try {
-        console.log(`[Polling] Tentativa ${i + 1}/10 para user ID: ${userId}`);
+        console.log(`[Polling] Tentativa ${i + 1}/15 para user ID: ${userId}`);
         
         const { data, error } = await supabase
           .from("users")
           .select("*")
           .eq("id", userId)
-          .single();
+          .maybeSingle();
 
         if (error) {
           console.log(`[Polling] Erro na tentativa ${i + 1}:`, error.message);
@@ -34,7 +34,7 @@ export const useUserPolling = () => {
         }
 
         // Aguardar 500ms antes da próxima tentativa
-        if (i < 9) {
+        if (i < 14) {
           await new Promise(resolve => setTimeout(resolve, 500));
         }
       } catch (err) {
@@ -42,7 +42,7 @@ export const useUserPolling = () => {
       }
     }
 
-    console.log("[Polling] Resultado final para ID:", userId, "- não encontrado após 10 tentativas");
+    console.log("[Polling] Resultado final para ID:", userId, "- não encontrado após 15 tentativas");
     return null;
   };
 

@@ -97,7 +97,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         navigate("/auth");
         setLoading(false);
       }
-    }, 15000);
+    }, 20000);
 
     return () => clearTimeout(timeout);
   }, [loading, navigate]);
@@ -106,8 +106,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   useEffect(() => {
     if (session) {
       console.log("Nova sessão iniciada. Limpando dados residuais...");
-      localStorage.clear();
-      sessionStorage.clear();
+      localStorage.removeItem("relatorio_id");
+      sessionStorage.removeItem("relatorio_id");
     }
   }, [session]);
 
@@ -160,8 +160,52 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       
       try {
         console.log("[AuthContext] Iniciando carregamento de dados para:", session.user.id);
+        console.log("[AuthContext] Email do usuário:", session.user.email);
         
-        // Usar o novo sistema de polling
+        // Primeiro, verificar se o usuário existe diretamente
+        const { data: directData, error: directError } = await supabase
+          .from("users")
+          .select("*")
+          .eq("id", session.user.id)
+          .maybeSingle();
+
+        console.log("[AuthContext] Consulta direta resultado:", { directData, directError });
+
+        if (directData) {
+          setUserData(directData);
+          console.log("[AuthContext] UserData carregado com sucesso:", directData);
+          
+          toast.success("Login realizado com sucesso!");
+          
+          // Verificar expiração da assinatura
+          const hoje = new Date();
+          const validade = new Date(directData.data_validade);
+          const expired = validade < hoje && !directData.is_admin;
+          
+          setSubscriptionExpired(expired);
+          
+          // Redirecionar baseado no tipo de usuário
+          if (!jaRedirecionou) {
+            setJaRedirecionou(true);
+            if (directData.is_admin) {
+              navigate("/admin");
+            } else if (expired) {
+              navigate("/expired");
+            } else {
+              const currentPath = window.location.pathname;
+              if (currentPath === "/auth") {
+                navigate("/");
+              }
+            }
+          }
+          
+          sessionStorage.removeItem("relatorio_id");
+          setLoading(false);
+          return;
+        }
+
+        // Se não encontrou, usar o polling como fallback
+        console.log("[AuthContext] Dados não encontrados diretamente, iniciando polling...");
         const result = await pollUserData(session.user.id);
         
         if (!result) {
@@ -174,9 +218,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
 
         setUserData(result);
-        console.log("[AuthContext] UserData carregado com sucesso:", result);
+        console.log("[AuthContext] UserData carregado via polling:", result);
         
-        // Toast de sucesso apenas após confirmar userData
         toast.success("Login realizado com sucesso!");
         
         // Verificar expiração da assinatura
@@ -186,7 +229,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         
         setSubscriptionExpired(expired);
         
-        // Redirecionar baseado no tipo de usuário - com controle de múltiplas chamadas
+        // Redirecionar baseado no tipo de usuário
         if (!jaRedirecionou) {
           setJaRedirecionou(true);
           if (result.is_admin) {
