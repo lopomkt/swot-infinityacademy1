@@ -2,8 +2,8 @@
 import { Button } from "@/components/ui/button";
 import RedBullet from "./RedBullet";
 import { useAuth } from "@/contexts/AuthContext";
-import { LogOut } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { LogOut, ArrowLeft } from "lucide-react";
+import { useNavigate, useLocation } from "react-router-dom";
 
 interface WelcomeStepProps {
   onStart: () => void;
@@ -12,9 +12,18 @@ interface WelcomeStepProps {
 const WelcomeStep = ({ onStart }: WelcomeStepProps) => {
   const { userData, signOut } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Verificar se é um admin testando a ferramenta
+  const modoAdminTeste = location.search.includes("modo_teste_admin=true");
+  const isAdmin = userData?.is_admin === true;
 
   const abrirHistorico = () => {
     navigate("/historico");
+  };
+
+  const voltarPainelAdmin = () => {
+    navigate("/admin");
   };
 
   return (
@@ -23,15 +32,29 @@ const WelcomeStep = ({ onStart }: WelcomeStepProps) => {
         <h2 className="text-lg font-medium text-gray-700">
           Empresa: <span className="font-bold text-[#ef0002]">{userData?.nome_empresa || "Carregando..."}</span>
         </h2>
-        <Button 
-          variant="outline" 
-          size="sm" 
-          className="flex items-center gap-1 text-gray-600"
-          onClick={signOut}
-        >
-          <LogOut size={16} />
-          Sair
-        </Button>
+        <div className="flex items-center gap-2">
+          {/* Botão de voltar ao painel admin - APENAS para admins */}
+          {isAdmin && modoAdminTeste && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="flex items-center gap-1 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+              onClick={voltarPainelAdmin}
+            >
+              <ArrowLeft size={16} />
+              Voltar ao Painel
+            </Button>
+          )}
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="flex items-center gap-1 text-gray-600"
+            onClick={signOut}
+          >
+            <LogOut size={16} />
+            Sair
+          </Button>
+        </div>
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -88,12 +111,12 @@ const WelcomeStep = ({ onStart }: WelcomeStepProps) => {
           </div>
         </div>
         
-        {/* Right Column - Image - Updated with real corporate image */}
+        {/* Right Column - Image - Updated with Supabase image */}
         <div className="hidden md:flex items-center justify-center">
           <img 
-            src="https://images.unsplash.com/photo-1611974789855-9c2a0a3a5f74?auto=format&fit=crop&w=1470&q=80" 
-            alt="Dashboard estratégico" 
-            className="w-full h-auto object-cover rounded-xl shadow-md" 
+            src="https://pkbomgocnpvxylwqlksb.supabase.co/storage/v1/object/public/public-assets/swotimg.jpg" 
+            alt="Dashboard estratégico SWOT" 
+            className="w-full h-auto object-cover rounded-xl shadow-md aspect-square" 
           />
         </div>
       </div>

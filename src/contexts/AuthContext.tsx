@@ -47,6 +47,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [userLoadFailed, setUserLoadFailed] = useState(false);
   const [isProcessingAuth, setIsProcessingAuth] = useState(false);
   const [processedUserId, setProcessedUserId] = useState<string | null>(null);
+  const [loginSuccessShown, setLoginSuccessShown] = useState(false); // Nova flag para controlar toast de sucesso
   const navigate = useNavigate();
   const { pollUserData, setupRealtimeListener } = useUserPolling();
 
@@ -127,6 +128,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           setUserLoadFailed(false);
           setIsProcessingAuth(false);
           setProcessedUserId(null);
+          setLoginSuccessShown(false); // Reset flag de sucesso
           localStorage.clear();
           sessionStorage.clear();
           return;
@@ -168,6 +170,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setLoading(true);
       setJaRedirecionou(false);
       setUserLoadFailed(false);
+      setLoginSuccessShown(false); // Reset flag de sucesso para novo usuário
       
       try {
         console.log("[AuthContext] Iniciando carregamento de dados para:", userId);
@@ -186,7 +189,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           setUserData(directData);
           console.log("[AuthContext] UserData carregado com sucesso:", directData);
           
-          toast.success("Login realizado com sucesso!");
+          // Mostrar toast de sucesso apenas uma vez por sessão
+          if (!loginSuccessShown) {
+            toast.success("Login realizado com sucesso!");
+            setLoginSuccessShown(true);
+          }
           
           // Verificar expiração da assinatura
           const hoje = new Date();
@@ -233,7 +240,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setUserData(result);
         console.log("[AuthContext] UserData carregado via polling:", result);
         
-        toast.success("Login realizado com sucesso!");
+        // Mostrar toast de sucesso apenas uma vez por sessão
+        if (!loginSuccessShown) {
+          toast.success("Login realizado com sucesso!");
+          setLoginSuccessShown(true);
+        }
         
         // Verificar expiração da assinatura
         const hoje = new Date();
