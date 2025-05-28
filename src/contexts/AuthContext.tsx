@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useEffect, useContext, ReactNode } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase, isSubscriptionValid } from "@/integrations/supabase/client";
@@ -45,6 +46,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [jaRedirecionou, setJaRedirecionou] = useState(false);
   const [userLoadFailed, setUserLoadFailed] = useState(false);
   const [isProcessingAuth, setIsProcessingAuth] = useState(false);
+  const [processedUserId, setProcessedUserId] = useState<string | null>(null);
   const navigate = useNavigate();
   const { pollUserData, setupRealtimeListener } = useUserPolling();
 
@@ -124,6 +126,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           setJaRedirecionou(false);
           setUserLoadFailed(false);
           setIsProcessingAuth(false);
+          setProcessedUserId(null);
           localStorage.clear();
           sessionStorage.clear();
           return;
@@ -149,28 +152,32 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   // Efeito separado para carregar dados do usuário quando a sessão mudar
   useEffect(() => {
     const carregarDados = async () => {
-      if (!session?.user || isProcessingAuth) {
-        if (!session?.user) {
+      const userId = session?.user?.id;
+      
+      if (!userId || isProcessingAuth || processedUserId === userId) {
+        if (!userId) {
           setUserData(null);
           setLoading(false);
         }
         return;
       }
 
+      console.log("[AuthContext] Iniciando carregamento para novo usuário:", userId);
       setIsProcessingAuth(true);
+      setProcessedUserId(userId);
       setLoading(true);
       setJaRedirecionou(false);
       setUserLoadFailed(false);
       
       try {
-        console.log("[AuthContext] Iniciando carregamento de dados para:", session.user.id);
+        console.log("[AuthContext] Iniciando carregamento de dados para:", userId);
         console.log("[AuthContext] Email do usuário:", session.user.email);
         
         // Primeiro, verificar se o usuário existe diretamente
         const { data: directData, error: directError } = await supabase
           .from("users")
           .select("*")
-          .eq("id", session.user.id)
+          .eq("id", userId)
           .maybeSingle();
 
         console.log("[AuthContext] Consulta direta resultado:", { directData, directError });
@@ -211,7 +218,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
         // Se não encontrou, usar o polling como fallback
         console.log("[AuthContext] Dados não encontrados diretamente, iniciando polling...");
-        const result = await pollUserData(session.user.id);
+        const result = await pollUserData(userId);
         
         if (!result) {
           console.error("[AuthContext] Polling falhou - usuário não encontrado");
@@ -265,7 +272,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
 
     carregarDados();
-  }, [session?.user?.id, navigate, pollUserData]);
+  }, [session?.user?.id, navigate]); // Removido pollUserData da dependência
 
   const signIn = async (email: string, password: string, manterLogado = false) => {
     try {
