@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useEffect, useContext, ReactNode } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase, isSubscriptionValid } from "@/integrations/supabase/client";
@@ -45,6 +44,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [subscriptionExpired, setSubscriptionExpired] = useState(false);
   const [jaRedirecionou, setJaRedirecionou] = useState(false);
   const [userLoadFailed, setUserLoadFailed] = useState(false);
+  const [isProcessingAuth, setIsProcessingAuth] = useState(false);
   const navigate = useNavigate();
   const { pollUserData, setupRealtimeListener } = useUserPolling();
 
@@ -123,6 +123,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           setUserData(null);
           setJaRedirecionou(false);
           setUserLoadFailed(false);
+          setIsProcessingAuth(false);
           localStorage.clear();
           sessionStorage.clear();
           return;
@@ -148,12 +149,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   // Efeito separado para carregar dados do usuário quando a sessão mudar
   useEffect(() => {
     const carregarDados = async () => {
-      if (!session?.user) {
-        setUserData(null);
-        setLoading(false);
+      if (!session?.user || isProcessingAuth) {
+        if (!session?.user) {
+          setUserData(null);
+          setLoading(false);
+        }
         return;
       }
 
+      setIsProcessingAuth(true);
       setLoading(true);
       setJaRedirecionou(false);
       setUserLoadFailed(false);
@@ -201,6 +205,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           
           sessionStorage.removeItem("relatorio_id");
           setLoading(false);
+          setIsProcessingAuth(false);
           return;
         }
 
@@ -214,6 +219,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           toast.error("Erro: seu cadastro está incompleto. Contate a equipe.");
           setUserData(null);
           navigate("/auth");
+          setIsProcessingAuth(false);
           return;
         }
 
@@ -254,11 +260,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         navigate("/auth");
       } finally {
         setLoading(false);
+        setIsProcessingAuth(false);
       }
     };
 
     carregarDados();
-  }, [session, navigate, pollUserData]);
+  }, [session?.user?.id, navigate, pollUserData]);
 
   const signIn = async (email: string, password: string, manterLogado = false) => {
     try {
