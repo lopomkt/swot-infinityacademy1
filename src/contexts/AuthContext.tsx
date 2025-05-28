@@ -1,9 +1,11 @@
+
 import React, { createContext, useState, useEffect, useContext, ReactNode } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase, isSubscriptionValid } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/components/ui/sonner";
 import LoadingScreen from "@/components/Auth/LoadingScreen";
+import { useUserPolling } from "@/hooks/useUserPolling";
 
 // Configuração de dias para expiração do login persistente
 const DIAS_EXPIRACAO_LOGIN = 7;
@@ -42,42 +44,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [loading, setLoading] = useState(true);
   const [subscriptionExpired, setSubscriptionExpired] = useState(false);
   const [jaRedirecionou, setJaRedirecionou] = useState(false);
+  const [userLoadFailed, setUserLoadFailed] = useState(false);
   const navigate = useNavigate();
-
-  // Função para carregar dados do usuário com retry automático
-  const fetchUserData = async (userId: string, retries = 3): Promise<UserData | null> => {
-    try {
-      for (let i = 0; i < retries; i++) {
-        const { data, error } = await supabase
-          .from("users")
-          .select("*")
-          .eq("id", userId)
-          .maybeSingle();
-
-        if (error) {
-          console.error(`Tentativa ${i + 1} - Erro na consulta do usuário:`, error);
-          if (i === retries - 1) return null;
-          await new Promise((res) => setTimeout(res, 300));
-          continue;
-        }
-
-        if (data) {
-          return data as UserData;
-        }
-
-        // Se não encontrou dados, aguarda antes da próxima tentativa
-        if (i < retries - 1) {
-          await new Promise((res) => setTimeout(res, 300));
-        }
-      }
-
-      console.warn("Usuário não encontrado na tabela users após todas as tentativas:", userId);
-      return null;
-    } catch (err) {
-      console.error("Erro ao carregar dados do usuário:", err);
-      return null;
-    }
-  };
+  const { pollUserData, setupRealtimeListener } = useUserPolling();
 
   // Verificar expiração da sessão persistente
   useEffect(() => {
@@ -153,6 +122,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           setUser(null);
           setUserData(null);
           setJaRedirecionou(false);
+          setUserLoadFailed(false);
           localStorage.clear();
           sessionStorage.clear();
           return;
@@ -180,47 +150,46 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const carregarDados = async () => {
       if (!session?.user) {
         setUserData(null);
+        setLoading(false);
         return;
       }
 
       setLoading(true);
       setJaRedirecionou(false);
+      setUserLoadFailed(false);
       
       try {
-        localStorage.clear();
-        sessionStorage.clear();
+        console.log("[AuthContext] Iniciando carregamento de dados para:", session.user.id);
         
-        // Delay para evitar race condition com Supabase Auth
-        await new Promise((res) => setTimeout(res, 300));
+        // Usar o novo sistema de polling
+        const result = await pollUserData(session.user.id);
         
-        const data = await fetchUserData(session.user.id);
-
-        if (!data) {
-          console.error("Não foi possível carregar dados do usuário");
-          if (!loading) {
-            toast.error("Erro: seu cadastro está incompleto. Contate a equipe.");
-          }
+        if (!result) {
+          console.error("[AuthContext] Polling falhou - usuário não encontrado");
+          setUserLoadFailed(true);
+          toast.error("Erro: seu cadastro está incompleto. Contate a equipe.");
           setUserData(null);
           navigate("/auth");
           return;
         }
 
-        setUserData(data);
+        setUserData(result);
+        console.log("[AuthContext] UserData carregado com sucesso:", result);
         
         // Toast de sucesso apenas após confirmar userData
         toast.success("Login realizado com sucesso!");
         
         // Verificar expiração da assinatura
         const hoje = new Date();
-        const validade = new Date(data.data_validade);
-        const expired = validade < hoje && !data.is_admin;
+        const validade = new Date(result.data_validade);
+        const expired = validade < hoje && !result.is_admin;
         
         setSubscriptionExpired(expired);
         
         // Redirecionar baseado no tipo de usuário - com controle de múltiplas chamadas
         if (!jaRedirecionou) {
           setJaRedirecionou(true);
-          if (data.is_admin) {
+          if (result.is_admin) {
             navigate("/admin");
           } else if (expired) {
             navigate("/expired");
@@ -235,10 +204,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         sessionStorage.removeItem("relatorio_id");
         
       } catch (error) {
-        console.error('Erro crítico ao processar dados do usuário:', error);
-        if (!loading) {
-          toast.error("Ocorreu um erro ao processar seus dados. Tente novamente.");
-        }
+        console.error('[AuthContext] Erro crítico ao processar dados do usuário:', error);
+        setUserLoadFailed(true);
+        toast.error("Ocorreu um erro ao processar seus dados. Tente novamente.");
         setUserData(null);
         navigate("/auth");
       } finally {
@@ -247,7 +215,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
 
     carregarDados();
-  }, [session, navigate]);
+  }, [session, navigate, pollUserData]);
 
   const signIn = async (email: string, password: string, manterLogado = false) => {
     try {
@@ -275,7 +243,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         sessionStorage.setItem('sb-auth-token', JSON.stringify(data.session));
       }
 
-      // Removido toast.success daqui - será exibido após userData confirmado
       return { success: true, message: "Processando login..." };
     } catch (error: any) {
       return { success: false, message: error.message || "Erro ao fazer login" };
