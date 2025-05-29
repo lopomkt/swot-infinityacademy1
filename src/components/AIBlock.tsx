@@ -61,8 +61,8 @@ Use os seguintes delimitadores para separar cada seção da sua resposta:
 ### PLANO DE AÇÃO A/B/C`;
 };
 
-// Extracted standalone function for parsing GPT output
-const parseGPTOutput = (response: string) => {
+// Extracted standalone function for parsing GPT/GROQ output
+const parseAIOutput = (response: string) => {
   try {
     // Split the response based on the delimiters
     const sections = response.split(/### [A-ZÃÇÕÁÉÍÓÚÂÊÔÀÈÌÒÙ /]+/g);
@@ -87,8 +87,8 @@ const parseGPTOutput = (response: string) => {
   }
 };
 
-// Standalone function to fetch results from OpenAI GPT-4o
-const fetchGPTResult = async (formData) => {
+// Standalone function to fetch results from GROQ API
+const fetchGROQResult = async (formData) => {
   const prompt = generateAIPrompt(formData);
   
   // Create AbortController for timeout handling
@@ -96,15 +96,15 @@ const fetchGPTResult = async (formData) => {
   const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
   
   try {
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${import.meta.env.VITE_OPENAI_API_KEY}`,
+        "Authorization": `Bearer ${import.meta.env.VITE_GROQ_API_KEY}`,
         "Content-Type": "application/json",
       },
       signal: controller.signal,
       body: JSON.stringify({
-        model: "gpt-4o",
+        model: "llama-3.1-70b-versatile",
         messages: [
           { 
             role: "system", 
@@ -113,7 +113,9 @@ const fetchGPTResult = async (formData) => {
           { role: "user", content: prompt }
         ],
         temperature: 0.7,
-        max_tokens: 1800,
+        max_tokens: 2048,
+        top_p: 1,
+        stream: false,
       }),
     });
     
@@ -122,7 +124,7 @@ const fetchGPTResult = async (formData) => {
     
     if (!response.ok) {
       const errorData = await response.json();
-      throw new Error(errorData.error?.message || "Erro ao conectar com a API da OpenAI");
+      throw new Error(errorData.error?.message || "Erro ao conectar com a API da GROQ");
     }
     
     const data = await response.json();
@@ -134,7 +136,7 @@ const fetchGPTResult = async (formData) => {
     
     const resultText = data.choices[0].message.content;
     
-    return parseGPTOutput(resultText);
+    return parseAIOutput(resultText);
   } catch (error) {
     // Clear timeout in case of error
     clearTimeout(timeoutId);
@@ -143,7 +145,7 @@ const fetchGPTResult = async (formData) => {
       throw new Error("A IA demorou para responder. Tente novamente mais tarde.");
     }
     
-    console.error("Erro ao processar resposta da OpenAI:", error);
+    console.error("Erro ao processar resposta da GROQ:", error);
     throw error;
   }
 };
@@ -152,7 +154,7 @@ const fetchGPTResult = async (formData) => {
 const gerarRelatorioMock = (formData) => {
   console.log("Usando modo mock para desenvolvimento");
   
-  // This is where we'd normally make the API call to GPT-4o
+  // This is where we'd normally make the API call to GROQ
   // For now, we'll use mock data
   const mockResponse = `### MATRIZ SWOT
 ## Forças
@@ -213,7 +215,7 @@ As áreas mais frágeis (${formData.prioridades?.areas_fraqueza?.join(", ") || "
 4. Utilizar ferramentas gratuitas para automação de processos básicos
 5. Explorar modelos alternativos de remuneração baseados em performance`;
 
-  return parseGPTOutput(mockResponse);
+  return parseAIOutput(mockResponse);
 };
 
 const AIBlock: React.FC<AIBlockProps> = ({ formData, onRestart, onAIComplete }) => {
@@ -244,16 +246,16 @@ const AIBlock: React.FC<AIBlockProps> = ({ formData, onRestart, onAIComplete }) 
     
     try {
       // Determine if we should use production or development mode
-      const isDevelopment = !import.meta.env.VITE_OPENAI_API_KEY || 
+      const isDevelopment = !import.meta.env.VITE_GROQ_API_KEY || 
                            import.meta.env.VITE_USE_MOCK === 'true' || 
                            process.env.NODE_ENV === 'development';
       
-      console.log(`Modo: ${isDevelopment ? 'desenvolvimento (mock)' : 'produção (API)'}`);
+      console.log(`Modo: ${isDevelopment ? 'desenvolvimento (mock)' : 'produção (GROQ API)'}`);
       
-      // Use mock if in development or if OpenAI key is not available
+      // Use mock if in development or if GROQ key is not available
       const updatedResultados = isDevelopment 
         ? gerarRelatorioMock(formData) 
-        : await fetchGPTResult(formData);
+        : await fetchGROQResult(formData);
       
       setResultadoFinal(updatedResultados);
       setProcessingState('completed');
@@ -275,7 +277,7 @@ const AIBlock: React.FC<AIBlockProps> = ({ formData, onRestart, onAIComplete }) 
               variant: "destructive",
             });
           } else {
-            console.log('Relatório salvo com IA');
+            console.log('Relatório salvo com IA GROQ');
             toast({
               title: "Relatório gerado e salvo com sucesso!",
               description: "Seu relatório estratégico está pronto para análise.",
@@ -498,8 +500,8 @@ const AIBlock: React.FC<AIBlockProps> = ({ formData, onRestart, onAIComplete }) 
           
           {/* Tag técnica de encerramento */}
           <div className="hidden">
-            fase5_openai_gpt4o_ok = true
-            fase5_openai_reforco_ok = true
+            fase5_groq_api_ok = true
+            fase5_groq_reforco_ok = true
           </div>
         </div>
       )}
