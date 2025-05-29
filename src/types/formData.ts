@@ -1,3 +1,4 @@
+
 export interface FormData {
   identificacao?: Identificacao;
   forcas?: Forcas;
@@ -180,6 +181,8 @@ export interface ResultadoFinalData {
   fase7_5_1_correcao_total_ok?: boolean;
   maturidade_setorial?: AreaMaturidade[] | string; // Allow both string and array of objects
   acoes_priorizadas_lista?: string[];
+  tipo?: string; // Added field for GROQ integration
+  created_at?: string; // Added field for timestamp
 }
 
 export interface StrategicScoreItem {

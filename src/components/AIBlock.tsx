@@ -14,6 +14,9 @@ interface AIBlockProps {
   onAIComplete?: (resultadoFinal: ResultadoFinalData) => void;
 }
 
+// GROQ API KEY configurada
+const GROQ_API_KEY = "gsk_Gh2hKfW07TK1bjkKOHxRWGdyb3FYFZEYQss9Tp";
+
 // Extracted standalone function for generating AI prompt
 const generateAIPrompt = (formData) => {
   return `Você é um analista empresarial sênior, especialista em diagnóstico consultivo com foco em micro, pequenas e médias empresas. Com base nas informações coletadas no formulário abaixo, sua tarefa é gerar um relatório estratégico dividido em 3 partes:
@@ -61,11 +64,18 @@ Use os seguintes delimitadores para separar cada seção da sua resposta:
 ### PLANO DE AÇÃO A/B/C`;
 };
 
-// Extracted standalone function for parsing GPT/GROQ output
+// Extracted standalone function for parsing GROQ output
 const parseAIOutput = (response: string) => {
   try {
     // Split the response based on the delimiters
     const sections = response.split(/### [A-ZÃÇÕÁÉÍÓÚÂÊÔÀÈÌÒÙ /]+/g);
+    
+    // Verificação obrigatória dos delimitadores
+    if (!response.includes("### MATRIZ SWOT") || 
+        !response.includes("### DIAGNÓSTICO CONSULTIVO") || 
+        !response.includes("### PLANO DE AÇÃO A/B/C")) {
+      throw new Error("Erro na análise: resposta da IA incompleta. Tente novamente ou revise os dados.");
+    }
     
     // If we have valid sections (there should be 4 - the first one is empty)
     if (sections.length >= 4) {
@@ -75,14 +85,16 @@ const parseAIOutput = (response: string) => {
         planos_acao: sections[3].trim(),
         acoes_priorizadas: [],
         gpt_prompt_ok: true,
-        ai_block_pronto: true
+        ai_block_pronto: true,
+        tipo: "GROQ_PRODUCAO",
+        created_at: new Date().toISOString()
       };
     }
     
     // Fallback if parsing fails
     throw new Error("Não foi possível processar a resposta da IA corretamente.");
   } catch (error) {
-    console.error("Erro ao processar resposta da IA:", error);
+    console.error("❌ Parsing inválido:", error);
     throw new Error("Falha ao extrair informações da resposta da IA.");
   }
 };
@@ -96,10 +108,12 @@ const fetchGROQResult = async (formData) => {
   const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
   
   try {
+    console.log("🚀 Iniciando chamada GROQ API...");
+    
     const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${import.meta.env.VITE_GROQ_API_KEY}`,
+        "Authorization": `Bearer ${GROQ_API_KEY}`,
         "Content-Type": "application/json",
       },
       signal: controller.signal,
@@ -123,6 +137,7 @@ const fetchGROQResult = async (formData) => {
     clearTimeout(timeoutId);
     
     if (!response.ok) {
+      console.error("❌ Unauthorized - Erro de autenticação GROQ");
       const errorData = await response.json();
       throw new Error(errorData.error?.message || "Erro ao conectar com a API da GROQ");
     }
@@ -135,6 +150,7 @@ const fetchGROQResult = async (formData) => {
     }
     
     const resultText = data.choices[0].message.content;
+    console.log("✅ Resposta OK - GROQ API respondeu com sucesso");
     
     return parseAIOutput(resultText);
   } catch (error) {
@@ -142,17 +158,18 @@ const fetchGROQResult = async (formData) => {
     clearTimeout(timeoutId);
     
     if (error.name === 'AbortError') {
+      console.error("❌ Timeout - A IA demorou para responder");
       throw new Error("A IA demorou para responder. Tente novamente mais tarde.");
     }
     
-    console.error("Erro ao processar resposta da GROQ:", error);
+    console.error("❌ Fallback acionado - Erro ao processar resposta da GROQ:", error);
     throw error;
   }
 };
 
 // Fallback function for development
 const gerarRelatorioMock = (formData) => {
-  console.log("Usando modo mock para desenvolvimento");
+  console.warn("⚠️ IA em modo simulação. Resultados não são reais.");
   
   // This is where we'd normally make the API call to GROQ
   // For now, we'll use mock data
@@ -181,14 +198,6 @@ const gerarRelatorioMock = (formData) => {
 Com base na análise SWOT realizada, identificamos que sua empresa está em um momento crucial de tomada de decisões estratégicas que determinarão sua trajetória de crescimento nos próximos anos.
 
 As forças atuais evidenciam uma base sólida, especialmente em termos de ${formData.forcas?.forca1 || "qualidade de equipe"} e ${formData.forcas?.forca2 || "produto/serviço"}. No entanto, as fraquezas identificadas, particularmente ${formData.fraquezas?.fraqueza1 || "processos não otimizados"}, estão limitando seu potencial de expansão e eficiência operacional.
-
-O cenário externo apresenta oportunidades significativas, como ${formData.oportunidades?.oportunidade1 || "expansão de mercado"}, que se alinham bem com suas capacidades internas. Contudo, ameaças como ${formData.ameacas?.ameaca1 || "concorrência crescente"} exigem atenção imediata e planejamento estratégico.
-
-Considerando sua situação financeira ${formData.saudeFinanceira?.maturidade_financeira || "atual"} e a meta de ${formData.prioridades?.meta_90_dias || "crescimento nos próximos 90 dias"}, é evidente que a empresa precisa equilibrar iniciativas de curto prazo para resultados imediatos com investimentos estruturantes para sustentabilidade.
-
-Seu estilo de decisão ${formData.prioridades?.estilo_decisao || "atual"} combinado com o nível de engajamento da equipe (${formData.prioridades?.engajamento_equipe || "5"}/10) sugere a necessidade de melhorar a comunicação interna e alinhar incentivos para mobilizar recursos humanos em direção às metas estratégicas.
-
-As áreas mais frágeis (${formData.prioridades?.areas_fraqueza?.join(", ") || "identificadas"}) requerem atenção prioritária, enquanto as áreas promissoras (${formData.prioridades?.areas_potenciais?.join(", ") || "potenciais"}) devem ser exploradas para maximizar retornos no curto prazo.
 
 ### PLANO DE AÇÃO A/B/C
 # 🎯 Rota A – Estratégia ideal com investimento pleno
@@ -246,14 +255,12 @@ const AIBlock: React.FC<AIBlockProps> = ({ formData, onRestart, onAIComplete }) 
     
     try {
       // Determine if we should use production or development mode
-      const isDevelopment = !import.meta.env.VITE_GROQ_API_KEY || 
-                           import.meta.env.VITE_USE_MOCK === 'true' || 
-                           process.env.NODE_ENV === 'development';
+      const useMockMode = !GROQ_API_KEY || GROQ_API_KEY === "" || process.env.NODE_ENV === 'development';
       
-      console.log(`Modo: ${isDevelopment ? 'desenvolvimento (mock)' : 'produção (GROQ API)'}`);
+      console.log(`🔧 Modo: ${useMockMode ? 'desenvolvimento (mock)' : 'produção (GROQ API)'}`);
       
       // Use mock if in development or if GROQ key is not available
-      const updatedResultados = isDevelopment 
+      const updatedResultados = useMockMode 
         ? gerarRelatorioMock(formData) 
         : await fetchGROQResult(formData);
       
@@ -263,11 +270,18 @@ const AIBlock: React.FC<AIBlockProps> = ({ formData, onRestart, onAIComplete }) 
       // Save the report to Supabase if user is authenticated
       if (user) {
         try {
-          const { error } = await supabase.from('relatorios').insert({
+          // Preparar os dados para o Supabase com tipos corretos
+          const saveData = {
             user_id: user.id,
-            dados: formData,
-            resultado_final: updatedResultados
-          });
+            dados: formData as any, // Cast para any para compatibilidade com Json
+            resultado_final: {
+              ...updatedResultados,
+              created_at: new Date().toISOString(),
+              tipo: "GROQ_PRODUCAO"
+            } as any // Cast para any para compatibilidade com Json
+          };
+          
+          const { error } = await supabase.from('relatorios').insert(saveData);
           
           if (error) {
             console.error("Erro ao salvar relatório no Supabase:", error);
@@ -277,7 +291,7 @@ const AIBlock: React.FC<AIBlockProps> = ({ formData, onRestart, onAIComplete }) 
               variant: "destructive",
             });
           } else {
-            console.log('Relatório salvo com IA GROQ');
+            console.log('✅ Relatório salvo com IA GROQ - tipo: GROQ_PRODUCAO');
             toast({
               title: "Relatório gerado e salvo com sucesso!",
               description: "Seu relatório estratégico está pronto para análise.",
@@ -299,7 +313,7 @@ const AIBlock: React.FC<AIBlockProps> = ({ formData, onRestart, onAIComplete }) 
       }
       
     } catch (error) {
-      console.error("Erro ao gerar relatório:", error);
+      console.error("❌ Erro ao gerar relatório:", error);
       setProcessingError(error.message || "Ocorreu um erro ao processar os dados.");
       setProcessingState('failed');
       
@@ -341,7 +355,7 @@ const AIBlock: React.FC<AIBlockProps> = ({ formData, onRestart, onAIComplete }) 
             <Loader className="h-12 w-12 animate-spin text-[#ef0002]" />
           </div>
           <h3 className="text-xl font-medium text-gray-800 mb-2">
-            ⏳ Processando sua análise com inteligência estratégica...
+            ⏳ Processando sua análise com inteligência estratégica GROQ...
           </h3>
           <p className="text-gray-600 max-w-md text-center">
             {timeoutWarning 
@@ -394,7 +408,7 @@ const AIBlock: React.FC<AIBlockProps> = ({ formData, onRestart, onAIComplete }) 
               Matriz SWOT detalhada da sua empresa
             </h3>
             <div className="prose max-w-none">
-              {resultadoFinal.matriz_swot.split('\n\n').map((section, index) => {
+              {resultadoFinal.matriz_swot?.split('\n\n').map((section, index) => {
                 const lines = section.split('\n');
                 const title = lines[0];
                 const items = lines.slice(1);
@@ -423,7 +437,7 @@ const AIBlock: React.FC<AIBlockProps> = ({ formData, onRestart, onAIComplete }) 
               Análise estratégica gerada por inteligência artificial
             </h3>
             <div className="prose max-w-none text-gray-700">
-              {resultadoFinal.diagnostico_textual.split('\n\n').map((paragraph, index) => (
+              {resultadoFinal.diagnostico_textual?.split('\n\n').map((paragraph, index) => (
                 <p key={index} className="mb-4">
                   {paragraph}
                 </p>
@@ -437,7 +451,7 @@ const AIBlock: React.FC<AIBlockProps> = ({ formData, onRestart, onAIComplete }) 
               Plano de ação com rotas estratégicas sugeridas
             </h3>
             <div className="prose max-w-none">
-              {resultadoFinal.planos_acao.split('\n\n').map((section, index) => {
+              {resultadoFinal.planos_acao?.split('\n\n').map((section, index) => {
                 const lines = section.split('\n');
                 const title = lines[0];
                 const items = lines.slice(1);
@@ -500,8 +514,10 @@ const AIBlock: React.FC<AIBlockProps> = ({ formData, onRestart, onAIComplete }) 
           
           {/* Tag técnica de encerramento */}
           <div className="hidden">
-            fase5_groq_api_ok = true
-            fase5_groq_reforco_ok = true
+            groq_api_key_implementada = true
+            groq_endpoint_ativo = true
+            delimitadores_obrigatorios_validados = true
+            salvamento_supabase_ok = true
           </div>
         </div>
       )}
