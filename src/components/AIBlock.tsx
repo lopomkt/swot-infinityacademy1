@@ -255,7 +255,7 @@ const AIBlock: React.FC<AIBlockProps> = ({ formData, onRestart, onAIComplete }) 
     
     try {
       // Determine if we should use production or development mode
-      const useMockMode = !GROQ_API_KEY || GROQ_API_KEY === "" || process.env.NODE_ENV === 'development';
+      const useMockMode = !GROQ_API_KEY || process.env.NODE_ENV === 'development';
       
       console.log(`🔧 Modo: ${useMockMode ? 'desenvolvimento (mock)' : 'produção (GROQ API)'}`);
       
