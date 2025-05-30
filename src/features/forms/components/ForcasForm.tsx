@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { motion } from "framer-motion";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,7 +23,8 @@ interface ForcasFormProps {
 
 export function ForcasForm({ onSubmit, onComplete, defaultValues, onBack }: ForcasFormProps) {
   const isMobile = useIsMobile();
-  const { handleSubmit, control, handleFormSubmit } = useForcasForm(defaultValues);
+  const formMethods = useForcasForm(defaultValues);
+  const { handleSubmit, control, handleFormSubmit } = formMethods;
 
   const containerAnimation = {
     hidden: { opacity: 0 },
@@ -56,7 +58,7 @@ export function ForcasForm({ onSubmit, onComplete, defaultValues, onBack }: Forc
             Preencha as perguntas que se aplicam ao seu negócio - cada resposta fortalecerá seu relatório estratégico.
           </CardDescription>
         </CardHeader>
-        <Form {...{ register: () => {}, handleSubmit, control, formState: { errors: {} } }}>
+        <Form {...formMethods}>
           <form onSubmit={handleSubmit((data) => handleFormSubmit(data, onComplete, onSubmit))}>
             <CardContent>
               <ScrollArea className="h-[60vh] md:h-[65vh]">

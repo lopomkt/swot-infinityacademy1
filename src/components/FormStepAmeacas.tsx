@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
@@ -35,6 +36,7 @@ const FormStepAmeacas = ({
   const isMobile = useIsMobile();
   const [showFeedback, setShowFeedback] = useState(false);
   
+  const formMethods = useAmeacasForm(defaultValues);
   const { 
     register, 
     handleSubmit, 
@@ -42,7 +44,7 @@ const FormStepAmeacas = ({
     setValue,
     formState: { errors, isValid },
     handleFormSubmit
-  } = useAmeacasForm(defaultValues);
+  } = formMethods;
   
   const sazonalidade_negocio = watch("sazonalidade_negocio");
   const perdas_externas = watch("perdas_externas");
@@ -73,7 +75,7 @@ const FormStepAmeacas = ({
   };
 
   const formContent = (
-    <Form {...{ register: () => {}, handleSubmit, control: null, formState: { errors: {} } }}>
+    <Form {...formMethods}>
       <form 
         className={`w-full ${isMobile ? '' : 'max-w-xl'} bg-white rounded-xl ${isMobile ? 'px-4 sm:px-6' : 'p-6'} shadow-md mx-auto animate-fade-in`} 
         onSubmit={handleSubmit((data) => handleFormSubmit(data, onComplete))}
