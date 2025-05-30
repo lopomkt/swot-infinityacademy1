@@ -1,13 +1,12 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { Loader, AlertCircle, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { ResultadoFinalData } from "@/types/formData";
 import { FormData as GROQFormData } from "@/types/groq";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useReportGeneration } from "@/hooks/useReportGeneration";
+import { reportService } from "@/services/report.service";
 import ErrorMessageBlock from "@/components/ErrorMessageBlock";
 import ErrorBoundary from "@/components/ErrorBoundary";
 
@@ -41,12 +40,12 @@ const AIBlock: React.FC<AIBlockProps> = ({ formData, onRestart, onAIComplete }) 
     };
   };
 
-  // Função para salvar no Supabase
+  // Função para salvar no Supabase usando o service
   const salvarNoSupabase = async (resultados: any) => {
     if (!user) return;
 
     try {
-      const saveData = {
+      const reportId = await reportService.createReport({
         user_id: user.id,
         dados: formData,
         resultado_final: {
@@ -54,26 +53,28 @@ const AIBlock: React.FC<AIBlockProps> = ({ formData, onRestart, onAIComplete }) 
           created_at: new Date().toISOString(),
           tipo: "GROQ_PRODUCAO"
         }
-      };
+      });
       
-      const { error } = await supabase.from('relatorios').insert(saveData);
-      
-      if (error) {
-        console.error("Erro ao salvar relatório no Supabase:", error);
+      if (reportId) {
+        console.log('✅ Relatório salvo com IA GROQ - ID:', reportId);
+        toast({
+          title: "Relatório gerado e salvo com sucesso!",
+          description: "Seu relatório estratégico está pronto para análise.",
+        });
+      } else {
         toast({
           title: "Relatório gerado com sucesso!",
           description: "Mas houve um erro ao salvar. Você pode tentar salvar manualmente.",
           variant: "destructive",
         });
-      } else {
-        console.log('✅ Relatório salvo com IA GROQ - tipo: GROQ_PRODUCAO');
-        toast({
-          title: "Relatório gerado e salvo com sucesso!",
-          description: "Seu relatório estratégico está pronto para análise.",
-        });
       }
     } catch (dbError) {
       console.error("Erro ao salvar no banco de dados:", dbError);
+      toast({
+        title: "Relatório gerado",
+        description: "Erro ao salvar automaticamente. Tente salvar manualmente.",
+        variant: "destructive",
+      });
     }
   };
 

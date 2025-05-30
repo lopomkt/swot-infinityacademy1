@@ -31,7 +31,7 @@ export function useReportGeneration() {
       console.log("🚀 Iniciando geração do relatório...");
       
       // Chamar o serviço GROQ
-      const groqResponse = await groqAPIService.fetchGROQResponse(formData);
+      const groqResponse = await groqAPIService.fetchGROQResult(formData);
       
       // Fazer parsing da resposta
       const parsedReport = parseGROQResult(groqResponse);

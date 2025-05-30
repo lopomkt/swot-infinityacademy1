@@ -1,10 +1,10 @@
 
 import { FormData, GROQResponse, ParsedReport } from '@/types/groq';
 
-const GROQ_API_KEY = "gsk_Gh2hKfW07TK1bjkKOHxRWGdyb3FYFZEYQss9Tp";
+const GROQ_API_KEY = process.env.GROQ_API_KEY || "gsk_Gh2hKfW07TK1bjkKOHxRWGdyb3FYFZEYQss9Tp";
 const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
 const MAX_TIMEOUT = 25000; // 25 segundos
-const MAX_RETRIES = 3;
+const MAX_RETRIES = 5;
 
 class GROQAPIService {
   private generateAIPrompt(formData: FormData): string {
@@ -63,6 +63,7 @@ Use os seguintes delimitadores para separar cada seção da sua resposta:
 
     try {
       const prompt = this.generateAIPrompt(formData);
+      const intervalMs = Math.pow(2, attempt - 1) * 500; // Exponential backoff: 500ms, 1s, 2s, 4s, 8s
 
       console.log(`🚀 Tentativa ${attempt}/${MAX_RETRIES} - Iniciando chamada GROQ API...`);
 
@@ -114,18 +115,23 @@ Use os seguintes delimitadores para separar cada seção da sua resposta:
 
       // Se não é a última tentativa, fazer retry com exponential backoff
       if (attempt < MAX_RETRIES) {
-        const backoffTime = Math.pow(2, attempt) * 1000; // 2s, 4s, 8s
+        const backoffTime = Math.pow(2, attempt) * 500;
         console.warn(`❌ Tentativa ${attempt} falhou. Retry em ${backoffTime}ms...`);
         await this.sleep(backoffTime);
         return this.makeGROQRequest(formData, attempt + 1);
       }
 
       console.error("❌ Todas as tentativas falharam:", error);
-      throw error;
+      throw new Error(`Falha na geração do relatório: ${error.message}`);
     }
   }
 
-  public async fetchGROQResponse(formData: FormData): Promise<GROQResponse> {
+  /**
+   * Executa chamada para API GROQ com retry automático e tratamento de erro
+   * @param formData Dados completos do formulário SWOT
+   * @returns Promise com resposta estruturada da IA
+   */
+  public async fetchGROQResult(formData: FormData): Promise<GROQResponse> {
     // Verificar se a API key está presente
     if (!GROQ_API_KEY) {
       throw new Error("GROQ API Key não configurada");
