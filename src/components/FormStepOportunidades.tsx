@@ -102,6 +102,13 @@ export default function FormStepOportunidades({ defaultValues, onComplete, onBac
     }
   }
 
+  const handleMobileNext = () => {
+    if (isValid) {
+      const finalData = { ...form, step_oportunidades_ok: true };
+      onComplete(finalData);
+    }
+  };
+
   const formContent = (
     <KeyboardAvoidingWrapper>
       <form
@@ -380,7 +387,7 @@ export default function FormStepOportunidades({ defaultValues, onComplete, onBac
       )}
 
       <MobileNavigation
-        onNext={handleSubmit}
+        onNext={handleMobileNext}
         onBack={onBack}
         nextLabel="Avançar para Ameaças"
         isNextDisabled={!isValid}
