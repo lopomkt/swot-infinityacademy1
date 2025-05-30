@@ -7,6 +7,7 @@ import { authService } from '@/services/auth.service';
 interface UserData {
   id: string;
   email: string;
+  nome_empresa: string;
   is_admin?: boolean;
   ativo?: boolean;
   subscription_status?: string;

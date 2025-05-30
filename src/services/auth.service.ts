@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
 
@@ -17,6 +16,8 @@ interface UserData {
   data_validade: string;
   data_entrada: string;
   ativo: boolean;
+  subscription_status?: string;
+  subscription_expires_at?: string;
 }
 
 class AuthService {
