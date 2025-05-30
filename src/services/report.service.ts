@@ -6,14 +6,14 @@ interface ReportData {
   id?: string;
   user_id: string;
   dados: any;
-  resultado_final?: ResultadoFinalData;
+  resultado_final?: any; // Changed from ResultadoFinalData to any for Supabase compatibility
   criado_em?: string;
 }
 
 interface ReportListItem {
   id: string;
   criado_em: string;
-  resultado_final: ResultadoFinalData;
+  resultado_final: any; // Changed from ResultadoFinalData to any for Supabase compatibility
   dados: {
     identificacao?: {
       nomeEmpresa?: string;
@@ -98,7 +98,7 @@ class ReportService {
         throw new Error(`Falha ao carregar relatórios: ${error.message}`);
       }
 
-      return data || [];
+      return (data || []) as ReportListItem[];
     } catch (error) {
       console.error("Erro na consulta de relatórios:", error);
       return [];
@@ -125,7 +125,7 @@ class ReportService {
         throw new Error(`Falha ao carregar relatório: ${error.message}`);
       }
 
-      return data;
+      return data as ReportData;
     } catch (error) {
       console.error("Erro na consulta do relatório:", error);
       return null;

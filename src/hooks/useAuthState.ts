@@ -4,11 +4,22 @@ import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { authService } from '@/services/auth.service';
 
+interface UserData {
+  id: string;
+  email: string;
+  is_admin?: boolean;
+  ativo?: boolean;
+  subscription_status?: string;
+  subscription_expires_at?: string;
+}
+
 interface AuthState {
   user: User | null;
   session: Session | null;
   loading: boolean;
   isAuthenticated: boolean;
+  userData: UserData | null;
+  subscriptionExpired: boolean;
 }
 
 interface AuthActions {
@@ -21,6 +32,10 @@ export function useAuthState(): AuthState & AuthActions {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [userData, setUserData] = useState<UserData | null>(null);
+
+  const subscriptionExpired = userData?.subscription_status === 'expired' || 
+    (userData?.subscription_expires_at && new Date(userData.subscription_expires_at) < new Date()) || false;
 
   const signIn = useCallback(async (email: string, password: string, rememberMe: boolean = false) => {
     setLoading(true);
@@ -29,6 +44,10 @@ export function useAuthState(): AuthState & AuthActions {
     if (result.success && result.user && result.session) {
       setUser(result.user);
       setSession(result.session);
+      
+      // Fetch user data
+      const fetchedUserData = await authService.fetchUserData(result.user.id);
+      setUserData(fetchedUserData);
     }
     
     setLoading(false);
@@ -40,6 +59,7 @@ export function useAuthState(): AuthState & AuthActions {
     await authService.signOut();
     setUser(null);
     setSession(null);
+    setUserData(null);
     setLoading(false);
   }, []);
 
@@ -49,6 +69,10 @@ export function useAuthState(): AuthState & AuthActions {
     if (result.success && result.user && result.session) {
       setUser(result.user);
       setSession(result.session);
+      
+      // Refresh user data
+      const fetchedUserData = await authService.fetchUserData(result.user.id);
+      setUserData(fetchedUserData);
     }
     
     return { success: result.success, message: result.message };
@@ -64,12 +88,15 @@ export function useAuthState(): AuthState & AuthActions {
         setUser(session?.user ?? null);
         
         if (event === 'SIGNED_OUT') {
+          setUserData(null);
           setLoading(false);
         } else if (event === 'SIGNED_IN' && session?.user) {
           // Validar dados do usuário
           setTimeout(async () => {
-            const userData = await authService.fetchUserData(session.user.id);
-            if (!userData?.ativo) {
+            const fetchedUserData = await authService.fetchUserData(session.user.id);
+            setUserData(fetchedUserData);
+            
+            if (!fetchedUserData?.ativo) {
               await signOut();
             }
             setLoading(false);
@@ -84,6 +111,11 @@ export function useAuthState(): AuthState & AuthActions {
     authService.getCurrentSession().then((session) => {
       setSession(session);
       setUser(session?.user ?? null);
+      
+      if (session?.user) {
+        authService.fetchUserData(session.user.id).then(setUserData);
+      }
+      
       setLoading(false);
     });
 
@@ -98,6 +130,8 @@ export function useAuthState(): AuthState & AuthActions {
     session,
     loading,
     isAuthenticated: !!user,
+    userData,
+    subscriptionExpired,
     signIn,
     signOut,
     refreshToken,

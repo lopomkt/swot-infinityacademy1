@@ -1,7 +1,7 @@
 
 import { FormData, GROQResponse, ParsedReport } from '@/types/groq';
 
-const GROQ_API_KEY = process.env.GROQ_API_KEY || "gsk_Gh2hKfW07TK1bjkKOHxRWGdyb3FYFZEYQss9Tp";
+const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY || "gsk_Gh2hKfW07TK1bjkKOHxRWGdyb3FYFZEYQss9Tp";
 const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
 const MAX_TIMEOUT = 25000; // 25 segundos
 const MAX_RETRIES = 5;
@@ -138,7 +138,7 @@ Use os seguintes delimitadores para separar cada seção da sua resposta:
     }
 
     // Em desenvolvimento, usar mock
-    if (process.env.NODE_ENV === 'development') {
+    if (import.meta.env.DEV) {
       console.warn("⚠️ Modo desenvolvimento - usando mock data");
       return this.mockReport();
     }

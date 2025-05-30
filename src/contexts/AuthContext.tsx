@@ -3,11 +3,22 @@ import React, { createContext, useContext, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { useAuthState } from '@/hooks/useAuthState';
 
+interface UserData {
+  id: string;
+  email: string;
+  is_admin?: boolean;
+  ativo?: boolean;
+  subscription_status?: string;
+  subscription_expires_at?: string;
+}
+
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
   isAuthenticated: boolean;
+  userData: UserData | null;
+  subscriptionExpired: boolean;
   signIn: (email: string, password: string, rememberMe?: boolean) => Promise<{success: boolean; message: string}>;
   signOut: () => Promise<void>;
   refreshToken: () => Promise<{success: boolean; message: string}>;
@@ -31,6 +42,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     session: authState.session,
     loading: authState.loading,
     isAuthenticated: authState.isAuthenticated,
+    userData: authState.userData,
+    subscriptionExpired: authState.subscriptionExpired,
     signIn: authState.signIn,
     signOut: authState.signOut,
     refreshToken: authState.refreshToken,
