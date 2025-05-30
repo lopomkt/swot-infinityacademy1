@@ -14,6 +14,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import MobileFormWrapper from "@/components/mobile/MobileFormWrapper";
 import MobileNavigation from "@/components/mobile/MobileNavigation";
 import TouchOptimizedSlider from "@/components/mobile/TouchOptimizedSlider";
+import MobileAnswerFeedback from "@/components/mobile/MobileAnswerFeedback";
 
 const dependenciaPlataformasOpcoes = [
   "Instagram / Meta",
@@ -34,6 +35,7 @@ const FormStepAmeacas = ({
   onBack?: () => void;
 }) => {
   const isMobile = useIsMobile();
+  const [showFeedback, setShowFeedback] = useState(false);
   
   // Inicializa o formulário com validação Zod
   const form = useForm<AmeacasSchema>({
@@ -69,18 +71,16 @@ const FormStepAmeacas = ({
   const impacto_ameacas = watch("impacto_ameacas");
   const dependencia_plataformas = watch("dependencia_plataformas") || [];
 
-  // Toggle platform in array
+  // Enhanced toggle with feedback
   const togglePlataforma = (option: string) => {
     const currentValues = [...(dependencia_plataformas || [])];
     
     if (currentValues.includes(option)) {
-      // Remove if already exists
       setValue(
         "dependencia_plataformas", 
         currentValues.filter((v) => v !== option)
       );
     } else {
-      // Add if it doesn't exist, handling "Nenhuma" special case
       if (option === "Nenhuma") {
         setValue("dependencia_plataformas", ["Nenhuma"]);
       } else {
@@ -90,6 +90,9 @@ const FormStepAmeacas = ({
         );
       }
     }
+
+    setShowFeedback(true);
+    setTimeout(() => setShowFeedback(false), 1000);
   };
 
   // Verifica se há erros gerais no formulário para exibir ao usuário
@@ -145,6 +148,8 @@ const FormStepAmeacas = ({
         onSubmit={handleSubmit(onSubmit)}
         style={isMobile ? { scrollMargin: '120px 0 0 0' } : {}}
       >
+        <MobileAnswerFeedback show={showFeedback} />
+        
         <div>
           <h2 className="text-2xl font-bold mb-1">Quais ameaças externas podem comprometer seu crescimento?</h2>
           <p className="text-base text-muted-foreground mb-6">
@@ -385,7 +390,11 @@ const FormStepAmeacas = ({
                   max={10}
                   step={1}
                   value={impacto_ameacas || 0}
-                  onChange={(val) => setValue("impacto_ameacas", val)}
+                  onChange={(val) => {
+                    setValue("impacto_ameacas", val);
+                    setShowFeedback(true);
+                    setTimeout(() => setShowFeedback(false), 1000);
+                  }}
                   className="flex-1"
                 />
               ) : (

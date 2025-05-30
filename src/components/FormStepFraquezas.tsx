@@ -9,6 +9,7 @@ import { toast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
 import MobileFormWrapper from "@/components/mobile/MobileFormWrapper";
 import MobileNavigation from "@/components/mobile/MobileNavigation";
+import MobileAnswerFeedback from "@/components/mobile/MobileAnswerFeedback";
 
 const inconsistenciaOpcoes = [
   "Marketing",
@@ -40,6 +41,7 @@ export default function FormStepFraquezas({
   onBack
 }: Props) {
   const isMobile = useIsMobile();
+  const [showFeedback, setShowFeedback] = useState(false);
   
   // Initialize form with React Hook Form + Zod
   const { 
@@ -72,7 +74,7 @@ export default function FormStepFraquezas({
     mode: "onChange"
   });
 
-  // For checkbox handling (special case)
+  // For checkbox handling with feedback
   const [selectedInconsistencias, setSelectedInconsistencias] = useState<string[]>(
     defaultValues?.pontos_inconsistentes || []
   );
@@ -87,8 +89,11 @@ export default function FormStepFraquezas({
         ? prev.filter((v) => v !== value)
         : [...prev, value];
       
-      // Update the form value
       setValue("pontos_inconsistentes", newSelection, { shouldValidate: true });
+      
+      // Trigger feedback
+      setShowFeedback(true);
+      setTimeout(() => setShowFeedback(false), 1000);
       
       // If current fraqueza_critica isn't among selected anymore, reset it
       const fc = watch("fraqueza_critica");
@@ -119,6 +124,8 @@ export default function FormStepFraquezas({
 
   const formContent = (
     <form onSubmit={handleSubmit(onSubmit)} className={`w-full ${isMobile ? '' : 'max-w-2xl'} bg-white rounded-xl ${isMobile ? 'px-4 sm:px-6' : 'p-6'} shadow-md mx-auto animate-fade-in ${isMobile ? 'max-h-[calc(100vh-120px)] overflow-y-auto' : ''}`} style={isMobile ? { scrollBehavior: 'smooth' } : {}}>
+      <MobileAnswerFeedback show={showFeedback} />
+      
       <h2 className="text-2xl font-bold text-[#560005] mb-4">
         Diagnóstico dos Pontos de Melhoria
       </h2>

@@ -1,6 +1,10 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { OportunidadesData } from "@/types/formData";
+import { useIsMobile } from "@/hooks/use-mobile";
+import MobileFormWrapper from "@/components/mobile/MobileFormWrapper";
+import MobileNavigation from "@/components/mobile/MobileNavigation";
+import KeyboardAvoidingWrapper from "@/components/mobile/KeyboardAvoidingWrapper";
 
 const tendenciasOpcoes = [
   "Digitalização",
@@ -30,6 +34,7 @@ interface Props {
 }
 
 export default function FormStepOportunidades({ defaultValues, onComplete, onBack }: Props) {
+  const isMobile = useIsMobile();
   const [form, setForm] = useState<OportunidadesData>({
     nova_demanda_cliente: "",
     situacao_mercado: "",
@@ -93,271 +98,293 @@ export default function FormStepOportunidades({ defaultValues, onComplete, onBac
     e.preventDefault();
     if (isValid) {
       const finalData = { ...form, step_oportunidades_ok: true };
-      // TODO: Auto-save to Supabase as etapa 4
       onComplete(finalData);
     }
   }
 
-  return (
-    <form
-      className="w-full bg-white rounded-xl p-1 sm:p-6 shadow-sm border border-[#f1eaea] max-w-lg animate-fade-in"
-      onSubmit={handleSubmit}
-      autoComplete="off"
-    >
-      <h2 className="font-bold text-2xl text-[#560005] mb-3">Etapa 4 – OPORTUNIDADES</h2>
-      <p className="text-base text-black mb-5">
-        Quais oportunidades externas sua empresa pode aproveitar?
-      </p>
-      <p className="text-sm text-gray-500 mb-8">
-        Vamos identificar aberturas de mercado, tendências ou vantagens que você pode explorar para crescer com mais inteligência.
-      </p>
+  const formContent = (
+    <KeyboardAvoidingWrapper>
+      <form
+        className={`w-full bg-white rounded-xl ${isMobile ? 'px-4 sm:px-6' : 'p-1 sm:p-6'} shadow-sm border border-[#f1eaea] ${isMobile ? '' : 'max-w-lg'} animate-fade-in`}
+        onSubmit={handleSubmit}
+        autoComplete="off"
+      >
+        <h2 className="font-bold text-2xl text-[#560005] mb-3">Etapa 4 – OPORTUNIDADES</h2>
+        <p className={`${isMobile ? 'text-base' : 'text-base'} text-black mb-5`}>
+          Quais oportunidades externas sua empresa pode aproveitar?
+        </p>
+        <p className="text-sm text-gray-500 mb-8">
+          Vamos identificar aberturas de mercado, tendências ou vantagens que você pode explorar para crescer com mais inteligência.
+        </p>
 
-      {/* 1. Novas demandas */}
-      <label className="block mb-2 font-medium">
-        Existem novas demandas ou comportamentos de clientes que você percebeu recentemente?
-      </label>
-      <input
-        type="text"
-        className="w-full border border-gray-300 rounded px-3 py-2 mb-4 font-medium focus:border-[#b70001] focus:outline-none"
-        placeholder="Ex: Pedidos por delivery, interesse por serviços online…"
-        value={form.nova_demanda_cliente}
-        onChange={e => handleChange("nova_demanda_cliente", e.target.value)}
-      />
-
-      {/* 2. Situação do mercado */}
-      <label className="block mb-2 font-medium">
-        Seu mercado está em crescimento, estabilidade ou retração?
-      </label>
-      <div className="flex gap-3 mb-4">
-        {["Em crescimento", "Estável", "Em retração"].map(opt => (
-          <label
-            key={opt}
-            className={`px-4 py-2 rounded cursor-pointer border transition ${
-              form.situacao_mercado === opt
-                ? "bg-[#b70001] text-white font-semibold border-[#b70001]"
-                : "bg-gray-100 border-gray-300"
-            }`}
-          >
-            <input
-              type="radio"
-              name="situacao_mercado"
-              className="hidden"
-              value={opt}
-              checked={form.situacao_mercado === opt}
-              onChange={() => handleChange("situacao_mercado", opt)}
-            />
-            {opt}
-          </label>
-        ))}
-      </div>
-
-      {/* 3. Nichos ocultos */}
-      <label className="block mb-2 font-medium">
-        Há nichos pouco explorados no seu setor que você poderia atacar?
-      </label>
-      <textarea
-        className="w-full border border-gray-300 rounded px-3 py-2 mb-4 font-medium focus:border-[#b70001] focus:outline-none"
-        placeholder="Descreva possíveis nichos, públicos ou regiões."
-        rows={2}
-        value={form.nichos_ocultos}
-        onChange={e => handleChange("nichos_ocultos", e.target.value)}
-      />
-
-      {/* 4. Concorrentes enfraquecendo */}
-      <label className="block mb-2 font-medium">
-        Você já identificou concorrentes que estão saindo do mercado ou perdendo força?
-      </label>
-      <div className="flex gap-3 mb-4">
-        {["Sim", "Não", "Não sei"].map(opt => (
-          <label
-            key={opt}
-            className={`px-4 py-2 rounded cursor-pointer border transition ${
-              form.concorrentes_enfraquecendo === opt
-                ? "bg-[#b70001] text-white font-semibold border-[#b70001]"
-                : "bg-gray-100 border-gray-300"
-            }`}
-          >
-            <input
-              type="radio"
-              name="concorrentes_enfraquecendo"
-              className="hidden"
-              value={opt}
-              checked={form.concorrentes_enfraquecendo === opt}
-              onChange={() => handleChange("concorrentes_enfraquecendo", opt)}
-            />
-            {opt}
-          </label>
-        ))}
-      </div>
-
-      {/* 5. Tendências aproveitáveis */}
-      <label className="block mb-2 font-medium">
-        Quais tendências recentes você acredita que podem beneficiar sua empresa?
-      </label>
-      <div className="flex flex-col gap-2 mb-4">
-        {tendenciasOpcoes.map(opt => (
-          <label
-            key={opt}
-            className={`flex items-center gap-2 px-3 py-2 rounded cursor-pointer border font-medium ${
-              form.tendencias_aproveitaveis.includes(opt)
-                ? "bg-[#ef0002] text-white border-[#ef0002]"
-                : "bg-gray-100 border-gray-300"
-            } transition`}
-          >
-            <input
-              type="checkbox"
-              className="accent-[#ef0002] h-4 w-4"
-              checked={form.tendencias_aproveitaveis.includes(opt)}
-              onChange={() => handleCheckbox("tendencias_aproveitaveis", opt)}
-            />
-            <span>{opt}</span>
-          </label>
-        ))}
-      </div>
-      {mostrarOutroTendencias && (
-        <input
-          type="text"
-          className="w-full border border-gray-300 rounded px-3 py-2 mb-4 font-medium focus:border-[#b70001] focus:outline-none"
-          placeholder="Descreva a tendência"
-          value={form.tendencias_outro}
-          onChange={e => handleChange("tendencias_outro", e.target.value)}
-        />
-      )}
-
-      {/* 6. Demanda não atendida */}
-      <label className="block mb-2 font-medium">
-        Existe algum produto/serviço que seus clientes pedem e você ainda não oferece?
-      </label>
-      <input
-        type="text"
-        className="w-full border border-gray-300 rounded px-3 py-2 mb-4 font-medium focus:border-[#b70001] focus:outline-none"
-        value={form.demanda_nao_atendida}
-        onChange={e => handleChange("demanda_nao_atendida", e.target.value)}
-      />
-
-      {/* 7. Pronto para parcerias */}
-      <label className="block mb-2 font-medium">
-        Sua empresa está pronta para explorar novas parcerias estratégicas?
-      </label>
-      <div className="flex gap-3 mb-4">
-        {["Sim", "Em análise", "Ainda não"].map(opt => (
-          <label
-            key={opt}
-            className={`px-4 py-2 rounded cursor-pointer border transition ${
-              form.parcerias_possiveis === opt
-                ? "bg-[#b70001] text-white font-semibold border-[#b70001]"
-                : "bg-gray-100 border-gray-300"
-            }`}
-          >
-            <input
-              type="radio"
-              name="parcerias_possiveis"
-              className="hidden"
-              value={opt}
-              checked={form.parcerias_possiveis === opt}
-              onChange={() => handleChange("parcerias_possiveis", opt)}
-            />
-            {opt}
-          </label>
-        ))}
-      </div>
-
-      {/* 8. Recurso ocioso */}
-      <label className="block mb-2 font-medium">
-        Qual recurso atual você sente que está subutilizado?
-      </label>
-      <input
-        type="text"
-        className="w-full border border-gray-300 rounded px-3 py-2 mb-4 font-medium focus:border-[#b70001] focus:outline-none"
-        placeholder="Ex: Espaço físico, mailing, rede de contatos…"
-        value={form.recurso_ocioso}
-        onChange={e => handleChange("recurso_ocioso", e.target.value)}
-      />
-
-      {/* 9. Canais potenciais */}
-      <label className="block mb-2 font-medium">
-        Quais canais ou estratégias você ainda não explora, mas gostaria?
-      </label>
-      <div className="flex flex-col gap-2 mb-4">
-        {canaisOpcoes.map(opt => (
-          <label
-            key={opt}
-            className={`flex items-center gap-2 px-3 py-2 rounded cursor-pointer border font-medium ${
-              form.canais_potenciais.includes(opt)
-                ? "bg-[#ef0002] text-white border-[#ef0002]"
-                : "bg-gray-100 border-gray-300"
-            } transition`}
-          >
-            <input
-              type="checkbox"
-              className="accent-[#ef0002] h-4 w-4"
-              checked={form.canais_potenciais.includes(opt)}
-              onChange={() => handleCheckbox("canais_potenciais", opt)}
-            />
-            <span>{opt}</span>
-          </label>
-        ))}
-      </div>
-      {mostrarOutroCanais && (
-        <input
-          type="text"
-          className="w-full border border-gray-300 rounded px-3 py-2 mb-4 font-medium focus:border-[#b70001] focus:outline-none"
-          placeholder="Descreva o canal ou estratégia"
-          value={form.canais_outro}
-          onChange={e => handleChange("canais_outro", e.target.value)}
-        />
-      )}
-
-      {/* 10. Disposição para explorar oportunidades */}
-      <label className="block mb-2 font-medium">
-        De 0 a 10, qual a sua disposição em explorar novas oportunidades?
-      </label>
-      <div className="flex items-center gap-2 mb-4">
-        <input
-          type="range"
-          min={0}
-          max={10}
-          step={1}
-          value={form.nivel_disposicao}
-          onChange={e => handleChange("nivel_disposicao", Number(e.target.value))}
-          className="flex-grow accent-[#ef0002]"
-        />
-        <span className="w-8 text-right text-[#ef0002] font-bold">{form.nivel_disposicao}</span>
-      </div>
-
-      {/* Condicional: se disposição >=8, campo aberto */}
-      {mostrarCampoAcaoInicial && (
-        <>
+        <div className={`space-y-${isMobile ? '5' : '4'} ${isMobile ? 'pt-6 pb-[88px]' : ''}`}>
+          {/* 1. Novas demandas */}
           <label className="block mb-2 font-medium">
-            Qual seria sua primeira ação para isso?
+            Existem novas demandas ou comportamentos de clientes que você percebeu recentemente?
           </label>
           <input
             type="text"
             className="w-full border border-gray-300 rounded px-3 py-2 mb-4 font-medium focus:border-[#b70001] focus:outline-none"
-            value={form.acao_inicial_oportunidade}
-            onChange={e => handleChange("acao_inicial_oportunidade", e.target.value)}
+            placeholder="Ex: Pedidos por delivery, interesse por serviços online…"
+            value={form.nova_demanda_cliente}
+            onChange={e => handleChange("nova_demanda_cliente", e.target.value)}
           />
-        </>
+
+          {/* 2. Situação do mercado */}
+          <label className="block mb-2 font-medium">
+            Seu mercado está em crescimento, estabilidade ou retração?
+          </label>
+          <div className="flex gap-3 mb-4">
+            {["Em crescimento", "Estável", "Em retração"].map(opt => (
+              <label
+                key={opt}
+                className={`px-4 py-2 rounded cursor-pointer border transition ${
+                  form.situacao_mercado === opt
+                    ? "bg-[#b70001] text-white font-semibold border-[#b70001]"
+                    : "bg-gray-100 border-gray-300"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="situacao_mercado"
+                  className="hidden"
+                  value={opt}
+                  checked={form.situacao_mercado === opt}
+                  onChange={() => handleChange("situacao_mercado", opt)}
+                />
+                {opt}
+              </label>
+            ))}
+          </div>
+
+          {/* 3. Nichos ocultos */}
+          <label className="block mb-2 font-medium">
+            Há nichos pouco explorados no seu setor que você poderia atacar?
+          </label>
+          <textarea
+            className="w-full border border-gray-300 rounded px-3 py-2 mb-4 font-medium focus:border-[#b70001] focus:outline-none"
+            placeholder="Descreva possíveis nichos, públicos ou regiões."
+            rows={2}
+            value={form.nichos_ocultos}
+            onChange={e => handleChange("nichos_ocultos", e.target.value)}
+          />
+
+          {/* 4. Concorrentes enfraquecendo */}
+          <label className="block mb-2 font-medium">
+            Você já identificou concorrentes que estão saindo do mercado ou perdendo força?
+          </label>
+          <div className="flex gap-3 mb-4">
+            {["Sim", "Não", "Não sei"].map(opt => (
+              <label
+                key={opt}
+                className={`px-4 py-2 rounded cursor-pointer border transition ${
+                  form.concorrentes_enfraquecendo === opt
+                    ? "bg-[#b70001] text-white font-semibold border-[#b70001]"
+                    : "bg-gray-100 border-gray-300"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="concorrentes_enfraquecendo"
+                  className="hidden"
+                  value={opt}
+                  checked={form.concorrentes_enfraquecendo === opt}
+                  onChange={() => handleChange("concorrentes_enfraquecendo", opt)}
+                />
+                {opt}
+              </label>
+            ))}
+          </div>
+
+          {/* 5. Tendências aproveitáveis */}
+          <label className="block mb-2 font-medium">
+            Quais tendências recentes você acredita que podem beneficiar sua empresa?
+          </label>
+          <div className="flex flex-col gap-2 mb-4">
+            {tendenciasOpcoes.map(opt => (
+              <label
+                key={opt}
+                className={`flex items-center gap-2 px-3 py-2 rounded cursor-pointer border font-medium ${
+                  form.tendencias_aproveitaveis.includes(opt)
+                    ? "bg-[#ef0002] text-white border-[#ef0002]"
+                    : "bg-gray-100 border-gray-300"
+                } transition`}
+              >
+                <input
+                  type="checkbox"
+                  className="accent-[#ef0002] h-4 w-4"
+                  checked={form.tendencias_aproveitaveis.includes(opt)}
+                  onChange={() => handleCheckbox("tendencias_aproveitaveis", opt)}
+                />
+                <span>{opt}</span>
+              </label>
+            ))}
+          </div>
+          {mostrarOutroTendencias && (
+            <input
+              type="text"
+              className="w-full border border-gray-300 rounded px-3 py-2 mb-4 font-medium focus:border-[#b70001] focus:outline-none"
+              placeholder="Descreva a tendência"
+              value={form.tendencias_outro}
+              onChange={e => handleChange("tendencias_outro", e.target.value)}
+            />
+          )}
+
+          {/* 6. Demanda não atendida */}
+          <label className="block mb-2 font-medium">
+            Existe algum produto/serviço que seus clientes pedem e você ainda não oferece?
+          </label>
+          <input
+            type="text"
+            className="w-full border border-gray-300 rounded px-3 py-2 mb-4 font-medium focus:border-[#b70001] focus:outline-none"
+            value={form.demanda_nao_atendida}
+            onChange={e => handleChange("demanda_nao_atendida", e.target.value)}
+          />
+
+          {/* 7. Pronto para parcerias */}
+          <label className="block mb-2 font-medium">
+            Sua empresa está pronta para explorar novas parcerias estratégicas?
+          </label>
+          <div className="flex gap-3 mb-4">
+            {["Sim", "Em análise", "Ainda não"].map(opt => (
+              <label
+                key={opt}
+                className={`px-4 py-2 rounded cursor-pointer border transition ${
+                  form.parcerias_possiveis === opt
+                    ? "bg-[#b70001] text-white font-semibold border-[#b70001]"
+                    : "bg-gray-100 border-gray-300"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="parcerias_possiveis"
+                  className="hidden"
+                  value={opt}
+                  checked={form.parcerias_possiveis === opt}
+                  onChange={() => handleChange("parcerias_possiveis", opt)}
+                />
+                {opt}
+              </label>
+            ))}
+          </div>
+
+          {/* 8. Recurso ocioso */}
+          <label className="block mb-2 font-medium">
+            Qual recurso atual você sente que está subutilizado?
+          </label>
+          <input
+            type="text"
+            className="w-full border border-gray-300 rounded px-3 py-2 mb-4 font-medium focus:border-[#b70001] focus:outline-none"
+            placeholder="Ex: Espaço físico, mailing, rede de contatos…"
+            value={form.recurso_ocioso}
+            onChange={e => handleChange("recurso_ocioso", e.target.value)}
+          />
+
+          {/* 9. Canais potenciais */}
+          <label className="block mb-2 font-medium">
+            Quais canais ou estratégias você ainda não explora, mas gostaria?
+          </label>
+          <div className="flex flex-col gap-2 mb-4">
+            {canaisOpcoes.map(opt => (
+              <label
+                key={opt}
+                className={`flex items-center gap-2 px-3 py-2 rounded cursor-pointer border font-medium ${
+                  form.canais_potenciais.includes(opt)
+                    ? "bg-[#ef0002] text-white border-[#ef0002]"
+                    : "bg-gray-100 border-gray-300"
+                } transition`}
+              >
+                <input
+                  type="checkbox"
+                  className="accent-[#ef0002] h-4 w-4"
+                  checked={form.canais_potenciais.includes(opt)}
+                  onChange={() => handleCheckbox("canais_potenciais", opt)}
+                />
+                <span>{opt}</span>
+              </label>
+            ))}
+          </div>
+          {mostrarOutroCanais && (
+            <input
+              type="text"
+              className="w-full border border-gray-300 rounded px-3 py-2 mb-4 font-medium focus:border-[#b70001] focus:outline-none"
+              placeholder="Descreva o canal ou estratégia"
+              value={form.canais_outro}
+              onChange={e => handleChange("canais_outro", e.target.value)}
+            />
+          )}
+
+          {/* 10. Disposição para explorar oportunidades */}
+          <label className="block mb-2 font-medium">
+            De 0 a 10, qual a sua disposição em explorar novas oportunidades?
+          </label>
+          <div className="flex items-center gap-2 mb-4">
+            <input
+              type="range"
+              min={0}
+              max={10}
+              step={1}
+              value={form.nivel_disposicao}
+              onChange={e => handleChange("nivel_disposicao", Number(e.target.value))}
+              className="flex-grow accent-[#ef0002]"
+            />
+            <span className="w-8 text-right text-[#ef0002] font-bold">{form.nivel_disposicao}</span>
+          </div>
+
+          {/* Condicional: se disposição >=8, campo aberto */}
+          {mostrarCampoAcaoInicial && (
+            <>
+              <label className="block mb-2 font-medium">
+                Qual seria sua primeira ação para isso?
+              </label>
+              <input
+                type="text"
+                className="w-full border border-gray-300 rounded px-3 py-2 mb-4 font-medium focus:border-[#b70001] focus:outline-none"
+                value={form.acao_inicial_oportunidade}
+                onChange={e => handleChange("acao_inicial_oportunidade", e.target.value)}
+              />
+            </>
+          )}
+        </div>
+
+        <div className="flex justify-between pt-4 gap-4 flex-wrap-reverse sm:flex-nowrap">
+          {onBack && (
+            <button
+              type="button"
+              onClick={onBack}
+              className="mr-auto text-sm sm:text-base bg-white border border-gray-300 rounded-lg px-4 py-2 hover:bg-gray-100 transition"
+            >
+              ← Voltar
+            </button>
+          )}
+          <Button
+            type="submit"
+            className="bg-[#ef0002] text-white font-bold px-8 py-2 rounded"
+            disabled={!isValid}
+          >
+            Avançar para Ameaças
+          </Button>
+        </div>
+      </form>
+    </KeyboardAvoidingWrapper>
+  );
+
+  return (
+    <>
+      {isMobile ? (
+        <MobileFormWrapper>
+          {formContent}
+        </MobileFormWrapper>
+      ) : (
+        formContent
       )}
 
-      <div className="flex justify-between pt-4 gap-4 flex-wrap-reverse sm:flex-nowrap">
-        {onBack && (
-          <button
-            type="button"
-            onClick={onBack}
-            className="mr-auto text-sm sm:text-base bg-white border border-gray-300 rounded-lg px-4 py-2 hover:bg-gray-100 transition"
-          >
-            ← Voltar
-          </button>
-        )}
-        <Button
-          type="submit"
-          className="bg-[#ef0002] text-white font-bold px-8 py-2 rounded"
-          disabled={!isValid}
-        >
-          Avançar para Ameaças
-        </Button>
-      </div>
-    </form>
+      <MobileNavigation
+        onNext={handleSubmit}
+        onBack={onBack}
+        nextLabel="Avançar para Ameaças"
+        isNextDisabled={!isValid}
+      />
+    </>
   );
 }

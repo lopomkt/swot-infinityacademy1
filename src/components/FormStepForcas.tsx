@@ -10,6 +10,9 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import RedBullet from "@/components/RedBullet";
 import { motion } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
+import MobileFormWrapper from "@/components/mobile/MobileFormWrapper";
+import MobileNavigation from "@/components/mobile/MobileNavigation";
 
 interface FormStepForcasProps {
   onSubmit?: (data: ForcasData) => void;
@@ -19,6 +22,8 @@ interface FormStepForcasProps {
 }
 
 export default function FormStepForcas({ onSubmit, onComplete, defaultValues, onBack }: FormStepForcasProps) {
+  const isMobile = useIsMobile();
+  
   // Initialize form with default values
   const form = useForm<ForcasData>({
     resolver: zodResolver(forcasSchema),
@@ -80,7 +85,7 @@ export default function FormStepForcas({ onSubmit, onComplete, defaultValues, on
     show: { opacity: 1, y: 0 }
   };
 
-  return (
+  const formContent = (
     <motion.div 
       className="space-y-8 mt-4 max-w-5xl mx-auto"
       initial="hidden"
@@ -328,23 +333,43 @@ export default function FormStepForcas({ onSubmit, onComplete, defaultValues, on
                 </div>
               </ScrollArea>
             </CardContent>
-            <CardFooter className="flex justify-between">
-              {onBack && (
-                <Button type="button" variant="outline" onClick={onBack}>
-                  <ArrowLeft className="mr-1 h-4 w-4" />
-                  Voltar
+            
+            {/* Desktop navigation - only show when not mobile */}
+            {!isMobile && (
+              <CardFooter className="flex justify-between">
+                {onBack && (
+                  <Button type="button" variant="outline" onClick={onBack}>
+                    <ArrowLeft className="mr-1 h-4 w-4" />
+                    Voltar
+                  </Button>
+                )}
+                <Button type="submit">
+                  Avançar
                 </Button>
-              )}
-              <Button type="submit">
-                Avançar
-              </Button>
-            </CardFooter>
+              </CardFooter>
+            )}
           </form>
         </Form>
       </Card>
-      {/* Tag de rastreamento da execução */}
-      {/* fase5_forcas_ok = true */}
-      {/* fase5_bugfixes_finais_ok = true */}
     </motion.div>
+  );
+
+  return (
+    <>
+      {isMobile ? (
+        <MobileFormWrapper>
+          {formContent}
+        </MobileFormWrapper>
+      ) : (
+        formContent
+      )}
+
+      <MobileNavigation
+        onNext={handleSubmit(handleFormSubmit)}
+        onBack={onBack}
+        nextLabel="Avançar"
+        isNextDisabled={false}
+      />
+    </>
   );
 }
