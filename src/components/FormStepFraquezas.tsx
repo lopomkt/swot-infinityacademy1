@@ -62,7 +62,7 @@ export default function FormStepFraquezas({
       ferramentas_utilizadas: "",
       tentativas_resolucao: "",
       tentativa_falha_motivo: "",
-      capacidade_innovacao: "",
+      capacidade_inovacao: "",
       ausencia_dados_decisao: "",
       falta_treinamento: "",
       problemas_cultura: "",

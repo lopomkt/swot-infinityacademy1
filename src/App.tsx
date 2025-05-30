@@ -82,9 +82,10 @@ const AppContent = () => {
   );
 
   return isMobile ? (
-    <MobileErrorBoundary>
+    <div>
+      <MobileErrorBoundary />
       {routes}
-    </MobileErrorBoundary>
+    </div>
   ) : routes;
 };
 
