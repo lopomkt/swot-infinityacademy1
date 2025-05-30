@@ -10,6 +10,8 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import MobileFormWrapper from "@/components/mobile/MobileFormWrapper";
 import MobileNavigation from "@/components/mobile/MobileNavigation";
 import MobileAnswerFeedback from "@/components/mobile/MobileAnswerFeedback";
+import { useFraquezasForm } from "@/features/forms/hooks/useFraquezasForm";
+import { FormHeader } from "@/features/forms/components/FormHeader";
 
 const inconsistenciaOpcoes = [
   "Marketing",
@@ -43,45 +45,21 @@ export default function FormStepFraquezas({
   const isMobile = useIsMobile();
   const [showFeedback, setShowFeedback] = useState(false);
   
-  // Initialize form with React Hook Form + Zod
   const { 
     register, 
     handleSubmit, 
     watch, 
     setValue,
-    formState: { errors, isValid } 
-  } = useForm<FraquezasSchema>({
-    resolver: zodResolver(fraquezasSchema),
-    defaultValues: {
-      pontos_inconsistentes: [],
-      fraqueza_critica: "",
-      bloqueio_estrategico: "",
-      centralizacao_gestao: "",
-      retrabalho_frequente: "",
-      clareza_funcoes: 0,
-      documentacao_processos: "",
-      indicadores_ativos: "",
-      ferramentas_utilizadas: "",
-      tentativas_resolucao: "",
-      tentativa_falha_motivo: "",
-      capacidade_inovacao: "",
-      ausencia_dados_decisao: "",
-      falta_treinamento: "",
-      problemas_cultura: "",
-      step_fraquezas_ok: false,
-      ...defaultValues,
-    },
-    mode: "onChange"
-  });
+    formState: { errors, isValid },
+    handleFormSubmit
+  } = useFraquezasForm(defaultValues);
 
   // For checkbox handling with feedback
   const [selectedInconsistencias, setSelectedInconsistencias] = useState<string[]>(
     defaultValues?.pontos_inconsistentes || []
   );
 
-  // Watch fields for conditional rendering
   const tentativasResolucao = watch("tentativas_resolucao");
-  const pontos_inconsistentes = watch("pontos_inconsistentes");
 
   function handleCheckbox(value: string) {
     setSelectedInconsistencias(prev => {
@@ -91,11 +69,9 @@ export default function FormStepFraquezas({
       
       setValue("pontos_inconsistentes", newSelection, { shouldValidate: true });
       
-      // Trigger feedback
       setShowFeedback(true);
       setTimeout(() => setShowFeedback(false), 1000);
       
-      // If current fraqueza_critica isn't among selected anymore, reset it
       const fc = watch("fraqueza_critica");
       if (fc && !newSelection.includes(fc)) {
         setValue("fraqueza_critica", "", { shouldValidate: true });
@@ -105,33 +81,14 @@ export default function FormStepFraquezas({
     });
   }
 
-  function onSubmit(data: FraquezasSchema) {
-    // Validation is successful, flag for validation status
-    const validacao_fraquezas_ok = true;
-    
-    // Show success toast
-    toast({
-      title: "Fraquezas salvas",
-      description: "Vamos para a próxima etapa: Oportunidades",
-    });
-    
-    // Complete this step with valid data
-    onComplete({
-      ...data,
-      step_fraquezas_ok: true
-    } as FraquezasData);
-  }
-
   const formContent = (
-    <form onSubmit={handleSubmit(onSubmit)} className={`w-full ${isMobile ? '' : 'max-w-2xl'} bg-white rounded-xl ${isMobile ? 'px-4 sm:px-6' : 'p-6'} shadow-md mx-auto animate-fade-in ${isMobile ? 'max-h-[calc(100vh-120px)] overflow-y-auto' : ''}`} style={isMobile ? { scrollBehavior: 'smooth' } : {}}>
+    <form onSubmit={handleSubmit((data) => handleFormSubmit(data, onComplete))} className={`w-full ${isMobile ? '' : 'max-w-2xl'} bg-white rounded-xl ${isMobile ? 'px-4 sm:px-6' : 'p-6'} shadow-md mx-auto animate-fade-in ${isMobile ? 'max-h-[calc(100vh-120px)] overflow-y-auto' : ''}`} style={isMobile ? { scrollBehavior: 'smooth' } : {}}>
       <MobileAnswerFeedback show={showFeedback} />
       
-      <h2 className="text-2xl font-bold text-[#560005] mb-4">
-        Diagnóstico dos Pontos de Melhoria
-      </h2>
-      <p className="text-gray-600 mb-6">
-        Identificar fraquezas é o primeiro passo para superá-las. Seja honesto sobre os desafios atuais da empresa.
-      </p>
+      <FormHeader 
+        title="Diagnóstico dos Pontos de Melhoria"
+        subtitle="Identificar fraquezas é o primeiro passo para superá-las. Seja honesto sobre os desafios atuais da empresa."
+      />
       
       <div className={`space-y-${isMobile ? '4' : '6'} ${isMobile ? 'pb-28' : ''}`}>
         {/* 1. Em quais áreas sente mais dificuldade... */}
@@ -501,9 +458,8 @@ export default function FormStepFraquezas({
         formContent
       )}
 
-      {/* Mobile navigation */}
       <MobileNavigation
-        onNext={handleSubmit(onSubmit)}
+        onNext={handleSubmit((data) => handleFormSubmit(data, onComplete))}
         onBack={onBack}
         nextLabel="Avançar para Oportunidades"
         isNextDisabled={!isValid}

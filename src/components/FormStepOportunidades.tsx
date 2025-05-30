@@ -5,6 +5,8 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import MobileFormWrapper from "@/components/mobile/MobileFormWrapper";
 import MobileNavigation from "@/components/mobile/MobileNavigation";
 import KeyboardAvoidingWrapper from "@/components/mobile/KeyboardAvoidingWrapper";
+import { useOportunidadesForm } from "@/features/forms/hooks/useOportunidadesForm";
+import { FormHeader } from "@/features/forms/components/FormHeader";
 
 const tendenciasOpcoes = [
   "Digitalização",
@@ -35,78 +37,25 @@ interface Props {
 
 export default function FormStepOportunidades({ defaultValues, onComplete, onBack }: Props) {
   const isMobile = useIsMobile();
-  const [form, setForm] = useState<OportunidadesData>({
-    nova_demanda_cliente: "",
-    situacao_mercado: "",
-    nichos_ocultos: "",
-    concorrentes_enfraquecendo: "",
-    tendencias_aproveitaveis: [],
-    tendencias_outro: "",
-    demanda_nao_atendida: "",
-    parcerias_possiveis: "",
-    recurso_ocioso: "",
-    canais_potenciais: [],
-    canais_outro: "",
-    nivel_disposicao: 0,
-    acao_inicial_oportunidade: "",
-    step_oportunidades_ok: false,
-    respostas: [], // Required field from the OportunidadesData interface
-    ...defaultValues,
-  });
+  const {
+    form,
+    handleChange,
+    handleCheckbox,
+    isValid,
+    handleFormSubmit
+  } = useOportunidadesForm(defaultValues);
 
   const mostrarOutroTendencias = form.tendencias_aproveitaveis.includes("Outro");
   const mostrarOutroCanais = form.canais_potenciais.includes("Outro");
   const mostrarCampoAcaoInicial = form.nivel_disposicao >= 8;
 
-  function handleChange<K extends keyof OportunidadesData>(key: K, value: OportunidadesData[K]) {
-    setForm((prev) => ({
-      ...prev,
-      [key]: value,
-    }));
-  }
-
-  function handleCheckbox(key: "tendencias_aproveitaveis" | "canais_potenciais", value: string) {
-    setForm((prev) => {
-      const arr = prev[key].includes(value)
-        ? prev[key].filter((v: string) => v !== value)
-        : [...prev[key], value];
-      return { ...prev, [key]: arr };
-    });
-  }
-
-  function countFilledFields(data: OportunidadesData) {
-    let c = 0;
-    if (data.nova_demanda_cliente?.trim()) c++;
-    if (data.situacao_mercado) c++;
-    if (data.nichos_ocultos?.trim()) c++;
-    if (data.concorrentes_enfraquecendo) c++;
-    if (data.tendencias_aproveitaveis.length) c++;
-    if (mostrarOutroTendencias && data.tendencias_outro?.trim()) c++;
-    if (data.demanda_nao_atendida?.trim()) c++;
-    if (data.parcerias_possiveis) c++;
-    if (data.recurso_ocioso?.trim()) c++;
-    if (data.canais_potenciais.length) c++;
-    if (mostrarOutroCanais && data.canais_outro?.trim()) c++;
-    if (typeof data.nivel_disposicao === "number" && data.nivel_disposicao !== 0) c++;
-    if (mostrarCampoAcaoInicial && data.acao_inicial_oportunidade?.trim()) c++;
-    return c;
-  }
-
-  const isValid = countFilledFields(form) >= 7;
-
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (isValid) {
-      const finalData = { ...form, step_oportunidades_ok: true };
-      onComplete(finalData);
-    }
+    handleFormSubmit(onComplete);
   }
 
   const handleMobileNext = () => {
-    if (isValid) {
-      const finalData = { ...form, step_oportunidades_ok: true };
-      onComplete(finalData);
-    }
+    handleFormSubmit(onComplete);
   };
 
   const formContent = (
@@ -116,10 +65,10 @@ export default function FormStepOportunidades({ defaultValues, onComplete, onBac
         onSubmit={handleSubmit}
         autoComplete="off"
       >
-        <h2 className="font-bold text-2xl text-[#560005] mb-3">Etapa 4 – OPORTUNIDADES</h2>
-        <p className={`${isMobile ? 'text-base' : 'text-base'} text-black mb-5`}>
-          Quais oportunidades externas sua empresa pode aproveitar?
-        </p>
+        <FormHeader 
+          title="Etapa 4 – OPORTUNIDADES"
+          subtitle="Quais oportunidades externas sua empresa pode aproveitar?"
+        />
         <p className="text-sm text-gray-500 mb-8">
           Vamos identificar aberturas de mercado, tendências ou vantagens que você pode explorar para crescer com mais inteligência.
         </p>

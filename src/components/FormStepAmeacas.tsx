@@ -1,20 +1,18 @@
 import React, { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { ameacasSchema, AmeacasSchema } from "@/schemas/ameacasSchema";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { toast } from "@/components/ui/use-toast";
-import { Form, FormField, FormItem, FormControl, FormMessage } from "@/components/ui/form";
+import { Form } from "@/components/ui/form";
 import { useIsMobile } from "@/hooks/use-mobile";
 import MobileFormWrapper from "@/components/mobile/MobileFormWrapper";
 import MobileNavigation from "@/components/mobile/MobileNavigation";
 import TouchOptimizedSlider from "@/components/mobile/TouchOptimizedSlider";
 import MobileAnswerFeedback from "@/components/mobile/MobileAnswerFeedback";
+import { useAmeacasForm } from "@/features/forms/hooks/useAmeacasForm";
+import { FormHeader } from "@/features/forms/components/FormHeader";
 
 const dependenciaPlataformasOpcoes = [
   "Instagram / Meta",
@@ -37,41 +35,20 @@ const FormStepAmeacas = ({
   const isMobile = useIsMobile();
   const [showFeedback, setShowFeedback] = useState(false);
   
-  // Inicializa o formulário com validação Zod
-  const form = useForm<AmeacasSchema>({
-    resolver: zodResolver(ameacasSchema),
-    defaultValues: {
-      fator_preocupante: defaultValues?.fator_preocupante || "",
-      concorrente_em_ascensao: defaultValues?.concorrente_em_ascensao || "",
-      dependencia_parceiros: defaultValues?.dependencia_parceiros || "",
-      ameaca_legislativa: defaultValues?.ameaca_legislativa || "",
-      sazonalidade_negocio: defaultValues?.sazonalidade_negocio || "",
-      detalheSazonalidade: defaultValues?.detalheSazonalidade || "",
-      dependencia_plataformas: defaultValues?.dependencia_plataformas || [],
-      mudanca_comportamental: defaultValues?.mudanca_comportamental || "",
-      resiliencia_crise: defaultValues?.resiliencia_crise || "",
-      perdas_externas: defaultValues?.perdas_externas || "",
-      detalhePerda: defaultValues?.detalhePerda || "",
-      impacto_ameacas: defaultValues?.impacto_ameacas ?? 0,
-      estrategia_defesa: defaultValues?.estrategia_defesa || "",
-    }
-  });
-
   const { 
     register, 
     handleSubmit, 
     watch, 
     setValue,
-    formState: { errors, isValid }
-  } = form;
+    formState: { errors, isValid },
+    handleFormSubmit
+  } = useAmeacasForm(defaultValues);
   
-  // Watch values for conditional logic
   const sazonalidade_negocio = watch("sazonalidade_negocio");
   const perdas_externas = watch("perdas_externas");
   const impacto_ameacas = watch("impacto_ameacas");
   const dependencia_plataformas = watch("dependencia_plataformas") || [];
 
-  // Enhanced toggle with feedback
   const togglePlataforma = (option: string) => {
     const currentValues = [...(dependencia_plataformas || [])];
     
@@ -95,70 +72,21 @@ const FormStepAmeacas = ({
     setTimeout(() => setShowFeedback(false), 1000);
   };
 
-  // Verifica se há erros gerais no formulário para exibir ao usuário
-  const hasGeneralErrors = errors.root?.message;
-  
-  // Submission handler
-  const onSubmit = (data: AmeacasSchema) => {
-    // Collect and transform responses into an array format for the matrix view
-    const responses = [
-      data.fator_preocupante,
-      `Concorrente em ascensão: ${data.concorrente_em_ascensao}`,
-      `Dependência de parceiros: ${data.dependencia_parceiros}`,
-      `Ameaça legislativa: ${data.ameaca_legislativa}`,
-      data.sazonalidade_negocio === "Sim" ? `Sazonalidade: ${data.detalheSazonalidade}` : "Sem sazonalidade",
-      `Dependência de plataformas: ${data.dependencia_plataformas.join(", ")}`,
-      `Mudanças comportamentais: ${data.mudanca_comportamental}`,
-      `Resiliência a crises: ${data.resiliencia_crise}`,
-      data.perdas_externas === "Sim" ? `Perdas externas: ${data.detalhePerda}` : "Sem perdas externas significativas",
-    ].filter(item => item && item.trim() !== '');
-
-    // Estrutura os dados para a próxima etapa
-    const payload = {
-      fator_preocupante: data.fator_preocupante,
-      concorrente_em_ascensao: data.concorrente_em_ascensao,
-      dependencia_parceiros: data.dependencia_parceiros,
-      ameaca_legislativa: data.ameaca_legislativa,
-      sazonalidade_negocio: data.sazonalidade_negocio,
-      ...(data.sazonalidade_negocio === "Sim" && { detalhe_sazonalidade: data.detalheSazonalidade }),
-      dependencia_plataformas: data.dependencia_plataformas,
-      mudanca_comportamental: data.mudanca_comportamental,
-      resiliencia_crise: data.resiliencia_crise,
-      perdas_externas: data.perdas_externas,
-      ...(data.perdas_externas === "Sim" && { detalhe_perda: data.detalhePerda }),
-      impacto_ameacas: data.impacto_ameacas,
-      ...(data.impacto_ameacas !== undefined && data.impacto_ameacas >= 7 && { estrategia_defesa: data.estrategia_defesa }),
-      step_ameacas_ok: true,
-      // Add the responses array for the matrix view
-      respostas: responses,
-      // Tag técnica de conclusão
-      validacao_ameacas_ok: true
-    };
-    
-    // Pronto para integração com Supabase:
-    // saveOnSupabase('etapa5_ameacas', payload)
-    onComplete(payload);
-    toast({ title: "Etapa de ameaças salva com sucesso." });
-  };
-
   const formContent = (
-    <Form {...form}>
+    <Form {...{ register: () => {}, handleSubmit, control: null, formState: { errors: {} } }}>
       <form 
         className={`w-full ${isMobile ? '' : 'max-w-xl'} bg-white rounded-xl ${isMobile ? 'px-4 sm:px-6' : 'p-6'} shadow-md mx-auto animate-fade-in`} 
-        onSubmit={handleSubmit(onSubmit)}
+        onSubmit={handleSubmit((data) => handleFormSubmit(data, onComplete))}
         style={isMobile ? { scrollMargin: '120px 0 0 0' } : {}}
       >
         <MobileAnswerFeedback show={showFeedback} />
         
-        <div>
-          <h2 className="text-2xl font-bold mb-1">Quais ameaças externas podem comprometer seu crescimento?</h2>
-          <p className="text-base text-muted-foreground mb-6">
-            Agora vamos identificar riscos e fatores externos que você não controla, mas que afetam ou podem afetar sua empresa.
-          </p>
-        </div>
+        <FormHeader 
+          title="Quais ameaças externas podem comprometer seu crescimento?"
+          subtitle="Agora vamos identificar riscos e fatores externos que você não controla, mas que afetam ou podem afetar sua empresa."
+        />
 
         <div className={`space-y-${isMobile ? '4' : '6'} ${isMobile ? 'pb-28' : ''}`}>
-          {/* 1 */}
           <div>
             <label className="font-semibold">1. Qual fator externo mais preocupa você atualmente?</label>
             <Input
@@ -167,12 +95,8 @@ const FormStepAmeacas = ({
               maxLength={140}
               className="mt-2"
             />
-            {errors.fator_preocupante && (
-              <p className="text-red-600 text-xs mt-1">{errors.fator_preocupante.message}</p>
-            )}
           </div>
 
-          {/* 2 */}
           <div>
             <label className="font-semibold">2. Algum concorrente direto vem ganhando espaço recentemente?</label>
             <RadioGroup
@@ -193,12 +117,8 @@ const FormStepAmeacas = ({
                 <label htmlFor="concorrenteIndefinido">Não sei dizer</label>
               </div>
             </RadioGroup>
-            {errors.concorrente_em_ascensao && (
-              <p className="text-red-600 text-xs mt-1">{errors.concorrente_em_ascensao.message}</p>
-            )}
           </div>
 
-          {/* 3 */}
           <div>
             <label className="font-semibold">3. Você depende de poucos fornecedores ou parceiros estratégicos?</label>
             <RadioGroup
@@ -219,12 +139,8 @@ const FormStepAmeacas = ({
                 <label htmlFor="dpNao">Não depende</label>
               </div>
             </RadioGroup>
-            {errors.dependencia_parceiros && (
-              <p className="text-red-600 text-xs mt-1">{errors.dependencia_parceiros.message}</p>
-            )}
           </div>
 
-          {/* 4 */}
           <div>
             <label className="font-semibold">4. Alguma legislação, regulação ou imposto tem prejudicado seu setor?</label>
             <Select 
@@ -241,12 +157,8 @@ const FormStepAmeacas = ({
                 <SelectItem value="Não">Não</SelectItem>
               </SelectContent>
             </Select>
-            {errors.ameaca_legislativa && (
-              <p className="text-red-600 text-xs mt-1">{errors.ameaca_legislativa.message}</p>
-            )}
           </div>
 
-          {/* 5 */}
           <div>
             <label className="font-semibold">5. Seu negócio sofre com sazonalidade?</label>
             <RadioGroup
@@ -271,15 +183,8 @@ const FormStepAmeacas = ({
                 className="mt-2"
               />
             )}
-            {errors.sazonalidade_negocio && (
-              <p className="text-red-600 text-xs mt-1">{errors.sazonalidade_negocio.message}</p>
-            )}
-            {errors.detalheSazonalidade && (
-              <p className="text-red-600 text-xs mt-1">{errors.detalheSazonalidade.message}</p>
-            )}
           </div>
 
-          {/* 6 */}
           <div>
             <label className="font-semibold">6. Há risco de dependência de plataformas (Meta, iFood, Google, etc)?</label>
             <div className="flex flex-wrap gap-2 mt-2">
@@ -294,12 +199,8 @@ const FormStepAmeacas = ({
                 </div>
               ))}
             </div>
-            {errors.dependencia_plataformas && (
-              <p className="text-red-600 text-xs mt-1">{errors.dependencia_plataformas.message}</p>
-            )}
           </div>
 
-          {/* 7 */}
           <div>
             <label className="font-semibold">7. Você sente que o comportamento dos consumidores está mudando?</label>
             <Select
@@ -315,12 +216,8 @@ const FormStepAmeacas = ({
                 <SelectItem value="Ainda não percebi">Ainda não percebi</SelectItem>
               </SelectContent>
             </Select>
-            {errors.mudanca_comportamental && (
-              <p className="text-red-600 text-xs mt-1">{errors.mudanca_comportamental.message}</p>
-            )}
           </div>
 
-          {/* 8 */}
           <div>
             <label className="font-semibold">8. Sua empresa conseguiria operar normalmente por 30 dias em crise externa?</label>
             <RadioGroup
@@ -341,12 +238,8 @@ const FormStepAmeacas = ({
                 <label htmlFor="rcNao">Não conseguiria</label>
               </div>
             </RadioGroup>
-            {errors.resiliencia_crise && (
-              <p className="text-red-600 text-xs mt-1">{errors.resiliencia_crise.message}</p>
-            )}
           </div>
 
-          {/* 9 */}
           <div>
             <label className="font-semibold">9. Já sofreu com perdas importantes por fatores externos?</label>
             <RadioGroup
@@ -372,15 +265,8 @@ const FormStepAmeacas = ({
                 rows={2}
               />
             )}
-            {errors.perdas_externas && (
-              <p className="text-red-600 text-xs mt-1">{errors.perdas_externas.message}</p>
-            )}
-            {errors.detalhePerda && (
-              <p className="text-red-600 text-xs mt-1">{errors.detalhePerda.message}</p>
-            )}
           </div>
 
-          {/* 10 */}
           <div>
             <label className="font-semibold">10. Em uma escala de 0 a 10, qual o nível de impacto potencial das ameaças sobre sua empresa hoje?</label>
             <div className="flex items-center gap-3 mt-2">
@@ -419,20 +305,7 @@ const FormStepAmeacas = ({
                 rows={2}
               />
             )}
-            {errors.impacto_ameacas && (
-              <p className="text-red-600 text-xs mt-1">{errors.impacto_ameacas.message}</p>
-            )}
-            {errors.estrategia_defesa && (
-              <p className="text-red-600 text-xs mt-1">{errors.estrategia_defesa.message}</p>
-            )}
           </div>
-
-          {/* Erro geral (não preencheu 8 campos mínimos) */}
-          {hasGeneralErrors && (
-            <p className="text-red-600 text-sm p-2 bg-red-50 border border-red-200 rounded-md">
-              {hasGeneralErrors}
-            </p>
-          )}
         </div>
 
         {/* Desktop navigation - only show when not mobile */}
@@ -466,9 +339,8 @@ const FormStepAmeacas = ({
         formContent
       )}
 
-      {/* Mobile navigation */}
       <MobileNavigation
-        onNext={handleSubmit(onSubmit)}
+        onNext={handleSubmit((data) => handleFormSubmit(data, onComplete))}
         onBack={onBack}
         nextLabel="Avançar para Saúde Financeira"
         isNextDisabled={!isValid}
