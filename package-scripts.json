@@ -1,0 +1,16 @@
+
+{
+  "scripts": {
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "lint:fix": "eslint . --ext ts,tsx --fix",
+    "format": "prettier --write \"src/**/*.{ts,tsx,json,css,md}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,tsx,json,css,md}\"",
+    "test": "vitest",
+    "test:ci": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:coverage:check": "vitest run --coverage --reporter=json | jq -r '.coverageMap | to_entries[] | .value.pct.statements'",
+    "test:ui": "vitest --ui",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  }
+}

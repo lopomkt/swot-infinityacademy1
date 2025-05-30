@@ -2,114 +2,250 @@
 import { useState, useEffect, useCallback } from 'react';
 import { FormData } from '@/types/formData';
 
-const STORAGE_KEY = 'swot_form_data';
-const DEBOUNCE_DELAY = 1000; // 1 segundo
+/**
+ * Configuração do hook de persistência
+ */
+interface PersistenceConfig {
+  storageKey: string;
+  debounceMs: number;
+  autoSave: boolean;
+}
 
-export function useFormPersistence(initialData?: Partial<FormData>) {
-  const [formData, setFormData] = useState<FormData>(() => {
-    // Carregar dados do localStorage na inicialização
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        return { ...parsed, ...initialData };
-      }
-    } catch (error) {
-      console.warn("Erro ao carregar dados do localStorage:", error);
-    }
-    return initialData || {};
+/**
+ * Estado da persistência
+ */
+interface PersistenceState {
+  lastSaved: Date | null;
+  hasChanges: boolean;
+  isLoading: boolean;
+}
+
+/**
+ * Hook para salvamento e recuperação automática do progresso do formulário
+ * Utiliza localStorage com debounce para otimizar performance
+ * @param config Configuração do comportamento de persistência
+ * @returns Estado e funções para persistência de dados
+ */
+export function useFormPersistence(config: Partial<PersistenceConfig> = {}) {
+  const {
+    storageKey = 'swot-form-data',
+    debounceMs = 1000,
+    autoSave = true,
+  } = config;
+
+  const [formData, setFormData] = useState<FormData>({});
+  const [persistenceState, setPersistenceState] = useState<PersistenceState>({
+    lastSaved: null,
+    hasChanges: false,
+    isLoading: false,
   });
 
-  const [saveTimeout, setSaveTimeout] = useState<NodeJS.Timeout | null>(null);
-  const [lastSaved, setLastSaved] = useState<Date | null>(null);
-  const [isSaving, setIsSaving] = useState(false);
+  const [debounceTimer, setDebounceTimer] = useState<NodeJS.Timeout | null>(null);
 
-  // Função para salvar no localStorage com debounce
-  const saveToStorage = useCallback((data: FormData) => {
-    if (saveTimeout) {
-      clearTimeout(saveTimeout);
-    }
-
-    const timeout = setTimeout(() => {
+  /**
+   * Salva dados no localStorage
+   * @param data Dados a serem salvos
+   * @param immediate Se true, salva imediatamente sem debounce
+   */
+  const saveData = useCallback((data: FormData, immediate: boolean = false) => {
+    const performSave = () => {
       try {
-        setIsSaving(true);
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-        setLastSaved(new Date());
-        console.log("💾 Dados salvos no localStorage");
-      } catch (error) {
-        console.error("❌ Erro ao salvar no localStorage:", error);
-      } finally {
-        setIsSaving(false);
+        console.log("💾 Salvando dados do formulário...");
+        
+        const dataToSave = {
+          formData: data,
+          timestamp: new Date().toISOString(),
+          version: '1.0',
+        };
+
+        localStorage.setItem(storageKey, JSON.stringify(dataToSave));
+        
+        setPersistenceState(prev => ({
+          ...prev,
+          lastSaved: new Date(),
+          hasChanges: false,
+        }));
+
+        console.log("✅ Dados salvos com sucesso");
+      } catch (error: any) {
+        console.error("❌ Erro ao salvar dados:", error);
       }
-    }, DEBOUNCE_DELAY);
+    };
 
-    setSaveTimeout(timeout);
-  }, [saveTimeout]);
+    if (immediate) {
+      // Limpar timer existente e salvar imediatamente
+      if (debounceTimer) {
+        clearTimeout(debounceTimer);
+        setDebounceTimer(null);
+      }
+      performSave();
+    } else if (autoSave) {
+      // Implementar debounce para salvamento automático
+      if (debounceTimer) {
+        clearTimeout(debounceTimer);
+      }
 
-  // Atualizar dados e salvar automaticamente
-  const updateFormData = useCallback((updates: Partial<FormData>) => {
-    setFormData(current => {
-      const newData = { ...current, ...updates };
-      saveToStorage(newData);
-      return newData;
-    });
-  }, [saveToStorage]);
+      const newTimer = setTimeout(() => {
+        performSave();
+        setDebounceTimer(null);
+      }, debounceMs);
 
-  // Atualizar uma etapa específica
-  const updateStep = useCallback((stepName: keyof FormData, stepData: any) => {
-    updateFormData({ [stepName]: stepData });
-  }, [updateFormData]);
+      setDebounceTimer(newTimer);
+    }
+  }, [storageKey, debounceMs, autoSave, debounceTimer]);
 
-  // Limpar dados salvos
-  const clearFormData = useCallback(() => {
+  /**
+   * Carrega dados do localStorage
+   * @returns Dados carregados ou objeto vazio se não existir
+   */
+  const loadData = useCallback((): FormData => {
     try {
-      localStorage.removeItem(STORAGE_KEY);
+      console.log("📂 Carregando dados salvos...");
+      
+      const savedData = localStorage.getItem(storageKey);
+      
+      if (!savedData) {
+        console.log("ℹ️ Nenhum dado salvo encontrado");
+        return {};
+      }
+
+      const parsed = JSON.parse(savedData);
+      
+      // Verificar estrutura dos dados salvos
+      if (!parsed.formData || !parsed.timestamp) {
+        console.warn("⚠️ Estrutura de dados inválida, ignorando");
+        return {};
+      }
+
+      // Verificar se os dados não são muito antigos (7 dias)
+      const savedDate = new Date(parsed.timestamp);
+      const daysDiff = (Date.now() - savedDate.getTime()) / (1000 * 60 * 60 * 24);
+      
+      if (daysDiff > 7) {
+        console.warn("⚠️ Dados muito antigos, removendo do localStorage");
+        localStorage.removeItem(storageKey);
+        return {};
+      }
+
+      console.log("✅ Dados carregados com sucesso");
+      
+      setPersistenceState(prev => ({
+        ...prev,
+        lastSaved: savedDate,
+        hasChanges: false,
+      }));
+
+      return parsed.formData;
+    } catch (error: any) {
+      console.error("❌ Erro ao carregar dados:", error);
+      return {};
+    }
+  }, [storageKey]);
+
+  /**
+   * Atualiza dados do formulário e marca como alterado
+   * @param newData Novos dados ou função que recebe dados atuais
+   */
+  const updateFormData = useCallback((
+    newData: FormData | ((prev: FormData) => FormData)
+  ) => {
+    setFormData(prev => {
+      const updated = typeof newData === 'function' ? newData(prev) : newData;
+      
+      // Marcar como alterado se há diferenças
+      const hasChanges = JSON.stringify(updated) !== JSON.stringify(prev);
+      
+      if (hasChanges) {
+        setPersistenceState(prevState => ({
+          ...prevState,
+          hasChanges: true,
+        }));
+
+        // Salvar automaticamente se configurado
+        if (autoSave) {
+          saveData(updated, false);
+        }
+      }
+
+      return updated;
+    });
+  }, [autoSave, saveData]);
+
+  /**
+   * Limpa todos os dados salvos
+   */
+  const clearData = useCallback(() => {
+    try {
+      console.log("🗑️ Limpando dados salvos...");
+      
+      localStorage.removeItem(storageKey);
       setFormData({});
-      setLastSaved(null);
-      console.log("🗑️ Dados do formulário limpos");
-    } catch (error) {
+      setPersistenceState({
+        lastSaved: null,
+        hasChanges: false,
+        isLoading: false,
+      });
+
+      // Limpar timer de debounce se existir
+      if (debounceTimer) {
+        clearTimeout(debounceTimer);
+        setDebounceTimer(null);
+      }
+
+      console.log("✅ Dados limpos com sucesso");
+    } catch (error: any) {
       console.error("❌ Erro ao limpar dados:", error);
     }
-  }, []);
+  }, [storageKey, debounceTimer]);
 
-  // Verificar se há dados salvos
-  const hasSavedData = useCallback(() => {
+  /**
+   * Força salvamento imediato dos dados atuais
+   */
+  const forceSave = useCallback(() => {
+    saveData(formData, true);
+  }, [formData, saveData]);
+
+  /**
+   * Verifica se existem dados salvos no localStorage
+   */
+  const hasSavedData = useCallback((): boolean => {
     try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      return !!stored && Object.keys(JSON.parse(stored)).length > 0;
+      const savedData = localStorage.getItem(storageKey);
+      return !!savedData;
     } catch {
       return false;
     }
-  }, []);
+  }, [storageKey]);
 
-  // Obter progresso do formulário (0-100%)
-  const getFormProgress = useCallback(() => {
-    const totalSteps = 8; // Identificação, Forças, Fraquezas, Oportunidades, Ameaças, Saúde Financeira, Prioridades, Resultado Final
-    const completedSteps = Object.keys(formData).filter(key => {
-      const stepData = formData[key as keyof FormData];
-      return stepData && Object.keys(stepData).length > 0;
-    }).length;
+  // Carregar dados na inicialização
+  useEffect(() => {
+    setPersistenceState(prev => ({ ...prev, isLoading: true }));
+    
+    const loadedData = loadData();
+    setFormData(loadedData);
+    
+    setPersistenceState(prev => ({ ...prev, isLoading: false }));
+  }, [loadData]);
 
-    return Math.round((completedSteps / totalSteps) * 100);
-  }, [formData]);
-
-  // Cleanup do timeout ao desmontar
+  // Cleanup na desmontagem do componente
   useEffect(() => {
     return () => {
-      if (saveTimeout) {
-        clearTimeout(saveTimeout);
+      if (debounceTimer) {
+        clearTimeout(debounceTimer);
       }
     };
-  }, [saveTimeout]);
+  }, [debounceTimer]);
 
   return {
+    // Estado
     formData,
+    persistenceState,
+
+    // Ações
     updateFormData,
-    updateStep,
-    clearFormData,
+    loadData,
+    saveData: forceSave,
+    clearData,
     hasSavedData,
-    getFormProgress,
-    lastSaved,
-    isSaving,
   };
 }

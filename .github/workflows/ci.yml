@@ -1,0 +1,113 @@
+
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Run ESLint
+      run: npm run lint
+      continue-on-error: false
+
+    - name: Run Prettier check
+      run: npm run format:check
+      continue-on-error: false
+
+    - name: Run tests
+      run: npm run test:ci
+      env:
+        CI: true
+
+    - name: Generate coverage report
+      run: npm run test:coverage
+
+    - name: Check coverage threshold
+      run: |
+        COVERAGE=$(npm run test:coverage:check | grep -o '[0-9]\+\.[0-9]\+%' | head -1 | cut -d'%' -f1)
+        if (( $(echo "$COVERAGE < 80" | bc -l) )); then
+          echo "Coverage $COVERAGE% is below 80% threshold"
+          exit 1
+        fi
+        echo "Coverage $COVERAGE% meets the 80% threshold"
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage/lcov.info
+        flags: unittests
+        name: codecov-umbrella
+
+  build:
+    runs-on: ubuntu-latest
+    needs: test
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Build application
+      run: npm run build
+      env:
+        NODE_ENV: production
+
+    - name: Check build size
+      run: |
+        BUILD_SIZE=$(du -sh dist | cut -f1)
+        echo "Build size: $BUILD_SIZE"
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: [test, build]
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Deploy to production
+      run: |
+        echo "Deploying to production..."
+        # Add your deployment commands here
+        # Example: vercel --prod --token ${{ secrets.VERCEL_TOKEN }}
+
+  quality-gate:
+    runs-on: ubuntu-latest
+    needs: [test, build]
+    
+    steps:
+    - name: Quality Gate Check
+      run: |
+        echo "All quality checks passed:"
+        echo "✅ Linting passed"
+        echo "✅ Formatting passed"
+        echo "✅ Tests passed"
+        echo "✅ Coverage ≥ 80%"
+        echo "✅ Build successful"

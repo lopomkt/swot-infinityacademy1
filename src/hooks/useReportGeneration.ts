@@ -1,75 +1,183 @@
 
-import { useState, useRef, useCallback } from 'react';
-import { FormData, ParsedReport, ReportGenerationResult } from '@/types/groq';
+import { useState, useCallback } from 'react';
 import { groqAPIService } from '@/services/groq-api.service';
+import { reportService } from '@/services/report.service';
 import { parseGROQResult, validateFormData } from '@/utils/report-parser';
+import { FormData, ParsedReport, ReportGenerationResult } from '@/types/groq';
 
+/**
+ * Hook especializado para gerenciamento do estado de geração de relatórios
+ * Integra com groq-api.service e report.service para fluxo completo
+ * @returns Estado e funções para geração de relatórios
+ */
 export function useReportGeneration() {
-  const [resultado, setResultado] = useState<ParsedReport | undefined>(undefined);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | undefined>(undefined);
-  const isFetchingRef = useRef(false);
+  const [resultado, setResultado] = useState<ParsedReport | undefined>(undefined);
 
-  const gerarRelatorio = useCallback(async (formData: FormData): Promise<void> => {
-    // Prevenir múltiplas chamadas simultâneas
-    if (isFetchingRef.current) {
-      console.warn("⚠️ Geração já em andamento, ignorando nova solicitação");
-      return;
+  /**
+   * Gera relatório usando IA e salva no banco de dados
+   * @param formData Dados completos do formulário
+   * @param userId ID do usuário para salvar o relatório
+   * @returns Resultado da geração
+   */
+  const generateReport = useCallback(async (
+    formData: FormData, 
+    userId: string
+  ): Promise<ReportGenerationResult> => {
+    setLoading(true);
+    setError(undefined);
+    setResultado(undefined);
+
+    try {
+      console.log("🚀 Iniciando geração de relatório...");
+
+      // Validar dados do formulário
+      if (!validateFormData(formData)) {
+        throw new Error("Dados do formulário incompletos ou inválidos");
+      }
+
+      if (!userId) {
+        throw new Error("ID do usuário é obrigatório");
+      }
+
+      // Chamar API GROQ para gerar relatório
+      console.log("🤖 Chamando API GROQ...");
+      const groqResponse = await groqAPIService.fetchGROQResult(formData);
+
+      // Fazer parsing da resposta
+      console.log("📝 Fazendo parsing da resposta...");
+      const parsedReport = parseGROQResult(groqResponse);
+
+      // Preparar dados para salvar no banco
+      const reportData = {
+        user_id: userId,
+        dados: formData,
+        resultado_final: parsedReport,
+      };
+
+      // Salvar relatório no banco de dados
+      console.log("💾 Salvando relatório no banco...");
+      const reportId = await reportService.createReport(reportData);
+
+      if (!reportId) {
+        console.warn("⚠️ Relatório gerado mas não foi salvo no banco");
+      } else {
+        console.log("✅ Relatório salvo com ID:", reportId);
+      }
+
+      setResultado(parsedReport);
+      setLoading(false);
+
+      return {
+        resultado: parsedReport,
+        loading: false,
+        error: undefined,
+      };
+
+    } catch (error: any) {
+      console.error("❌ Erro na geração do relatório:", error);
+      
+      const errorMessage = error.message || "Erro inesperado na geração do relatório";
+      setError(errorMessage);
+      setLoading(false);
+
+      return {
+        resultado: undefined,
+        loading: false,
+        error: errorMessage,
+      };
     }
+  }, []);
 
-    // Validar dados de entrada
-    if (!validateFormData(formData)) {
-      setError("Dados do formulário incompletos ou inválidos");
-      return;
-    }
-
-    isFetchingRef.current = true;
+  /**
+   * Regenera um relatório existente
+   * @param formData Dados atualizados do formulário
+   * @param userId ID do usuário
+   * @param reportId ID do relatório existente para atualizar
+   * @returns Resultado da regeneração
+   */
+  const regenerateReport = useCallback(async (
+    formData: FormData,
+    userId: string,
+    reportId: string
+  ): Promise<ReportGenerationResult> => {
     setLoading(true);
     setError(undefined);
 
     try {
-      console.log("🚀 Iniciando geração do relatório...");
-      
-      // Chamar o serviço GROQ
-      const groqResponse = await groqAPIService.fetchGROQResult(formData);
-      
-      // Fazer parsing da resposta
-      const parsedReport = parseGROQResult(groqResponse);
-      
-      setResultado(parsedReport);
-      
-      console.log("✅ Relatório gerado com sucesso");
-      
-      // Placeholder para integração futura com Sentry
-      // Sentry.addBreadcrumb({ message: "Report generated successfully", level: "info" });
+      console.log("🔄 Regenerando relatório...");
 
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Erro desconhecido";
-      
-      console.error("❌ Erro na geração do relatório:", err);
-      setError(errorMessage);
-      
-      // Placeholder para log customizado/Sentry
-      // Sentry.captureException(err, { tags: { component: "useReportGeneration" } });
-      
-    } finally {
+      // Gerar novo conteúdo
+      const groqResponse = await groqAPIService.fetchGROQResult(formData);
+      const parsedReport = parseGROQResult(groqResponse);
+
+      // Atualizar relatório existente
+      const updateData = {
+        dados: formData,
+        resultado_final: parsedReport,
+      };
+
+      const updateSuccess = await reportService.updateReport(reportId, updateData);
+
+      if (!updateSuccess) {
+        console.warn("⚠️ Relatório regenerado mas não foi atualizado no banco");
+      }
+
+      setResultado(parsedReport);
       setLoading(false);
-      isFetchingRef.current = false;
+
+      return {
+        resultado: parsedReport,
+        loading: false,
+        error: undefined,
+      };
+
+    } catch (error: any) {
+      console.error("❌ Erro na regeneração do relatório:", error);
+      
+      const errorMessage = error.message || "Erro inesperado na regeneração";
+      setError(errorMessage);
+      setLoading(false);
+
+      return {
+        resultado: undefined,
+        loading: false,
+        error: errorMessage,
+      };
     }
   }, []);
 
-  const resetar = useCallback(() => {
-    setResultado(undefined);
-    setError(undefined);
+  /**
+   * Limpa o estado atual do hook
+   */
+  const clearReport = useCallback(() => {
     setLoading(false);
-    isFetchingRef.current = false;
+    setError(undefined);
+    setResultado(undefined);
   }, []);
 
+  /**
+   * Verifica se há um relatório carregado
+   */
+  const hasReport = !!resultado;
+
+  /**
+   * Verifica se o último relatório foi gerado com sucesso
+   */
+  const isSuccess = !!resultado && !error && !loading;
+
   return {
-    gerarRelatorio,
-    resetar,
-    resultado,
+    // Estado
     loading,
-    error
+    error,
+    resultado,
+    hasReport,
+    isSuccess,
+
+    // Ações
+    generateReport,
+    regenerateReport,
+    clearReport,
   };
 }

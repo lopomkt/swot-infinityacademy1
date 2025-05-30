@@ -6,7 +6,16 @@ const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
 const MAX_TIMEOUT = 25000; // 25 segundos
 const MAX_RETRIES = 5;
 
+/**
+ * Serviço para integração com a API GROQ para geração de relatórios de IA
+ * Implementa retry com exponential backoff e tratamento de erros robusto
+ */
 class GROQAPIService {
+  /**
+   * Gera prompt otimizado para a IA baseado nos dados do formulário
+   * @param formData Dados completos do formulário SWOT
+   * @returns String do prompt formatado para a IA
+   */
   private generateAIPrompt(formData: FormData): string {
     return `Você é um analista empresarial sênior, especialista em diagnóstico consultivo com foco em micro, pequenas e médias empresas. Com base nas informações coletadas no formulário abaixo, sua tarefa é gerar um relatório estratégico dividido em 3 partes:
 
@@ -53,18 +62,27 @@ Use os seguintes delimitadores para separar cada seção da sua resposta:
 ### PLANO DE AÇÃO A/B/C`;
   }
 
+  /**
+   * Implementa delay assíncrono para estratégia de retry
+   * @param ms Milissegundos para aguardar
+   */
   private async sleep(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
 
+  /**
+   * Executa requisição para API GROQ com retry automático
+   * @param formData Dados do formulário
+   * @param attempt Número da tentativa atual
+   * @returns Resposta da API GROQ
+   */
   private async makeGROQRequest(formData: FormData, attempt: number = 1): Promise<GROQResponse> {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), MAX_TIMEOUT);
 
     try {
       const prompt = this.generateAIPrompt(formData);
-      const intervalMs = Math.pow(2, attempt - 1) * 500; // Exponential backoff: 500ms, 1s, 2s, 4s, 8s
-
+      
       console.log(`🚀 Tentativa ${attempt}/${MAX_RETRIES} - Iniciando chamada GROQ API...`);
 
       const response = await fetch(GROQ_API_URL, {
@@ -94,58 +112,47 @@ Use os seguintes delimitadores para separar cada seção da sua resposta:
 
       if (!response.ok) {
         const errorData = await response.json();
+        console.error(`❌ Erro HTTP ${response.status}:`, errorData);
         throw new Error(errorData.error?.message || `HTTP ${response.status}: Erro na API GROQ`);
       }
 
       const data: GROQResponse = await response.json();
       
       if (!data.choices?.[0]?.message?.content) {
+        console.error("❌ Resposta inválida da IA:", data);
         throw new Error("Resposta inválida da IA - estrutura de dados malformada");
       }
 
       console.log("✅ Resposta OK - GROQ API respondeu com sucesso");
       return data;
 
-    } catch (error) {
+    } catch (error: any) {
       clearTimeout(timeoutId);
 
       if (error.name === 'AbortError') {
+        console.error("❌ Timeout na requisição GROQ");
         throw new Error("Timeout: A IA demorou para responder");
       }
 
-      // Se não é a última tentativa, fazer retry com exponential backoff
+      console.error(`❌ Erro na tentativa ${attempt}:`, error);
+
+      // Implementa exponential backoff: 500ms, 1s, 2s, 4s, 8s
       if (attempt < MAX_RETRIES) {
-        const backoffTime = Math.pow(2, attempt) * 500;
-        console.warn(`❌ Tentativa ${attempt} falhou. Retry em ${backoffTime}ms...`);
+        const backoffTime = Math.pow(2, attempt - 1) * 500;
+        console.warn(`🔄 Retry em ${backoffTime}ms...`);
         await this.sleep(backoffTime);
         return this.makeGROQRequest(formData, attempt + 1);
       }
 
-      console.error("❌ Todas as tentativas falharam:", error);
-      throw new Error(`Falha na geração do relatório: ${error.message}`);
+      console.error("❌ Todas as tentativas falharam");
+      throw new Error(`Falha na geração do relatório após ${MAX_RETRIES} tentativas: ${error.message}`);
     }
   }
 
   /**
-   * Executa chamada para API GROQ com retry automático e tratamento de erro
-   * @param formData Dados completos do formulário SWOT
-   * @returns Promise com resposta estruturada da IA
+   * Gera dados mock para desenvolvimento
+   * @returns Promise com resposta mock
    */
-  public async fetchGROQResult(formData: FormData): Promise<GROQResponse> {
-    // Verificar se a API key está presente
-    if (!GROQ_API_KEY) {
-      throw new Error("GROQ API Key não configurada");
-    }
-
-    // Em desenvolvimento, usar mock
-    if (import.meta.env.DEV) {
-      console.warn("⚠️ Modo desenvolvimento - usando mock data");
-      return this.mockReport();
-    }
-
-    return this.makeGROQRequest(formData);
-  }
-
   private mockReport(): Promise<GROQResponse> {
     return new Promise((resolve) => {
       setTimeout(() => {
@@ -207,6 +214,39 @@ As forças atuais evidenciam uma base sólida, especialmente em termos de qualid
         });
       }, 2000); // Simular delay de 2 segundos
     });
+  }
+
+  /**
+   * Função principal para consumo da API GROQ
+   * Executa chamada para API GROQ com retry automático e tratamento de erro
+   * @param formData Dados completos do formulário SWOT
+   * @returns Promise com resposta estruturada da IA
+   */
+  public async fetchGROQResult(formData: FormData): Promise<GROQResponse> {
+    // Verificar se a API key está presente
+    if (!GROQ_API_KEY || GROQ_API_KEY === 'your-groq-api-key-here') {
+      console.error("❌ GROQ API Key não configurada");
+      throw new Error("GROQ API Key não configurada. Configure VITE_GROQ_API_KEY no ambiente.");
+    }
+
+    // Validar dados de entrada
+    if (!formData || typeof formData !== 'object') {
+      console.error("❌ Dados do formulário inválidos:", formData);
+      throw new Error("Dados do formulário são obrigatórios para gerar o relatório");
+    }
+
+    // Em desenvolvimento, usar mock se não houver API key válida
+    if (import.meta.env.DEV && GROQ_API_KEY === "gsk_Gh2hKfW07TK1bjkKOHxRWGdyb3FYFZEYQss9Tp") {
+      console.warn("⚠️ Modo desenvolvimento - usando mock data");
+      return this.mockReport();
+    }
+
+    try {
+      return await this.makeGROQRequest(formData);
+    } catch (error: any) {
+      console.error("❌ Falha final na chamada GROQ:", error);
+      throw error;
+    }
   }
 }
 
