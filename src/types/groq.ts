@@ -130,7 +130,7 @@ export interface ResultadoFinalData {
   alertasCascata?: string[];
   acoes_priorizadas?: string[];
   ai_block_pronto?: boolean;
-  gpt_prompt_ok?: boolean;
+  groq_prompt_ok?: boolean;
   resultados_pdf_export_ready?: boolean;
   tipo?: string;
   created_at?: string;
@@ -149,7 +149,7 @@ export interface ParsedReport {
   diagnostico_textual: string;
   planos_acao: string;
   acoes_priorizadas: string[];
-  gpt_prompt_ok: boolean;
+  groq_prompt_ok: boolean;
   ai_block_pronto: boolean;
   tipo: string;
   created_at: string;

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import ProgressBar from "@/components/ProgressBar";
 import WelcomeStep from "@/components/WelcomeStep";
@@ -169,7 +168,7 @@ const Index = () => {
 
   // Check if AI results are ready to show results screen
   const areResultsReady = () => {
-    return formData.resultadoFinal?.ai_block_pronto === true && formData.resultadoFinal?.gpt_prompt_ok === true;
+    return formData.resultadoFinal?.ai_block_pronto === true && formData.resultadoFinal?.groq_prompt_ok === true;
   };
 
   // Helper function to determine the current visual step for the progress bar
@@ -368,7 +367,7 @@ const Index = () => {
             }}
           />
         )}
-        {step === 9 && formData.resultadoFinal?.ai_block_pronto && formData.resultadoFinal?.gpt_prompt_ok && (
+        {step === 9 && formData.resultadoFinal?.ai_block_pronto && formData.resultadoFinal?.groq_prompt_ok && (
           <ResultsScreen 
             formData={formData}
             onRestart={resetAppFlow}
@@ -376,7 +375,7 @@ const Index = () => {
           />
         )}
         
-        {step === 9 && (!formData.resultadoFinal?.ai_block_pronto || !formData.resultadoFinal?.gpt_prompt_ok) && (
+        {step === 9 && (!formData.resultadoFinal?.ai_block_pronto || !formData.resultadoFinal?.groq_prompt_ok) && (
           <p className="text-center text-red-600 mt-10">⏳ Seu relatório ainda está sendo processado.</p>
         )}
       </main>

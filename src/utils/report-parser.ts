@@ -54,7 +54,7 @@ export function parseGROQResult(response: GROQResponse): ParsedReport {
       diagnostico_textual: diagnosticoTextual,
       planos_acao: planosAcao,
       acoes_priorizadas: [],
-      gpt_prompt_ok: true,
+      groq_prompt_ok: true,
       ai_block_pronto: true,
       tipo: "GROQ_PRODUCAO",
       created_at: new Date().toISOString()
@@ -72,7 +72,7 @@ export function parseGROQResult(response: GROQResponse): ParsedReport {
       diagnostico_textual: "Erro no processamento do diagnóstico. Tente novamente.",
       planos_acao: "Erro no processamento dos planos de ação. Dados insuficientes.",
       acoes_priorizadas: [],
-      gpt_prompt_ok: false,
+      groq_prompt_ok: false,
       ai_block_pronto: false,
       tipo: "ERROR_FALLBACK",
       created_at: new Date().toISOString()

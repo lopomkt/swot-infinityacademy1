@@ -94,7 +94,7 @@ const AIBlock: React.FC<AIBlockProps> = ({ formData, onRestart, onAIComplete }) 
         planos_acao: resultados.planos_acao,
         acoes_priorizadas: resultados.acoes_priorizadas || [],
         ai_block_pronto: resultados.ai_block_pronto,
-        gpt_prompt_ok: resultados.gpt_prompt_ok,
+        groq_prompt_ok: resultados.groq_prompt_ok,
         tipo: resultados.tipo,
         created_at: resultados.created_at
       };
