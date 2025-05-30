@@ -1,21 +1,33 @@
 
 import React from 'react';
-import { motion } from 'framer-motion';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface MobileProgressIndicatorProps {
-  progress: number;
+  currentStep: number;
+  totalSteps: number;
   className?: string;
 }
 
-export function MobileProgressIndicator({ progress, className = '' }: MobileProgressIndicatorProps) {
+export function MobileProgressIndicator({ currentStep, totalSteps, className = '' }: MobileProgressIndicatorProps) {
+  const isMobile = useIsMobile();
+  
+  if (!isMobile) return null;
+
+  const progress = Math.min((currentStep / (totalSteps - 1)) * 100, 100);
+
   return (
-    <div className={`sm:hidden fixed top-0 w-full h-1 bg-gray-100 z-50 ${className}`}>
-      <motion.div
-        className="h-1 bg-[#ef0002]"
-        initial={{ width: 0 }}
-        animate={{ width: `${progress}%` }}
-        transition={{ duration: 0.5, ease: "easeInOut" }}
+    <div className={`w-full bg-gray-100 h-1 relative ${className}`}>
+      <div 
+        className="h-1 bg-[#ef0002] transition-all duration-300 ease-in-out"
+        style={{ width: `${progress}%` }}
       />
+      <div 
+        className="absolute top-0 w-5 h-5 bg-[#ef0002] rounded-full transform -translate-y-2 transition-all duration-300 ease-in-out"
+        style={{ left: `calc(${progress}% - 10px)` }}
+      />
+      <div className="text-[10px] text-neutral-600 mt-1 text-center">
+        Etapa {currentStep + 1} de {totalSteps}
+      </div>
     </div>
   );
 }

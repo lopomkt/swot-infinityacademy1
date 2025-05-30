@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { useIsSmallScreen } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface MobileFormWrapperProps {
   children: React.ReactNode;
@@ -8,14 +8,12 @@ interface MobileFormWrapperProps {
 }
 
 export function MobileFormWrapper({ children, className = '' }: MobileFormWrapperProps) {
-  const isSmallScreen = useIsSmallScreen();
+  const isMobile = useIsMobile();
 
-  if (isSmallScreen) {
+  if (isMobile) {
     return (
-      <div className={`px-4 py-6 max-w-md mx-auto w-full overflow-hidden ${className}`}>
-        <div className="scroll-y-auto">
-          {children}
-        </div>
+      <div className={`px-4 sm:px-6 max-w-md mx-auto overflow-y-auto min-h-screen bg-white rounded-2xl pb-[88px] ${className}`}>
+        {children}
       </div>
     );
   }

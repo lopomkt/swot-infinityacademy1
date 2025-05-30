@@ -15,6 +15,8 @@ import HistoricoRelatorios from "./components/Relatorios/HistoricoRelatorios";
 import ResultsPage from "./pages/ResultsPage";
 import AdminPage from "./pages/AdminPage";
 import VisualizarRelatorio from "./pages/VisualizarRelatorio";
+import { useIsMobile } from "./hooks/use-mobile";
+import MobileErrorBoundary from "./components/mobile/MobileErrorBoundary";
 
 // Create a client for React Query
 const queryClient = new QueryClient({
@@ -27,6 +29,65 @@ const queryClient = new QueryClient({
   },
 });
 
+const AppContent = () => {
+  const isMobile = useIsMobile();
+
+  const routes = (
+    <Routes>
+      <Route 
+        path="/" 
+        element={
+          <ProtectedRoute>
+            <Index />
+          </ProtectedRoute>
+        } 
+      />
+      <Route path="/auth" element={<AuthScreen />} />
+      <Route path="/expired" element={<ExpiredSubscription />} />
+      <Route 
+        path="/historico" 
+        element={
+          <ProtectedRoute>
+            <HistoricoRelatorios />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/resultados" 
+        element={
+          <ProtectedRoute>
+            <ResultsPage />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/visualizar" 
+        element={
+          <ProtectedRoute>
+            <VisualizarRelatorio />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/admin" 
+        element={
+          <AdminRoute>
+            <AdminPage />
+          </AdminRoute>
+        } 
+      />
+      {/* Catch-all route for 404 */}
+      <Route path="*" element={<NotFound />} />
+    </Routes>
+  );
+
+  return isMobile ? (
+    <MobileErrorBoundary>
+      {routes}
+    </MobileErrorBoundary>
+  ) : routes;
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -34,52 +95,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
-          <Routes>
-            <Route 
-              path="/" 
-              element={
-                <ProtectedRoute>
-                  <Index />
-                </ProtectedRoute>
-              } 
-            />
-            <Route path="/auth" element={<AuthScreen />} />
-            <Route path="/expired" element={<ExpiredSubscription />} />
-            <Route 
-              path="/historico" 
-              element={
-                <ProtectedRoute>
-                  <HistoricoRelatorios />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/resultados" 
-              element={
-                <ProtectedRoute>
-                  <ResultsPage />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/visualizar" 
-              element={
-                <ProtectedRoute>
-                  <VisualizarRelatorio />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/admin" 
-              element={
-                <AdminRoute>
-                  <AdminPage />
-                </AdminRoute>
-              } 
-            />
-            {/* Catch-all route for 404 */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <AppContent />
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>

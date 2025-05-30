@@ -1,5 +1,7 @@
 
 import React from "react";
+import { useIsMobile } from "@/hooks/use-mobile";
+import MobileProgressIndicator from "@/components/mobile/MobileProgressIndicator";
 
 interface ProgressTrackerProps {
   currentStep: number;
@@ -8,8 +10,14 @@ interface ProgressTrackerProps {
 }
 
 export function ProgressTracker({ currentStep, totalSteps, labels }: ProgressTrackerProps) {
+  const isMobile = useIsMobile();
+  
   // Calculate overall percentage for visual feedback
   const progressPercentage = Math.floor((currentStep / (totalSteps - 1)) * 100);
+  
+  if (isMobile) {
+    return <MobileProgressIndicator currentStep={currentStep} totalSteps={totalSteps} />;
+  }
   
   return (
     <div className="w-full px-4 py-3 bg-white border-b border-gray-200 sticky top-0 z-30">

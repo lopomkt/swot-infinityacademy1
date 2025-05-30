@@ -15,6 +15,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { IdentificacaoData } from "@/types/formData";
+import { useIsMobile } from "@/hooks/use-mobile";
+import MobileFormWrapper from "@/components/mobile/MobileFormWrapper";
+import MobileNavigation from "@/components/mobile/MobileNavigation";
 
 const formSchema = z.object({
   nomeEmpresa: z.string().min(2, {
@@ -46,6 +49,8 @@ interface Props {
 }
 
 const FormStep1 = ({ defaultValues = {}, onComplete, onBack }: Props) => {
+  const isMobile = useIsMobile();
+  
   const form = useForm<IdentificacaoData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -79,15 +84,15 @@ const FormStep1 = ({ defaultValues = {}, onComplete, onBack }: Props) => {
     "Completo (operação totalmente automatizada)"
   ];
 
-  return (
-    <div className="w-full bg-white rounded-xl p-6 shadow-sm border border-[#f1eaea] max-w-lg mx-auto animate-fade-in">
+  const formContent = (
+    <div className={`w-full bg-white rounded-xl ${isMobile ? 'px-4 sm:px-6' : 'p-6'} shadow-sm border border-[#f1eaea] ${isMobile ? '' : 'max-w-lg'} mx-auto animate-fade-in ${isMobile ? 'max-h-[calc(100vh-120px)] overflow-y-auto' : ''}`} style={isMobile ? { scrollBehavior: 'smooth' } : {}}>
       <h2 className="font-bold text-2xl text-[#560005] mb-3">Etapa 1 – IDENTIFICAÇÃO DA EMPRESA</h2>
       <p className="text-base text-black mb-5">
         Vamos começar entendendo melhor sobre seu negócio
       </p>
       
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <form onSubmit={form.handleSubmit(onSubmit)} className={`space-y-${isMobile ? '4' : '6'}`}>
           <FormField
             control={form.control}
             name="nomeEmpresa"
@@ -301,17 +306,39 @@ const FormStep1 = ({ defaultValues = {}, onComplete, onBack }: Props) => {
             )}
           />
           
-          <div className="flex justify-between pt-4 gap-4 flex-wrap-reverse sm:flex-nowrap">
-            {onBack && (
-              <Button type="button" variant="outline" onClick={onBack}>
-                ← Voltar
-              </Button>
-            )}
-            <Button type="submit">Avançar para Forças</Button>
-          </div>
+          {!isMobile && (
+            <div className="flex justify-between pt-4 gap-4 flex-wrap-reverse sm:flex-nowrap">
+              {onBack && (
+                <Button type="button" variant="outline" onClick={onBack}>
+                  ← Voltar
+                </Button>
+              )}
+              <Button type="submit">Avançar para Forças</Button>
+            </div>
+          )}
         </form>
       </Form>
     </div>
+  );
+
+  return (
+    <>
+      {isMobile ? (
+        <MobileFormWrapper>
+          {formContent}
+        </MobileFormWrapper>
+      ) : (
+        formContent
+      )}
+
+      {/* Mobile navigation */}
+      <MobileNavigation
+        onNext={form.handleSubmit(onSubmit)}
+        onBack={onBack}
+        nextLabel="Avançar para Forças"
+        isNextDisabled={!form.formState.isValid}
+      />
+    </>
   );
 };
 
