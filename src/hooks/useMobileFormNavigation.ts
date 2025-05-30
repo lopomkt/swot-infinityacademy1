@@ -1,15 +1,17 @@
 
 import { useState, useCallback } from 'react';
+import { useStepValidation } from './useStepValidation';
 
 export interface MobileFormNavigationHook {
   currentStep: number;
-  nextStep: () => void;
+  nextStep: (stepData?: any) => void;
   prevStep: () => void;
   setStep: (n: number) => void;
 }
 
 export function useMobileFormNavigation(initialStep: number = 1): MobileFormNavigationHook {
   const [currentStep, setCurrentStep] = useState(initialStep);
+  const { canProceed } = useStepValidation();
 
   const scrollToTop = useCallback(() => {
     const formHeader = document.getElementById('form-header');
@@ -20,10 +22,14 @@ export function useMobileFormNavigation(initialStep: number = 1): MobileFormNavi
     }
   }, []);
 
-  const nextStep = useCallback(() => {
+  const nextStep = useCallback((stepData?: any) => {
+    if (!canProceed(currentStep, stepData)) {
+      return;
+    }
+    
     setCurrentStep(prev => prev + 1);
     setTimeout(scrollToTop, 100);
-  }, [scrollToTop]);
+  }, [currentStep, canProceed, scrollToTop]);
 
   const prevStep = useCallback(() => {
     setCurrentStep(prev => Math.max(1, prev - 1));

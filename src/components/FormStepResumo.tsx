@@ -2,6 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useStepSummaryData } from '@/hooks/useStepSummaryData';
 import MobileFormWrapper from '@/components/mobile/MobileFormWrapper';
 import MobileNavigation from '@/components/mobile/MobileNavigation';
 
@@ -14,6 +15,9 @@ interface FormStepResumoProps {
 
 export function FormStepResumo({ data, onComplete, onBack, onRefazer }: FormStepResumoProps) {
   const isMobile = useIsMobile();
+  const { getStepSummary } = useStepSummaryData();
+  
+  const summaryData = getStepSummary(data);
 
   const formContent = (
     <div className={`w-full bg-white rounded-xl ${isMobile ? 'px-4 sm:px-6' : 'p-6'} shadow-md mx-auto animate-fade-in ${isMobile ? 'overflow-y-auto max-h-[calc(100vh-120px)]' : ''}`}>
@@ -34,13 +38,27 @@ export function FormStepResumo({ data, onComplete, onBack, onRefazer }: FormStep
       )}
 
       <div className="space-y-4 mb-6">
-        {/* Resumo das respostas */}
-        <div className="border rounded-lg p-4">
-          <h3 className="font-semibold mb-2">Suas respostas foram registradas</h3>
-          <p className="text-sm text-gray-600">
-            Todas as informações foram salvas e estão prontas para gerar seu relatório estratégico personalizado.
-          </p>
-        </div>
+        {summaryData.map((step, index) => (
+          <div key={index} className="border rounded-lg p-4">
+            <h3 className="font-semibold mb-2">{step.etapa}</h3>
+            <ul className="space-y-1">
+              {step.respostas.map((resposta, idx) => (
+                <li key={idx} className="text-sm text-gray-600">
+                  • {resposta}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+        
+        {summaryData.length === 0 && (
+          <div className="border rounded-lg p-4">
+            <h3 className="font-semibold mb-2">Suas respostas foram registradas</h3>
+            <p className="text-sm text-gray-600">
+              Todas as informações foram salvas e estão prontas para gerar seu relatório estratégico personalizado.
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Desktop navigation - only show when not mobile */}
