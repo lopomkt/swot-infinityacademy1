@@ -8,15 +8,16 @@ import { FormData, ParsedReport, ReportGenerationResult } from '@/types/groq';
 /**
  * Hook especializado para gerenciamento do estado de geração de relatórios
  * Integra com groq-api.service e report.service para fluxo completo
+ * Utiliza exclusivamente a IA GROQ com modelo llama3-70b-8192
  * @returns Estado e funções para geração de relatórios
  */
-export function useReportGeneration() {
+export function useGroqGeneration() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | undefined>(undefined);
   const [resultado, setResultado] = useState<ParsedReport | undefined>(undefined);
 
   /**
-   * Gera relatório usando IA e salva no banco de dados
+   * Gera relatório usando IA GROQ e salva no banco de dados
    * @param formData Dados completos do formulário
    * @param userId ID do usuário para salvar o relatório
    * @returns Resultado da geração
@@ -30,7 +31,7 @@ export function useReportGeneration() {
     setResultado(undefined);
 
     try {
-      console.log("🚀 Iniciando geração de relatório...");
+      console.log("🚀 Iniciando geração de relatório com GROQ IA...");
 
       // Validar dados do formulário
       if (!validateFormData(formData)) {
@@ -42,11 +43,11 @@ export function useReportGeneration() {
       }
 
       // Chamar API GROQ para gerar relatório
-      console.log("🤖 Chamando API GROQ...");
+      console.log("🤖 Chamando API GROQ com modelo llama3-70b-8192...");
       const groqResponse = await groqAPIService.fetchGROQResult(formData);
 
       // Fazer parsing da resposta
-      console.log("📝 Fazendo parsing da resposta...");
+      console.log("📝 Fazendo parsing da resposta GROQ...");
       const parsedReport = parseGROQResult(groqResponse);
 
       // Preparar dados para salvar no banco
@@ -76,7 +77,7 @@ export function useReportGeneration() {
       };
 
     } catch (error: any) {
-      console.error("❌ Erro na geração do relatório:", error);
+      console.error("❌ Erro na geração do relatório GROQ:", error);
       
       const errorMessage = error.message || "Erro inesperado na geração do relatório";
       setError(errorMessage);
@@ -91,7 +92,7 @@ export function useReportGeneration() {
   }, []);
 
   /**
-   * Regenera um relatório existente
+   * Regenera um relatório existente usando GROQ
    * @param formData Dados atualizados do formulário
    * @param userId ID do usuário
    * @param reportId ID do relatório existente para atualizar
@@ -106,7 +107,7 @@ export function useReportGeneration() {
     setError(undefined);
 
     try {
-      console.log("🔄 Regenerando relatório...");
+      console.log("🔄 Regenerando relatório com GROQ IA...");
 
       // Gerar novo conteúdo
       const groqResponse = await groqAPIService.fetchGROQResult(formData);

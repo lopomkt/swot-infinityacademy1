@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { Loader, AlertCircle, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -5,7 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ResultadoFinalData } from "@/types/formData";
 import { FormData as GROQFormData } from "@/types/groq";
 import { useAuth } from "@/contexts/AuthContext";
-import { useReportGeneration } from "@/hooks/useReportGeneration";
+import { useGroqGeneration } from "@/hooks/useGroqGeneration";
 import { reportService } from "@/services/report.service";
 import ErrorMessageBlock from "@/components/ErrorMessageBlock";
 import ErrorBoundary from "@/components/ErrorBoundary";
@@ -23,8 +24,8 @@ const AIBlock: React.FC<AIBlockProps> = ({ formData, onRestart, onAIComplete }) 
   const { user } = useAuth();
   const debounceRef = useRef<NodeJS.Timeout>();
   
-  // Hook personalizado para geração do relatório
-  const { loading, error, resultado, generateReport, clearReport } = useReportGeneration();
+  // Hook personalizado para geração do relatório com GROQ
+  const { loading, error, resultado, generateReport, clearReport } = useGroqGeneration();
 
   // Função para converter formData para o formato esperado pelo GROQ
   const convertToGROQFormData = (data: any): GROQFormData => {
@@ -175,7 +176,7 @@ const AIBlock: React.FC<AIBlockProps> = ({ formData, onRestart, onAIComplete }) 
               <p className="text-gray-600 max-w-md mx-auto text-center">
                 {timeoutWarning 
                   ? "Isso está demorando mais do que o esperado. Por favor, aguarde..." 
-                  : "Estamos analisando seus dados e gerando um relatório estratégico personalizado."}
+                  : "Estamos analisando seus dados e gerando um relatório estratégico personalizado usando IA GROQ."}
               </p>
               <div className="w-full max-w-md mt-8 mx-auto">
                 <div className="h-1 w-full bg-gray-200 rounded-full overflow-hidden">
@@ -210,7 +211,7 @@ const AIBlock: React.FC<AIBlockProps> = ({ formData, onRestart, onAIComplete }) 
                 Relatório Estratégico SWOT Insights
               </h2>
               <p className="text-gray-600 max-w-2xl mx-auto">
-                Análise personalizada com base nos dados fornecidos sobre seu negócio. 
+                Análise personalizada gerada por IA GROQ com base nos dados fornecidos sobre seu negócio. 
                 Use este relatório como guia para suas decisões estratégicas.
               </p>
             </div>

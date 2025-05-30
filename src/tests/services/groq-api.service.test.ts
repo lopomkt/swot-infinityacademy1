@@ -38,7 +38,7 @@ describe('GROQAPIService', () => {
       expect(result.choices[0].message.content).toContain('### MATRIZ SWOT');
     });
 
-    it('deve fazer chamada real para API em produção', async () => {
+    it('deve fazer chamada real para API GROQ em produção', async () => {
       // Arrange
       Object.defineProperty(import.meta.env, 'DEV', { value: false });
       Object.defineProperty(import.meta.env, 'VITE_GROQ_API_KEY', { 
@@ -70,6 +70,7 @@ describe('GROQAPIService', () => {
             'Authorization': 'Bearer valid-api-key',
             'Content-Type': 'application/json',
           }),
+          body: expect.stringContaining('"model":"llama3-70b-8192"'),
         })
       );
       expect(result.choices[0].message.content).toBeDefined();
@@ -125,6 +126,36 @@ describe('GROQAPIService', () => {
       // Act & Assert
       await expect(groqAPIService.fetchGROQResult(mockFormData))
         .rejects.toThrow('Falha na geração do relatório após 5 tentativas');
+    });
+
+    it('deve usar o modelo llama3-70b-8192 exclusivamente', async () => {
+      // Arrange
+      Object.defineProperty(import.meta.env, 'DEV', { value: false });
+      Object.defineProperty(import.meta.env, 'VITE_GROQ_API_KEY', { 
+        value: 'valid-api-key' 
+      });
+
+      const mockResponse = {
+        ok: true,
+        json: vi.fn().mockResolvedValue({
+          choices: [{
+            message: { content: 'Test response' }
+          }]
+        })
+      };
+
+      (global.fetch as any).mockResolvedValue(mockResponse);
+
+      // Act
+      await groqAPIService.fetchGROQResult(mockFormData);
+
+      // Assert
+      expect(fetch).toHaveBeenCalledWith(
+        'https://api.groq.com/openai/v1/chat/completions',
+        expect.objectContaining({
+          body: expect.stringContaining('"model":"llama3-70b-8192"')
+        })
+      );
     });
   });
 });

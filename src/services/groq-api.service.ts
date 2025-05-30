@@ -9,14 +9,15 @@ const MAX_RETRIES = 5;
 /**
  * Serviço para integração com a API GROQ para geração de relatórios de IA
  * Implementa retry com exponential backoff e tratamento de erros robusto
+ * Utiliza exclusivamente o modelo llama3-70b-8192
  */
 class GROQAPIService {
   /**
-   * Gera prompt otimizado para a IA baseado nos dados do formulário
+   * Gera prompt otimizado para a IA GROQ baseado nos dados do formulário
    * @param formData Dados completos do formulário SWOT
-   * @returns String do prompt formatado para a IA
+   * @returns String do prompt formatado para a IA GROQ
    */
-  private generateAIPrompt(formData: FormData): string {
+  private generateGroqPrompt(formData: FormData): string {
     return `Você é um analista empresarial sênior, especialista em diagnóstico consultivo com foco em micro, pequenas e médias empresas. Com base nas informações coletadas no formulário abaixo, sua tarefa é gerar um relatório estratégico dividido em 3 partes:
 
 1. **Matriz SWOT Completa**  
@@ -81,7 +82,7 @@ Use os seguintes delimitadores para separar cada seção da sua resposta:
     const timeoutId = setTimeout(() => controller.abort(), MAX_TIMEOUT);
 
     try {
-      const prompt = this.generateAIPrompt(formData);
+      const prompt = this.generateGroqPrompt(formData);
       
       console.log(`🚀 Tentativa ${attempt}/${MAX_RETRIES} - Iniciando chamada GROQ API...`);
 
@@ -93,7 +94,7 @@ Use os seguintes delimitadores para separar cada seção da sua resposta:
         },
         signal: controller.signal,
         body: JSON.stringify({
-          model: "llama-3.1-70b-versatile",
+          model: "llama3-70b-8192",
           messages: [
             { 
               role: "system", 
@@ -119,8 +120,8 @@ Use os seguintes delimitadores para separar cada seção da sua resposta:
       const data: GROQResponse = await response.json();
       
       if (!data.choices?.[0]?.message?.content) {
-        console.error("❌ Resposta inválida da IA:", data);
-        throw new Error("Resposta inválida da IA - estrutura de dados malformada");
+        console.error("❌ Resposta inválida da IA GROQ:", data);
+        throw new Error("Resposta inválida da IA GROQ - estrutura de dados malformada");
       }
 
       console.log("✅ Resposta OK - GROQ API respondeu com sucesso");
@@ -131,7 +132,7 @@ Use os seguintes delimitadores para separar cada seção da sua resposta:
 
       if (error.name === 'AbortError') {
         console.error("❌ Timeout na requisição GROQ");
-        throw new Error("Timeout: A IA demorou para responder");
+        throw new Error("Timeout: A IA GROQ demorou para responder");
       }
 
       console.error(`❌ Erro na tentativa ${attempt}:`, error);
@@ -220,7 +221,7 @@ As forças atuais evidenciam uma base sólida, especialmente em termos de qualid
    * Função principal para consumo da API GROQ
    * Executa chamada para API GROQ com retry automático e tratamento de erro
    * @param formData Dados completos do formulário SWOT
-   * @returns Promise com resposta estruturada da IA
+   * @returns Promise com resposta estruturada da IA GROQ
    */
   public async fetchGROQResult(formData: FormData): Promise<GROQResponse> {
     // Verificar se a API key está presente
