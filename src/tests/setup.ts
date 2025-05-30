@@ -1,42 +1,38 @@
 
-import { beforeAll, afterEach, afterAll } from 'vitest';
+import { afterEach, beforeAll, vi } from 'vitest';
 import { cleanup } from '@testing-library/react';
+import '@testing-library/jest-dom';
 
-// Setup global test environment
-beforeAll(() => {
-  // Mock environment variables
-  Object.defineProperty(import.meta.env, 'VITE_GROQ_API_KEY', {
-    value: 'test-groq-api-key',
-    writable: true,
-  });
-
-  Object.defineProperty(import.meta.env, 'DEV', {
-    value: true,
-    writable: true,
-  });
-
-  // Mock localStorage
-  Object.defineProperty(window, 'localStorage', {
-    value: {
-      getItem: vi.fn(),
-      setItem: vi.fn(),
-      removeItem: vi.fn(),
-      clear: vi.fn(),
-    },
-    writable: true,
-  });
-
-  // Mock fetch
-  global.fetch = vi.fn();
-});
-
-// Cleanup after each test
+// runs a cleanup after each test case (e.g. clearing jsdom)
 afterEach(() => {
   cleanup();
-  vi.clearAllMocks();
 });
 
-// Cleanup after all tests
-afterAll(() => {
-  vi.restoreAllMocks();
+// Mock window.matchMedia
+Object.defineProperty(window, 'matchMedia', {
+  writable: true,
+  value: vi.fn().mockImplementation(query => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: vi.fn(), // deprecated
+    removeListener: vi.fn(), // deprecated
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  })),
 });
+
+// Mock ResizeObserver
+global.ResizeObserver = vi.fn().mockImplementation(() => ({
+  observe: vi.fn(),
+  unobserve: vi.fn(),
+  disconnect: vi.fn(),
+}));
+
+// Mock fetch
+global.fetch = vi.fn();
+
+// Mock console methods
+vi.spyOn(console, 'error').mockImplementation(() => {});
+vi.spyOn(console, 'warn').mockImplementation(() => {});

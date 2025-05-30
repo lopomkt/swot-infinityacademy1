@@ -23,7 +23,7 @@ export function ProgressTracker({ currentStep, totalSteps, labels }: ProgressTra
       </div>
       
       <div className="overflow-x-hidden max-w-full">
-        <div className="flex flex-nowrap justify-between gap-0 md:gap-2 w-full max-w-5xl mx-auto mt-1">
+        <div className="flex flex-nowrap justify-between gap-x-4 w-full max-w-5xl mx-auto mt-6">
           {labels.map((label, index) => {
             // Determine if this step is completed, current, or future
             const isCompleted = index < currentStep;
@@ -37,7 +37,7 @@ export function ProgressTracker({ currentStep, totalSteps, labels }: ProgressTra
               >
                 <div className="relative">
                   <div
-                    className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center text-xs font-bold 
+                    className={`min-w-[44px] min-h-[44px] rounded-full flex items-center justify-center text-xs sm:text-sm font-bold 
                       ${isCompleted ? 'bg-[#b70001] text-white' : isCurrent ? 'border-2 border-[#b70001] text-[#b70001]' : 'bg-gray-200 text-gray-600'} 
                       transition-all duration-300`}
                   >
@@ -53,8 +53,8 @@ export function ProgressTracker({ currentStep, totalSteps, labels }: ProgressTra
                     <span className="absolute -top-2 right-0 text-green-600 text-xs">✓</span>
                   )}
                 </div>
-                <span className="mt-1 hidden sm:block text-xs text-gray-600">Etapa {index + 1}</span>
-                <span className="mt-1 block sm:hidden text-[10px] text-gray-600">{index + 1}</span>
+                <span className="mt-1 hidden sm:block text-xs sm:text-sm text-gray-600">Etapa {index + 1}</span>
+                <span className="mt-1 block sm:hidden text-xs text-gray-600">{index + 1}</span>
               </div>
             );
           })}

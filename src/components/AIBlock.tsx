@@ -24,7 +24,7 @@ const AIBlock: React.FC<AIBlockProps> = ({ formData, onRestart, onAIComplete }) 
   const debounceRef = useRef<NodeJS.Timeout>();
   
   // Hook personalizado para geração do relatório
-  const { gerarRelatorio, resultado, loading, error, resetar } = useReportGeneration();
+  const { loading, error, resultado, generateReport, clearReport } = useReportGeneration();
 
   // Função para converter formData para o formato esperado pelo GROQ
   const convertToGROQFormData = (data: any): GROQFormData => {
@@ -104,12 +104,14 @@ const AIBlock: React.FC<AIBlockProps> = ({ formData, onRestart, onAIComplete }) 
 
   // Função para tentar novamente
   const handleRetry = () => {
-    resetar();
+    clearReport();
     setProcessingState('idle');
     setTimeoutWarning(false);
     
-    const groqFormData = convertToGROQFormData(formData);
-    gerarRelatorio(groqFormData);
+    if (user) {
+      const groqFormData = convertToGROQFormData(formData);
+      generateReport(groqFormData, user.id);
+    }
   };
 
   // Effect com debounce para iniciar geração automaticamente
@@ -119,10 +121,10 @@ const AIBlock: React.FC<AIBlockProps> = ({ formData, onRestart, onAIComplete }) 
     }
 
     debounceRef.current = setTimeout(() => {
-      if (formData && processingState === 'idle') {
+      if (formData && processingState === 'idle' && user) {
         setProcessingState('processing');
         const groqFormData = convertToGROQFormData(formData);
-        gerarRelatorio(groqFormData);
+        generateReport(groqFormData, user.id);
       }
     }, 1500);
 
@@ -131,7 +133,7 @@ const AIBlock: React.FC<AIBlockProps> = ({ formData, onRestart, onAIComplete }) 
         clearTimeout(debounceRef.current);
       }
     };
-  }, [formData]);
+  }, [formData, user]);
 
   // Effect para monitorar mudanças no resultado
   useEffect(() => {
@@ -161,29 +163,29 @@ const AIBlock: React.FC<AIBlockProps> = ({ formData, onRestart, onAIComplete }) 
   }, [loading]);
 
   return (
-    <ErrorBoundary onReset={resetar}>
+    <ErrorBoundary onReset={clearReport}>
       <div className="w-full max-w-4xl mx-auto py-8 px-4 animate-fade-in">
         {loading || processingState === 'processing' ? (
-          <div className="flex flex-col items-center justify-center min-h-[400px]">
-            <div className="mb-6">
-              <Loader className="h-12 w-12 animate-spin text-[#ef0002]" />
-            </div>
-            <h3 className="text-xl font-medium text-gray-800 mb-2">
-              ⏳ Processando sua análise com inteligência estratégica GROQ...
-            </h3>
-            <p className="text-gray-600 max-w-md text-center">
-              {timeoutWarning 
-                ? "Isso está demorando mais do que o esperado. Por favor, aguarde..." 
-                : "Estamos analisando seus dados e gerando um relatório estratégico personalizado."}
-            </p>
-            <div className="w-full max-w-md mt-8">
-              <div className="h-1 w-full bg-gray-200 rounded-full overflow-hidden">
-                <div className="h-1 bg-[#ef0002] animate-pulse w-full"></div>
+          <div className="flex flex-col items-center justify-center min-h-[30vh] sm:min-h-[400px]">
+            <div className="text-center py-10">
+              <Loader className="h-12 w-12 animate-spin text-[#ef0002] mx-auto mb-6" />
+              <h3 className="text-xl font-medium text-gray-800 mb-2">
+                ⏳ Processando sua análise com inteligência estratégica GROQ...
+              </h3>
+              <p className="text-gray-600 max-w-md mx-auto text-center">
+                {timeoutWarning 
+                  ? "Isso está demorando mais do que o esperado. Por favor, aguarde..." 
+                  : "Estamos analisando seus dados e gerando um relatório estratégico personalizado."}
+              </p>
+              <div className="w-full max-w-md mt-8 mx-auto">
+                <div className="h-1 w-full bg-gray-200 rounded-full overflow-hidden">
+                  <div className="h-1 bg-[#ef0002] animate-pulse w-full"></div>
+                </div>
               </div>
             </div>
           </div>
         ) : error || processingState === 'failed' ? (
-          <div className="flex flex-col items-center justify-center min-h-[400px]">
+          <div className="flex flex-col items-center justify-center min-h-[30vh] sm:min-h-[400px]">
             <ErrorMessageBlock
               error={error || "Erro desconhecido"}
               onRetry={handleRetry}
@@ -311,7 +313,7 @@ const AIBlock: React.FC<AIBlockProps> = ({ formData, onRestart, onAIComplete }) 
             </div>
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center min-h-[400px]">
+          <div className="flex flex-col items-center justify-center min-h-[30vh] sm:min-h-[400px]">
             <AlertCircle className="h-12 w-12 text-gray-400 mb-4" />
             <p className="text-gray-600">Aguardando dados para processar...</p>
           </div>
