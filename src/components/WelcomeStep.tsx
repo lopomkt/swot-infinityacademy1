@@ -1,128 +1,126 @@
 
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import RedBullet from "./RedBullet";
-import { useAuth } from "@/contexts/AuthContext";
-import { LogOut, ArrowLeft } from "lucide-react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { ArrowRight, Target, TrendingUp, Users } from "lucide-react";
 
 interface WelcomeStepProps {
-  onStart: () => void;
+  onNext: () => void;
 }
 
-const WelcomeStep = ({ onStart }: WelcomeStepProps) => {
-  const { userData, signOut } = useAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  // Verificar se é um admin testando a ferramenta
-  const modoAdminTeste = location.search.includes("modo_teste_admin=true");
-  const isAdmin = userData?.is_admin === true;
-
-  const abrirHistorico = () => {
-    navigate("/historico");
-  };
-
-  const voltarPainelAdmin = () => {
-    navigate("/admin");
-  };
-
+const WelcomeStep = ({ onNext }: WelcomeStepProps) => {
   return (
-    <section className="w-full max-w-5xl bg-white py-20 px-6 mx-auto animate-fade-in">
-      <div className="flex justify-between items-center mb-8">
-        <h2 className="text-lg font-medium text-gray-700">
-          Empresa: <span className="font-bold text-[#ef0002]">{userData?.nome_empresa || "Carregando..."}</span>
-        </h2>
-        <div className="flex items-center gap-2">
-          {/* Botão de voltar ao painel admin - APENAS para admins */}
-          {isAdmin && modoAdminTeste && (
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="flex items-center gap-1 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-              onClick={voltarPainelAdmin}
-            >
-              <ArrowLeft size={16} />
-              Voltar ao Painel
-            </Button>
-          )}
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="flex items-center gap-1 text-gray-600"
-            onClick={signOut}
-          >
-            <LogOut size={16} />
-            Sair
-          </Button>
-        </div>
-      </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* Left Column - Content */}
-        <div className="flex flex-col justify-center">
-          <h1 className="text-3xl md:text-4xl font-bold text-black leading-snug">
-            Bem-vindo ao SWOT INSIGHTS
-          </h1>
-          <p className="mt-4 text-base text-gray-700">
-            Aqui começa o diagnóstico estratégico mais completo da sua empresa. Em poucos minutos, você terá um relatório poderoso com insights reais para vender mais, organizar processos e crescer de forma consistente.
-          </p>
-          
-          <div className="mt-8 space-y-4">
-            <div className="flex items-start space-x-3">
-              <RedBullet />
-              <p className="text-sm text-gray-700">
-                <strong>+ Estrutura:</strong> Veja o que precisa ser corrigido internamente.
-              </p>
-            </div>
-            <div className="flex items-start space-x-3">
-              <RedBullet />
-              <p className="text-sm text-gray-700">
-                <strong>+ Vendas:</strong> Identifique oportunidades ocultas de receita.
-              </p>
-            </div>
-            <div className="flex items-start space-x-3">
-              <RedBullet />
-              <p className="text-sm text-gray-700">
-                <strong>+ Expansão:</strong> Descubra novos caminhos estratégicos de crescimento.
-              </p>
-            </div>
-          </div>
-          
-          <div className="flex items-center gap-2 text-[#b70001] mt-6 font-semibold">
-            <span role="img" aria-label="timer">⏱️</span>
-            Duração média: <span className="ml-1">35 a 40 minutos</span>
-          </div>
-          
-          <div className="mt-6 flex flex-col">
-            <Button
-              onClick={onStart}
-              className="text-lg py-3 px-6 bg-[#ef0002] hover:bg-[#b70001] text-white rounded-xl shadow-md"
-              aria-label="Começar diagnóstico"
-            >
-              Iniciar Diagnóstico
-            </Button>
-            
-            <button 
-              className="text-sm text-gray-400 underline mt-4 self-center"
-              onClick={abrirHistorico}
-            >
-              Ver Histórico
-            </button>
-          </div>
-        </div>
-        
-        {/* Right Column - Image - Updated with correct Supabase image */}
-        <div className="hidden md:flex items-center justify-center">
+    <div className="max-w-4xl mx-auto p-6">
+      {/* Header com imagem */}
+      <div className="text-center mb-8">
+        <div className="mb-6">
           <img 
-            src="https://pkbomgocnpvxylwqlksb.supabase.co/storage/v1/object/public/public-assets/swotimg.jpg" 
-            alt="Dashboard estratégico SWOT" 
-            className="w-full h-auto object-cover rounded-xl shadow-md aspect-square" 
+            src="https://pkbomgocnpvxylwqlksb.supabase.co/storage/v1/object/public/public-assets/swotimg.jpg"
+            alt="SWOT Insights - Análise Estratégica"
+            className="mx-auto max-w-md w-full h-auto rounded-lg shadow-lg"
+            onError={(e) => {
+              // Fallback para caso a imagem não carregue
+              const target = e.target as HTMLImageElement;
+              target.style.display = 'none';
+            }}
           />
         </div>
+        
+        <h1 className="text-3xl font-bold text-[#560005] mb-3">
+          Bem-vindo ao SWOT INSIGHTS
+        </h1>
+        <p className="text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
+          A ferramenta mais completa para análise estratégica do seu negócio. 
+          Em poucos minutos, você terá um relatório detalhado com insights práticos 
+          para impulsionar sua empresa.
+        </p>
       </div>
-      
-      {/* fase6_1_welcome_transicoes_premium_ok = true */}
-    </section>
+
+      {/* Cards de benefícios */}
+      <div className="grid md:grid-cols-3 gap-6 mb-8">
+        <Card className="border-l-4 border-l-[#ef0002]">
+          <CardContent className="p-6">
+            <div className="flex items-center mb-3">
+              <Target className="h-8 w-8 text-[#ef0002] mr-3" />
+              <h3 className="font-semibold text-lg">Diagnóstico Preciso</h3>
+            </div>
+            <p className="text-gray-600">
+              Análise SWOT completa com identificação de Forças, Fraquezas, 
+              Oportunidades e Ameaças do seu negócio.
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-l-4 border-l-blue-500">
+          <CardContent className="p-6">
+            <div className="flex items-center mb-3">
+              <TrendingUp className="h-8 w-8 text-blue-500 mr-3" />
+              <h3 className="font-semibold text-lg">Estratégias Práticas</h3>
+            </div>
+            <p className="text-gray-600">
+              Planos de ação personalizados com base na sua situação financeira 
+              e realidade do mercado.
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-l-4 border-l-green-500">
+          <CardContent className="p-6">
+            <div className="flex items-center mb-3">
+              <Users className="h-8 w-8 text-green-500 mr-3" />
+              <h3 className="font-semibold text-lg">Consultoria Inteligente</h3>
+            </div>
+            <p className="text-gray-600">
+              Relatório com múltiplas alternativas estratégicas geradas por 
+              inteligência artificial especializada.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Informações do processo */}
+      <Card className="bg-blue-50 border-blue-200 mb-8">
+        <CardContent className="p-6">
+          <h3 className="font-semibold text-lg mb-3 text-blue-800">
+            Como funciona a análise?
+          </h3>
+          <div className="grid md:grid-cols-2 gap-4 text-sm text-blue-700">
+            <div>
+              <strong>1. Identificação:</strong> Dados da empresa e situação financeira
+            </div>
+            <div>
+              <strong>2. Forças:</strong> Seus principais diferenciais competitivos
+            </div>
+            <div>
+              <strong>3. Fraquezas:</strong> Pontos que precisam de melhoria
+            </div>
+            <div>
+              <strong>4. Oportunidades:</strong> Mercado e tendências favoráveis
+            </div>
+            <div>
+              <strong>5. Ameaças:</strong> Riscos e desafios externos
+            </div>
+            <div>
+              <strong>6. Relatório:</strong> Estratégias personalizadas com IA
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Botão de iniciar */}
+      <div className="text-center">
+        <Button 
+          onClick={onNext}
+          size="lg"
+          className="bg-[#ef0002] hover:bg-[#b70001] text-white px-8 py-3 text-lg font-semibold"
+        >
+          Iniciar Análise SWOT
+          <ArrowRight className="ml-2 h-5 w-5" />
+        </Button>
+        <p className="text-sm text-gray-500 mt-3">
+          ⏱️ Tempo estimado: 15-25 minutos
+        </p>
+      </div>
+    </div>
   );
 };
 

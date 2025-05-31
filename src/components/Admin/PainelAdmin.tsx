@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -124,7 +125,7 @@ const PainelAdmin = () => {
 
   const carregarUsuarios = async () => {
     try {
-      console.log("Carregando usuários...");
+      console.log("Carregando usuários da tabela users...");
       const { data, error } = await supabase
         .from("users")
         .select("*")
