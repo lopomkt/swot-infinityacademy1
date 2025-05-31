@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -32,8 +32,24 @@ const AuthScreen = () => {
   const [activeTab, setActiveTab] = useState<string>("login");
   const [isLoading, setIsLoading] = useState(false);
   const [manterLogado, setManterLogado] = useState(false);
-  const { signIn } = useAuth();
+  const { signIn, isAuthenticated, userData } = useAuth();
   const navigate = useNavigate();
+
+  // Redirecionamento automático quando usuário está autenticado
+  useEffect(() => {
+    if (isAuthenticated && userData) {
+      console.log("🚀 Usuário autenticado detectado, redirecionando...", userData);
+      
+      // Redirecionamento baseado no tipo de usuário
+      if (userData.is_admin) {
+        console.log("👑 Redirecionando para admin");
+        navigate("/admin", { replace: true });
+      } else {
+        console.log("👤 Redirecionando para área do usuário");
+        navigate("/", { replace: true });
+      }
+    }
+  }, [isAuthenticated, userData, navigate]);
 
   const loginForm = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -59,10 +75,15 @@ const AuthScreen = () => {
       sessionStorage.clear();
       
       const result = await signIn(data.email, data.password, manterLogado);
-      if (!result.success) {
+      if (result.success) {
+        console.log("✅ Login realizado com sucesso, aguardando redirecionamento...");
+        toast.success("Login realizado com sucesso!");
+        // O redirecionamento será feito pelo useEffect acima
+      } else {
         toast.error(result.message);
       }
     } catch (error) {
+      console.error("❌ Erro no login:", error);
       toast.error("Erro ao fazer login");
     } finally {
       setIsLoading(false);

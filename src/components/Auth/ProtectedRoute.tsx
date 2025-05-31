@@ -15,13 +15,24 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   // Check if user is testing as an admin
   const modoAdminTeste = location.search.includes("modo_teste_admin=true");
 
-  // Bloquear qualquer redirecionamento enquanto carregando OU userData sendo processado
-  if (loading || (user && !userData)) {
-    console.log("[ProtectedRoute] Aguardando carregamento:", { loading, user: !!user, userData: !!userData });
+  // Debug logs para acompanhar o estado
+  useEffect(() => {
+    console.log("[ProtectedRoute] Estado atual:", { 
+      loading, 
+      user: !!user, 
+      userData: !!userData,
+      subscriptionExpired,
+      pathname: location.pathname 
+    });
+  }, [loading, user, userData, subscriptionExpired, location.pathname]);
+
+  // Aguardar carregamento completo dos dados
+  if (loading) {
+    console.log("[ProtectedRoute] Aguardando carregamento inicial...");
     return <LoadingScreen />;
   }
 
-  // Redirecionar para autenticação se não estiver logado
+  // Verificar se usuário não está autenticado
   if (!user) {
     console.log("[ProtectedRoute] Usuário não autenticado, redirecionando para /auth");
     localStorage.clear();
@@ -29,18 +40,25 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     return <Navigate to="/auth" replace />;
   }
 
-  // CRÍTICO: Bloquear se userData for null (usuário sem cadastro completo)
+  // Aguardar userData estar disponível (previne race condition)
   if (!userData) {
-    console.warn("[ProtectedRoute] Usuário logado mas sem dados na tabela users");
-    localStorage.clear();
-    sessionStorage.clear();
-    return <Navigate to="/auth" replace />;
+    console.log("[ProtectedRoute] Aguardando userData...");
+    return <LoadingScreen />;
   }
 
   // Verificar se é um administrador (administradores nunca são bloqueados)
-  if (userData?.is_admin === true) {
+  if (userData.is_admin === true) {
+    console.log("[ProtectedRoute] Usuário admin autenticado:", userData.email);
     localStorage.removeItem("subscription_expired");
     return <>{children}</>;
+  }
+
+  // Verificar se usuário está ativo
+  if (!userData.ativo) {
+    console.warn("[ProtectedRoute] Usuário inativo:", userData.email);
+    localStorage.clear();
+    sessionStorage.clear();
+    return <Navigate to="/auth" replace />;
   }
 
   // Redirecionar para a tela de expiração se a assinatura estiver vencida e não for um teste de admin
