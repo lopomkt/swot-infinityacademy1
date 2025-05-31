@@ -32,24 +32,24 @@ const AuthScreen = () => {
   const [activeTab, setActiveTab] = useState<string>("login");
   const [isLoading, setIsLoading] = useState(false);
   const [manterLogado, setManterLogado] = useState(false);
-  const { signIn, isAuthenticated, userData } = useAuth();
+  const { signIn, isAuthenticated, userData, loading } = useAuth();
   const navigate = useNavigate();
 
   // Redirecionamento automático quando usuário está autenticado
   useEffect(() => {
-    if (isAuthenticated && userData) {
-      console.log("🚀 Usuário autenticado detectado, redirecionando...", userData);
+    if (!loading && isAuthenticated && userData) {
+      console.log("🚀 [AuthScreen] Usuário autenticado detectado, redirecionando...", userData);
       
       // Redirecionamento baseado no tipo de usuário
       if (userData.is_admin) {
-        console.log("👑 Redirecionando para admin");
+        console.log("👑 [AuthScreen] Redirecionando para admin");
         navigate("/admin", { replace: true });
       } else {
-        console.log("👤 Redirecionando para área do usuário");
+        console.log("👤 [AuthScreen] Redirecionando para área do usuário");
         navigate("/", { replace: true });
       }
     }
-  }, [isAuthenticated, userData, navigate]);
+  }, [isAuthenticated, userData, navigate, loading]);
 
   const loginForm = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -69,21 +69,29 @@ const AuthScreen = () => {
   });
 
   const onLoginSubmit = async (data: LoginFormValues) => {
+    console.log("🔐 [AuthScreen] Iniciando processo de login...");
     setIsLoading(true);
+    
     try {
+      // Limpar dados antigos
       localStorage.clear();
       sessionStorage.clear();
       
+      console.log("📧 [AuthScreen] Tentando login com email:", data.email);
       const result = await signIn(data.email, data.password, manterLogado);
+      
+      console.log("📊 [AuthScreen] Resultado do login:", result);
+      
       if (result.success) {
-        console.log("✅ Login realizado com sucesso, aguardando redirecionamento...");
+        console.log("✅ [AuthScreen] Login realizado com sucesso!");
         toast.success("Login realizado com sucesso!");
         // O redirecionamento será feito pelo useEffect acima
       } else {
+        console.log("❌ [AuthScreen] Falha no login:", result.message);
         toast.error(result.message);
       }
     } catch (error) {
-      console.error("❌ Erro no login:", error);
+      console.error("❌ [AuthScreen] Erro no login:", error);
       toast.error("Erro ao fazer login");
     } finally {
       setIsLoading(false);
@@ -162,6 +170,18 @@ const AuthScreen = () => {
     }
   };
 
+  // Mostrar loading enquanto verifica autenticação
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-[#ef0002]" />
+          <p className="text-gray-600">Verificando autenticação...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-50 p-4">
       <div className="w-full max-w-md">
@@ -232,7 +252,7 @@ const AuthScreen = () => {
                       {isLoading ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Carregando...
+                          Entrando...
                         </>
                       ) : (
                         "Entrar"

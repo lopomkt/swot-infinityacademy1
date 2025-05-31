@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
 
@@ -65,23 +64,15 @@ class AuthService {
         // Verificar dados do usuário na tabela users
         const userData = await this.fetchUserData(data.user.id);
         
-        if (!userData || !userData.ativo) {
-          console.warn("⚠️ Usuário inativo ou não encontrado");
+        if (!userData) {
+          console.warn("⚠️ Usuário não encontrado na tabela users");
+          // Não fazer logout, apenas continuar - o usuário pode ter sido criado recentemente
+        } else if (!userData.ativo) {
+          console.warn("⚠️ Usuário inativo");
           await this.signOut();
           return {
             success: false,
-            message: "Usuário inativo ou não encontrado",
-          };
-        }
-
-        // Verificar validade da assinatura
-        if (!this.isSubscriptionValid(userData.data_validade)) {
-          console.warn("⚠️ Assinatura expirada");
-          return {
-            success: false,
-            message: "Assinatura expirada",
-            user: data.user,
-            session: data.session,
+            message: "Usuário inativo",
           };
         }
 
