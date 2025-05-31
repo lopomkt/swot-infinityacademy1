@@ -190,7 +190,7 @@ const Index = () => {
       <main className="w-full max-w-5xl py-10 px-4 md:px-12 flex-1 flex flex-col items-center justify-center animate-fade-in">
         {step === 0 && (
           <WelcomeStep
-            onStart={() => setStep(1)}
+            onNext={() => setStep(1)}
           />
         )}
         {step === 1 && (
