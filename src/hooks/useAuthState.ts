@@ -57,39 +57,24 @@ export function useAuthState(): AuthState & AuthActions {
    * Executa login através do auth.service
    */
   const signIn = useCallback(async (email: string, password: string, rememberMe: boolean = false) => {
-    console.log("🔐 [useAuthState] Iniciando signIn...");
     setLoading(true);
     
     try {
       const result = await authService.signIn(email, password, rememberMe);
-      console.log("🔐 [useAuthState] Resultado do signIn:", result.success);
       
       if (result.success && result.user && result.session) {
-        console.log("✅ [useAuthState] Login bem-sucedido, atualizando estados...");
         setUser(result.user);
         setSession(result.session);
         
-        // Buscar dados do usuário de forma assíncrona
-        setTimeout(async () => {
-          try {
-            const fetchedUserData = await authService.fetchUserData(result.user!.id);
-            console.log("👤 [useAuthState] UserData carregado:", !!fetchedUserData);
-            setUserData(fetchedUserData);
-          } catch (error) {
-            console.error("❌ [useAuthState] Erro ao buscar userData:", error);
-          }
-        }, 100);
-      } else {
-        console.log("❌ [useAuthState] Login falhou");
-        setUser(null);
-        setSession(null);
-        setUserData(null);
+        // Buscar dados do usuário
+        const fetchedUserData = await authService.fetchUserData(result.user.id);
+        setUserData(fetchedUserData);
       }
       
       setLoading(false);
       return { success: result.success, message: result.message };
     } catch (error: any) {
-      console.error("❌ [useAuthState] Erro no signIn:", error);
+      console.error("❌ Erro no signIn do hook:", error);
       setLoading(false);
       return { success: false, message: "Erro interno no login" };
     }
@@ -138,45 +123,38 @@ export function useAuthState(): AuthState & AuthActions {
 
   useEffect(() => {
     let mounted = true;
-    console.log("🚀 [useAuthState] Inicializando hook de autenticação...");
 
     // Configurar listener de mudanças de autenticação
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (!mounted) return;
 
-        console.log('🔐 [useAuthState] Auth state changed:', event);
+        console.log('🔐 Auth state changed:', event);
         
         setSession(session);
         setUser(session?.user ?? null);
         
         if (event === 'SIGNED_OUT') {
-          console.log('🚪 [useAuthState] Usuário desconectado');
           setUserData(null);
           setLoading(false);
         } else if (event === 'SIGNED_IN' && session?.user) {
-          console.log('✅ [useAuthState] Usuário conectado via event');
           // Buscar dados do usuário após login
-          setTimeout(async () => {
-            if (!mounted) return;
-            try {
-              const fetchedUserData = await authService.fetchUserData(session.user.id);
-              if (mounted) {
-                setUserData(fetchedUserData);
-                
-                // Verificar se usuário está ativo
-                if (fetchedUserData && !fetchedUserData.ativo) {
-                  console.warn("⚠️ [useAuthState] Usuário inativo, fazendo logout");
-                  await signOut();
-                } else {
-                  setLoading(false);
-                }
+          try {
+            const fetchedUserData = await authService.fetchUserData(session.user.id);
+            if (mounted) {
+              setUserData(fetchedUserData);
+              
+              // Verificar se usuário está ativo
+              if (!fetchedUserData?.ativo) {
+                console.warn("⚠️ Usuário inativo, fazendo logout");
+                await signOut();
               }
-            } catch (error) {
-              console.error("❌ [useAuthState] Erro ao buscar dados do usuário:", error);
-              if (mounted) setLoading(false);
             }
-          }, 100);
+          } catch (error) {
+            console.error("❌ Erro ao buscar dados do usuário:", error);
+          } finally {
+            if (mounted) setLoading(false);
+          }
         } else {
           setLoading(false);
         }
@@ -187,20 +165,15 @@ export function useAuthState(): AuthState & AuthActions {
     authService.getUserSession().then((session) => {
       if (!mounted) return;
       
-      console.log('🔍 [useAuthState] Verificando sessão existente:', !!session);
       setSession(session);
       setUser(session?.user ?? null);
       
       if (session?.user) {
         authService.fetchUserData(session.user.id).then((userData) => {
           if (mounted) {
-            console.log('👤 [useAuthState] UserData inicial carregado:', !!userData);
             setUserData(userData);
             setLoading(false);
           }
-        }).catch((error) => {
-          console.error('❌ [useAuthState] Erro ao carregar userData inicial:', error);
-          if (mounted) setLoading(false);
         });
       } else {
         setLoading(false);
@@ -208,7 +181,6 @@ export function useAuthState(): AuthState & AuthActions {
     });
 
     return () => {
-      console.log('🧹 [useAuthState] Limpando hook...');
       mounted = false;
       subscription.unsubscribe();
       authService.stopPolling();
