@@ -1,15 +1,38 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Target, TrendingUp, Users } from "lucide-react";
+import { ArrowRight, Target, TrendingUp, Users, Settings } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 interface WelcomeStepProps {
   onNext: () => void;
 }
 
 const WelcomeStep = ({ onNext }: WelcomeStepProps) => {
+  const { userData } = useAuth();
+  const navigate = useNavigate();
+
+  const handleAdminPanelClick = () => {
+    navigate('/admin');
+  };
+
   return (
     <div className="max-w-4xl mx-auto p-6">
+      {/* Admin Panel Button - only visible for admins */}
+      {userData?.is_admin && (
+        <div className="mb-6 text-right">
+          <Button
+            onClick={handleAdminPanelClick}
+            variant="outline"
+            className="border-[#ef0002] text-[#ef0002] hover:bg-[#ef0002] hover:text-white"
+          >
+            <Settings className="mr-2 h-4 w-4" />
+            Voltar ao Painel Admin
+          </Button>
+        </div>
+      )}
+
       {/* Header com imagem */}
       <div className="text-center mb-8">
         <div className="mb-6">
