@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import ProgressBar from "@/components/ProgressBar";
 import WelcomeStep from "@/components/WelcomeStep";
@@ -153,16 +152,9 @@ const Index = () => {
     return formData.resultadoFinal?.ai_block_pronto === true && formData.resultadoFinal?.groq_prompt_ok === true;
   };
 
-  // Helper function to determine the current visual step for the progress bar
-  const getCurrentProgressStep = () => step;
-
-  // Count actual visible steps for progress calculation
-  const totalMainSteps = STEPS.length;
-  const currentMainStep = Math.min(step, totalMainSteps - 1);
-
   return (
     <div className="min-h-screen bg-white text-black font-manrope flex flex-col items-center justify-start">
-      <ProgressBar currentStep={getCurrentProgressStep()} stepsCount={STEPS.length} />
+      <ProgressBar currentStep={step} stepsCount={STEPS.length} />
       <main className="w-full max-w-5xl py-10 px-4 md:px-12 flex-1 flex flex-col items-center justify-center animate-fade-in">
         {step === EnumSteps.BOAS_VINDAS && (
           <WelcomeStep

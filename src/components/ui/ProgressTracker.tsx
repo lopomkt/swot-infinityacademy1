@@ -12,8 +12,8 @@ interface ProgressTrackerProps {
 export function ProgressTracker({ currentStep, totalSteps, labels }: ProgressTrackerProps) {
   const isMobile = useIsMobile();
   
-  // Calculate overall percentage for visual feedback
-  const progressPercentage = Math.floor((currentStep / (totalSteps - 1)) * 100);
+  // Calculate progress percentage using direct indexing with +1 to advance on entry
+  const progressPercentage = Math.floor(((currentStep + 1) / totalSteps) * 100);
   
   if (isMobile) {
     return <MobileProgressIndicator currentStep={currentStep} totalSteps={totalSteps} />;
@@ -28,6 +28,13 @@ export function ProgressTracker({ currentStep, totalSteps, labels }: ProgressTra
             style={{ width: `${progressPercentage}%` }}
           />
         </div>
+      </div>
+      
+      {/* Current step label - visible on sm+ screens */}
+      <div className="hidden sm:block text-center mt-2">
+        <span className="text-sm text-gray-600 font-medium">
+          {labels[currentStep] || `Etapa ${currentStep + 1}`}
+        </span>
       </div>
       
       <div className="overflow-x-hidden max-w-full">
