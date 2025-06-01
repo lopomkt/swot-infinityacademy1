@@ -7,6 +7,9 @@ import MobileNavigation from "@/components/mobile/MobileNavigation";
 import KeyboardAvoidingWrapper from "@/components/mobile/KeyboardAvoidingWrapper";
 import { useOportunidadesForm } from "@/features/forms/hooks/useOportunidadesForm";
 import { FormHeader } from "@/features/forms/components/FormHeader";
+import { TransitionMessage } from '@/components/shared/TransitionMessage';
+
+const MESSAGE = "Vamos identificar as oportunidades externas que sua empresa pode aproveitar.";
 
 const tendenciasOpcoes = [
   "Digitalização",
@@ -60,6 +63,7 @@ export default function FormStepOportunidades({ defaultValues, onComplete, onBac
 
   const formContent = (
     <KeyboardAvoidingWrapper>
+      <TransitionMessage message={MESSAGE} />
       <form
         className={`w-full bg-white rounded-xl ${isMobile ? 'px-4 sm:px-6' : 'p-1 sm:p-6'} shadow-sm border border-[#f1eaea] ${isMobile ? '' : 'max-w-lg'} animate-fade-in`}
         onSubmit={handleSubmit}

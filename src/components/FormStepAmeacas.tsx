@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
@@ -14,6 +13,9 @@ import TouchOptimizedSlider from "@/components/mobile/TouchOptimizedSlider";
 import MobileAnswerFeedback from "@/components/mobile/MobileAnswerFeedback";
 import { useAmeacasForm } from "@/features/forms/hooks/useAmeacasForm";
 import { FormHeader } from "@/features/forms/components/FormHeader";
+import { TransitionMessage } from '@/components/shared/TransitionMessage';
+
+const MESSAGE = "Agora vamos identificar os riscos e ameaças externas que podem impactar sua empresa.";
 
 const dependenciaPlataformasOpcoes = [
   "Instagram / Meta",
@@ -76,6 +78,7 @@ const FormStepAmeacas = ({
 
   const formContent = (
     <Form {...formMethods}>
+      <TransitionMessage message={MESSAGE} />
       <form 
         className={`w-full ${isMobile ? '' : 'max-w-xl'} bg-white rounded-xl ${isMobile ? 'px-4 sm:px-6' : 'p-6'} shadow-md mx-auto animate-fade-in`} 
         onSubmit={handleSubmit((data) => handleFormSubmit(data, onComplete))}
