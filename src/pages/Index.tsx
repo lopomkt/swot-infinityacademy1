@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import ProgressBar from "@/components/ProgressBar";
 import WelcomeStep from "@/components/WelcomeStep";
@@ -10,7 +11,6 @@ import FormStepSaudeFinanceira from "@/components/FormStepSaudeFinanceira";
 import FormStepPrioridades from "@/components/FormStepPrioridades";
 import FinalizacaoStep from "@/components/FinalizacaoStep";
 import ResultsScreen from "@/pages/ResultsScreen";
-import TransitionStep from "@/components/TransitionStep";
 import { FormData } from "@/types/formData";
 import { EnumSteps, STEPS } from "@/types/steps";
 import { saveState, loadState } from "@/lib/persistence";
