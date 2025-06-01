@@ -17,16 +17,14 @@ const ProgressBar = ({ currentStep, stepsCount }: ProgressBarProps) => {
     "Ameaças",
     "Financeiro",
     "Prioridades",
-    "Finalização"
+    "Finalização",
+    "Resultados"
   ];
-  
-  // Map decimal steps (transitions) to their integer counterparts
-  const normalizedStep = Math.floor(currentStep);
   
   return (
     <div className="w-full max-w-6xl mx-auto px-4 flex items-center justify-between overflow-hidden">
       <ProgressTracker
-        currentStep={normalizedStep}
+        currentStep={currentStep}
         totalSteps={stepLabels.length}
         labels={stepLabels}
       />

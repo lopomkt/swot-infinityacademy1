@@ -12,6 +12,7 @@ import FinalizacaoStep from "@/components/FinalizacaoStep";
 import ResultsScreen from "@/pages/ResultsScreen";
 import TransitionStep from "@/components/TransitionStep";
 import { FormData } from "@/types/formData";
+import { EnumSteps, STEPS } from "@/types/steps";
 import { saveState, loadState } from "@/lib/persistence";
 import { Lightbulb, Star, Flag, TrendingUp, TrendingDown, ArrowRight } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -34,30 +35,11 @@ const estruturaInicialVazia: FormData = {
   fase7_5_1_correcao_total_ok: true,
 };
 
-const STEPS = [
-  { label: "Boas-vindas" },
-  { label: "Identificação & Contexto Empresarial" },
-  { label: "Transição" },
-  { label: "Forças" },
-  { label: "Transição" },
-  { label: "Fraquezas" },
-  { label: "Transição" },
-  { label: "Oportunidades" },
-  { label: "Transição" },
-  { label: "Ameaças" },
-  { label: "Transição" },
-  { label: "Saúde Financeira" },
-  { label: "Transição" },
-  { label: "Prioridades e Maturidade" },
-  { label: "Finalização" },
-  { label: "Resultados" },
-];
-
 const Index = () => {
   const isMobile = useIsMobile();
   const location = useLocation();
   const { session } = useAuth();
-  const [step, setStep] = useState<number>(0);
+  const [step, setStep] = useState<number>(EnumSteps.BOAS_VINDAS);
   const [formData, setFormData] = useState<FormData>(estruturaInicialVazia);
   const [relatorioConcluido, setRelatorioConcluido] = useState(false);
   
@@ -129,13 +111,13 @@ const Index = () => {
 
   const resetForm = () => {
     setFormData(estruturaInicialVazia);
-    setStep(0);
+    setStep(EnumSteps.BOAS_VINDAS);
   };
 
   // Function to completely reset app flow after report generation
   const resetAppFlow = () => {
     setFormData(estruturaInicialVazia);
-    setStep(0);
+    setStep(EnumSteps.BOAS_VINDAS);
     // Clear localStorage items related to the form
     localStorage.removeItem('swotStep');
     localStorage.removeItem('swotForm');
@@ -172,163 +154,91 @@ const Index = () => {
   };
 
   // Helper function to determine the current visual step for the progress bar
-  const getCurrentProgressStep = () => {
-    // Map decimal steps (transitions) to their integer counterparts for the progress bar
-    if (step % 1 !== 0) {
-      return Math.floor(step);
-    }
-    return step;
-  };
+  const getCurrentProgressStep = () => step;
 
-  // Count actual visible steps for progress calculation (excluding transitions)
-  const totalMainSteps = STEPS.filter(s => !s.label.includes('Transição')).length;
-  const currentMainStep = Math.min(Math.ceil(getCurrentProgressStep() / 2), totalMainSteps);
+  // Count actual visible steps for progress calculation
+  const totalMainSteps = STEPS.length;
+  const currentMainStep = Math.min(step, totalMainSteps - 1);
 
   return (
     <div className="min-h-screen bg-white text-black font-manrope flex flex-col items-center justify-start">
       <ProgressBar currentStep={getCurrentProgressStep()} stepsCount={STEPS.length} />
       <main className="w-full max-w-5xl py-10 px-4 md:px-12 flex-1 flex flex-col items-center justify-center animate-fade-in">
-        {step === 0 && (
+        {step === EnumSteps.BOAS_VINDAS && (
           <WelcomeStep
-            onNext={() => setStep(1)}
+            onNext={() => setStep(EnumSteps.IDENTIFICACAO)}
           />
         )}
-        {step === 1 && (
+        {step === EnumSteps.IDENTIFICACAO && (
           <FormStep1
             defaultValues={formData.identificacao}
-            onBack={step > 0 ? () => handleBackButtonClick(0) : undefined}
+            onBack={() => handleBackButtonClick(EnumSteps.BOAS_VINDAS)}
             onComplete={(identificacao) => {
               setFormData((prev) => ({ ...prev, identificacao }));
-              setStep(1.5);
+              setStep(EnumSteps.FORCAS);
             }}
           />
         )}
-        {step === 1.5 && (
-          <TransitionStep
-            title="Vamos identificar as forças do seu negócio"
-            description="Agora vamos analisar os pontos fortes da sua empresa - aqueles diferenciais competitivos que você já possui e que podem ser potencializados."
-            fraseMotivacional="Você está prestes a reconhecer seu diferencial no mercado!"
-            iconeEtapa={<Star className="h-10 w-10" />}
-            onContinue={() => setStep(2)}
-            currentStep={currentMainStep}
-            totalSteps={totalMainSteps}
-          />
-        )}
-        {step === 2 && (
+        {step === EnumSteps.FORCAS && (
           <FormStepForcas
             defaultValues={formData.forcas}
-            onBack={() => handleBackButtonClick(1)}
+            onBack={() => handleBackButtonClick(EnumSteps.IDENTIFICACAO)}
             onComplete={(forcas) => {
               setFormData((prev) => ({ 
                 ...prev, 
                 forcas: {
-                  respostas: forcas.respostas || [],  // Ensure respostas is always defined
+                  respostas: forcas.respostas || [],
                 },
                 step_forcas_ok: true
               }));
-              setStep(2.5);
+              setStep(EnumSteps.FRAQUEZAS);
             }}
           />
         )}
-        {step === 2.5 && (
-          <TransitionStep
-            title="Vamos analisar os pontos de melhoria"
-            description="Identificar fraquezas não é sinal de fracasso - é um passo essencial para fortalecer seu negócio e transformar vulnerabilidades em oportunidades de crescimento."
-            fraseMotivacional="É com a verdade que a evolução começa!"
-            iconeEtapa={<TrendingDown className="h-10 w-10" />}
-            onContinue={() => setStep(3)}
-            currentStep={currentMainStep}
-            totalSteps={totalMainSteps}
-          />
-        )}
-        {step === 3 && (
+        {step === EnumSteps.FRAQUEZAS && (
           <FormStepFraquezas
             defaultValues={formData.fraquezas}
-            onBack={() => handleBackButtonClick(2)}
+            onBack={() => handleBackButtonClick(EnumSteps.FORCAS)}
             onComplete={(fraquezas) => {
               setFormData((prev) => ({ ...prev, fraquezas }));
-              setStep(3.5);
+              setStep(EnumSteps.OPORTUNIDADES);
             }}
           />
         )}
-        {step === 3.5 && (
-          <TransitionStep
-            title="Explorando oportunidades de mercado"
-            description="Vamos identificar as oportunidades externas que podem impulsionar seu negócio - tendências, nichos inexplorados e demandas emergentes que podem ser aproveitadas."
-            fraseMotivacional="Onde outros veem problemas, você verá oportunidades!"
-            iconeEtapa={<Lightbulb className="h-10 w-10" />}
-            onContinue={() => setStep(4)}
-            currentStep={currentMainStep}
-            totalSteps={totalMainSteps}
-          />
-        )}
-        {step === 4 && (
+        {step === EnumSteps.OPORTUNIDADES && (
           <FormStepOportunidades
             defaultValues={formData.oportunidades}
-            onBack={() => handleBackButtonClick(3)}
+            onBack={() => handleBackButtonClick(EnumSteps.FRAQUEZAS)}
             onComplete={(oportunidades) => {
               setFormData((prev) => ({ ...prev, oportunidades }));
-              setStep(4.5);
+              setStep(EnumSteps.AMEACAS);
             }}
           />
         )}
-        {step === 4.5 && (
-          <TransitionStep
-            title="Identificando ameaças e desafios"
-            description="Por último, vamos mapear as ameaças externas que podem impactar seu negócio, preparando estratégias defensivas e de mitigação de riscos."
-            fraseMotivacional="Prevenir é melhor que remediar. Vamos preparar seu negócio!"
-            iconeEtapa={<Flag className="h-10 w-10" />}
-            onContinue={() => setStep(5)}
-            currentStep={currentMainStep}
-            totalSteps={totalMainSteps}
-          />
-        )}
-        {step === 5 && (
+        {step === EnumSteps.AMEACAS && (
           <FormStepAmeacas
             defaultValues={formData.ameacas}
-            onBack={() => handleBackButtonClick(4)}
+            onBack={() => handleBackButtonClick(EnumSteps.OPORTUNIDADES)}
             onComplete={(ameacas) => {
               setFormData((prev) => ({ ...prev, ameacas }));
-              setStep(5.5);
+              setStep(EnumSteps.FINANCEIRO);
             }}
           />
         )}
-        {step === 5.5 && (
-          <TransitionStep
-            title="Avaliando a saúde financeira"
-            description="Agora vamos analisar a situação financeira da sua empresa para fundamentar recomendações alinhadas à sua realidade econômica."
-            fraseMotivacional="Entender seus números é o primeiro passo para escalar!"
-            iconeEtapa={<TrendingUp className="h-10 w-10" />}
-            onContinue={() => setStep(6)}
-            currentStep={currentMainStep}
-            totalSteps={totalMainSteps}
-          />
-        )}
-        {step === 6 && (
+        {step === EnumSteps.FINANCEIRO && (
           <FormStepSaudeFinanceira
             defaultValues={formData.saudeFinanceira}
-            onBack={() => handleBackButtonClick(5)}
+            onBack={() => handleBackButtonClick(EnumSteps.AMEACAS)}
             onComplete={(saudeFinanceira) => {
               setFormData((prev) => ({ ...prev, saudeFinanceira }));
-              setStep(6.5);
+              setStep(EnumSteps.PRIORIDADES);
             }}
           />
         )}
-        {step === 6.5 && (
-          <TransitionStep
-            title="Definindo prioridades estratégicas"
-            description="Para finalizar, vamos estabelecer prioridades claras e entender suas metas de curto e longo prazo para direcionar as recomendações estratégicas."
-            fraseMotivacional="Foco e priorização são os pilares do sucesso!"
-            iconeEtapa={<ArrowRight className="h-10 w-10" />}
-            onContinue={() => setStep(7)}
-            currentStep={currentMainStep}
-            totalSteps={totalMainSteps}
-          />
-        )}
-        {step === 7 && (
+        {step === EnumSteps.PRIORIDADES && (
           <FormStepPrioridades
             defaultValues={formData.prioridades}
-            onBack={() => handleBackButtonClick(6)}
+            onBack={() => handleBackButtonClick(EnumSteps.FINANCEIRO)}
             onComplete={(prioridades) => {
               // Ensure numeric fields are properly converted
               const processedPrioridades = {
@@ -346,11 +256,11 @@ const Index = () => {
                 prioridades: processedPrioridades,
                 step_prioridades_ok: true
               }));
-              setStep(8);
+              setStep(EnumSteps.FINALIZACAO);
             }}
           />
         )}
-        {step === 8 && (
+        {step === EnumSteps.FINALIZACAO && (
           <FinalizacaoStep 
             onRestart={resetForm} 
             formData={formData}
@@ -363,11 +273,11 @@ const Index = () => {
                 fase7_1_ui_ux_gamificada_ok: true,
                 fase7_3_polimento_final_ok: true
               }));
-              setStep(9);
+              setStep(EnumSteps.RESULTADOS);
             }}
           />
         )}
-        {step === 9 && formData.resultadoFinal?.ai_block_pronto && formData.resultadoFinal?.groq_prompt_ok && (
+        {step === EnumSteps.RESULTADOS && formData.resultadoFinal?.ai_block_pronto && formData.resultadoFinal?.groq_prompt_ok && (
           <ResultsScreen 
             formData={formData}
             onRestart={resetAppFlow}
@@ -375,7 +285,7 @@ const Index = () => {
           />
         )}
         
-        {step === 9 && (!formData.resultadoFinal?.ai_block_pronto || !formData.resultadoFinal?.groq_prompt_ok) && (
+        {step === EnumSteps.RESULTADOS && (!formData.resultadoFinal?.ai_block_pronto || !formData.resultadoFinal?.groq_prompt_ok) && (
           <p className="text-center text-red-600 mt-10">⏳ Seu relatório ainda está sendo processado.</p>
         )}
       </main>
