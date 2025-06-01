@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -63,14 +64,12 @@ const PainelAdmin = () => {
   const [diasExtras, setDiasExtras] = useState<number>(30);
   const [mostrarModalDias, setMostrarModalDias] = useState(false);
   const [processandoOperacao, setProcessandoOperacao] = useState(false);
-  const [loadingUsuarios, setLoadingUsuarios] = useState(true);
   
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
     if (user) {
-      console.log("[PainelAdmin] Usuário logado, carregando dados...");
       carregarRelatorios();
       carregarUsuarios();
     }
@@ -82,9 +81,9 @@ const PainelAdmin = () => {
 
   const carregarRelatorios = async () => {
     try {
-      console.log("[PainelAdmin] Iniciando carregamento de relatórios...");
       setLoading(true);
       
+      // Carregar relatórios sem verificação desnecessária - todos os admins podem ver tudo
       const { data, error } = await supabase
         .from("relatorios")
         .select(`
@@ -100,14 +99,11 @@ const PainelAdmin = () => {
       if (error) {
         console.error("Erro ao carregar relatórios:", error);
         toast.error("Não foi possível carregar os relatórios");
-        setLoading(false);
         return;
       }
 
-      console.log("[PainelAdmin] Relatórios carregados:", data?.length || 0);
-
       // Processar os dados para facilitar acesso às informações da empresa
-      const relatoriosProcessados = (data || []).map((r: any) => ({
+      const relatoriosProcessados = data.map((r: any) => ({
         ...r,
         empresa: r.users?.nome_empresa || r.dados?.identificacao?.nomeEmpresa || "Empresa não especificada",
         email: r.users?.email || "Email não disponível"
@@ -120,7 +116,7 @@ const PainelAdmin = () => {
       setRelatoriosFiltrados(relatoriosProcessados);
       setEmpresas(listaEmpresas);
     } catch (error) {
-      console.error("Erro ao carregar relatórios:", error);
+      console.error("Erro:", error);
       toast.error("Ocorreu um erro ao buscar relatórios");
     } finally {
       setLoading(false);
@@ -129,51 +125,23 @@ const PainelAdmin = () => {
 
   const carregarUsuarios = async () => {
     try {
-      console.log("[PainelAdmin] Iniciando carregamento de usuários...");
-      setLoadingUsuarios(true);
-      
-      // Primeiro, tentar buscar da tabela users (customizada)
-      const { data: customUsers, error: customError } = await supabase
+      console.log("Carregando usuários da tabela users...");
+      const { data, error } = await supabase
         .from("users")
         .select("*")
         .order("data_entrada", { ascending: false });
 
-      if (!customError && customUsers && customUsers.length > 0) {
-        console.log("[PainelAdmin] Usuários carregados da tabela users:", customUsers.length);
-        setUsuarios(customUsers);
-        setLoadingUsuarios(false);
+      if (error) {
+        console.error("Erro ao carregar usuários:", error);
+        toast.error("Não foi possível carregar a lista de usuários");
         return;
       }
 
-      console.log("[PainelAdmin] Tabela users não disponível, tentando auth.users...");
-      
-      // Se não conseguir da tabela users, tentar buscar dados básicos de auth
-      const { data: session } = await supabase.auth.getSession();
-      if (!session?.session?.user) {
-        console.error("Usuário não autenticado");
-        setLoadingUsuarios(false);
-        return;
-      }
-
-      // Como fallback, criar dados básicos do usuário atual
-      const currentUser = session.session.user;
-      const usuarioFallback: Usuario = {
-        id: currentUser.id,
-        email: currentUser.email || "Email não disponível",
-        nome_empresa: currentUser.user_metadata?.nome_empresa || "Empresa não especificada",
-        data_entrada: currentUser.created_at || new Date().toISOString(),
-        data_validade: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 dias
-        is_admin: true, // Assumir que é admin se está acessando o painel
-        ativo: true
-      };
-
-      console.log("[PainelAdmin] Usando dados do usuário atual como fallback");
-      setUsuarios([usuarioFallback]);
+      console.log("Usuários carregados:", data);
+      setUsuarios(data || []);
     } catch (error) {
       console.error("Erro ao carregar usuários:", error);
-      toast.error("Erro ao carregar usuários. Algumas funcionalidades podem estar limitadas.");
-    } finally {
-      setLoadingUsuarios(false);
+      toast.error("Ocorreu um erro ao buscar usuários");
     }
   };
 
@@ -199,7 +167,10 @@ const PainelAdmin = () => {
   };
 
   const handleVisualizar = (relatorio: Relatorio) => {
+    // Salvar o ID do relatório na sessionStorage para uso na página VisualizarRelatorio
     sessionStorage.setItem('relatorio_id', relatorio.id);
+    
+    // Redirecionar para a página de visualização com ID na query string
     navigate(`/visualizar?id=${relatorio.id}`);
   };
 
@@ -241,13 +212,35 @@ const PainelAdmin = () => {
     return agrupados;
   };
 
+  const isAdminReport = async (relatorio: Relatorio) => {
+    try {
+      const { data, error } = await supabase
+        .from("users")
+        .select("is_admin")
+        .eq("id", relatorio.user_id)
+        .single();
+      
+      if (error) {
+        console.error("Erro ao verificar status de admin:", error);
+        return false;
+      }
+      
+      return data?.is_admin === true;
+    } catch (error) {
+      console.error("Erro ao verificar status de admin:", error);
+      return false;
+    }
+  };
+
   const handleTestarComoCliente = () => {
+    // Limpar qualquer relatório em sessão antes de ir para a ferramenta como cliente
     sessionStorage.removeItem("relatorio_id");
     localStorage.clear();
     navigate("/?modo_teste_admin=true");
   };
 
   const handleLogout = async () => {
+    // Usar a função global de signOut do contexto de autenticação
     await signOut();
   };
 
@@ -255,10 +248,12 @@ const PainelAdmin = () => {
     return !!relatorio.resultado_final?.ai_block_pronto;
   };
 
+  // Função para verificar se um usuário está com acesso expirado
   const isUsuarioExpirado = (usuario: Usuario) => {
     return new Date(usuario.data_validade) < new Date();
   };
 
+  // Novas funções de gestão de usuários
   const editarUsuario = (usuario: Usuario) => {
     setUsuarioSelecionado(usuario);
     setMostrarModalEditar(true);
@@ -280,7 +275,7 @@ const PainelAdmin = () => {
         }
 
         toast.success("Usuário removido com sucesso");
-        carregarUsuarios();
+        carregarUsuarios(); // Recarregar lista
       } catch (error) {
         console.error("Erro ao excluir usuário:", error);
         toast.error("Ocorreu um erro ao tentar excluir o usuário");
@@ -290,12 +285,14 @@ const PainelAdmin = () => {
     }
   };
 
+  // Nova função para abrir o modal de prolongar prazo (reativar acesso)
   const abrirModalProlongarPrazo = (usuario: Usuario) => {
     setUsuarioSelecionado(usuario);
-    setDiasExtras(30);
+    setDiasExtras(30); // Reset para valor padrão
     setMostrarModalDias(true);
   };
 
+  // Função para prolongar o prazo de acesso (reativar usuário)
   const prolongarPrazo = async () => {
     if (!usuarioSelecionado) return;
     
@@ -320,7 +317,7 @@ const PainelAdmin = () => {
 
       toast.success(`Validade estendida em ${diasExtras} dias com sucesso!`);
       setMostrarModalDias(false);
-      carregarUsuarios();
+      carregarUsuarios(); // Recarregar lista
     } catch (error) {
       console.error("Erro ao prolongar prazo:", error);
       toast.error("Ocorreu um erro ao estender o prazo de validade");
@@ -352,7 +349,7 @@ const PainelAdmin = () => {
 
       toast.success("Dados do usuário atualizados com sucesso!");
       setMostrarModalEditar(false);
-      carregarUsuarios();
+      carregarUsuarios(); // Recarregar lista
     } catch (error) {
       console.error("Erro ao atualizar usuário:", error);
       toast.error("Ocorreu um erro ao salvar os dados do usuário");
@@ -361,16 +358,12 @@ const PainelAdmin = () => {
     }
   };
 
-  // Se estiver carregando dados principais, mostrar indicador
-  if (loading || loadingUsuarios) {
+  // Se estiver carregando, mostrar indicador
+  if (loading) {
     return (
       <div className="flex flex-col items-center justify-center p-12">
         <Loader2 className="h-12 w-12 animate-spin text-[#ef0002] mb-4" />
         <p className="text-lg text-gray-600">Carregando painel administrativo...</p>
-        <p className="text-sm text-gray-500 mt-2">
-          {loading && "Carregando relatórios..."} 
-          {loadingUsuarios && "Carregando usuários..."}
-        </p>
       </div>
     );
   }
@@ -410,26 +403,15 @@ const PainelAdmin = () => {
             <TabsTrigger value="relatorios">Relatórios</TabsTrigger>
           </TabsList>
 
+          {/* Tab de Gestão de Usuários */}
           <TabsContent value="usuarios">
             <Card className="mb-6">
               <CardHeader>
-                <CardTitle className="text-lg">
-                  Usuários Cadastrados ({usuarios.length})
-                  {usuarios.length === 1 && (
-                    <span className="text-sm font-normal text-amber-600 ml-2">
-                      (Exibindo dados básicos - verifique configuração da tabela users)
-                    </span>
-                  )}
-                </CardTitle>
+                <CardTitle className="text-lg">Usuários Cadastrados ({usuarios.length})</CardTitle>
               </CardHeader>
               <CardContent>
                 {usuarios.length === 0 ? (
-                  <div className="text-center py-8">
-                    <p className="text-gray-500 mb-4">Nenhum usuário encontrado.</p>
-                    <p className="text-sm text-amber-600">
-                      Verifique se a tabela 'users' está configurada corretamente no Supabase.
-                    </p>
-                  </div>
+                  <p className="text-center text-gray-500 py-8">Nenhum usuário encontrado.</p>
                 ) : (
                   <div className="space-y-4">
                     {usuarios.map((usuario) => (
@@ -493,6 +475,7 @@ const PainelAdmin = () => {
             </Card>
           </TabsContent>
 
+          {/* Tab de Relatórios */}
           <TabsContent value="relatorios">
             <div className="flex flex-col md:flex-row gap-4 mb-6">
               <div className="w-full md:w-1/2">
@@ -682,6 +665,7 @@ const PainelAdmin = () => {
         </Tabs>
       </div>
       
+      {/* Modal de Edição de Usuário */}
       <Dialog open={mostrarModalEditar} onOpenChange={setMostrarModalEditar}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
@@ -742,6 +726,7 @@ const PainelAdmin = () => {
         </DialogContent>
       </Dialog>
       
+      {/* Modal para Prolongar Prazo / Reativar Acesso */}
       <Dialog open={mostrarModalDias} onOpenChange={setMostrarModalDias}>
         <DialogContent className="sm:max-w-[400px]">
           <DialogHeader>
