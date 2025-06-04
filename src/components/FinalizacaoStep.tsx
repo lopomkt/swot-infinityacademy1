@@ -1,85 +1,251 @@
 
-import React from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
-import AIBlock from "@/components/AIBlock";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CheckCircle, Loader2, AlertCircle, Sparkles } from "lucide-react";
+import { FormData } from "@/types/formData";
+import { openRouterService } from "@/services/openrouter.service";
+import { reportService } from "@/services/report.service";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "@/components/ui/sonner";
 
 interface FinalizacaoStepProps {
   onRestart: () => void;
-  formData?: any;
-  onAIComplete?: (resultadoFinal: any) => void;
+  formData: FormData;
+  onAIComplete: (resultadoFinal: any) => void;
 }
 
-const FinalizacaoStep: React.FC<FinalizacaoStepProps> = ({ 
-  onRestart, 
-  formData,
-  onAIComplete
-}) => {
-  const [showAiBlock, setShowAiBlock] = React.useState(false);
+const FinalizacaoStep = ({ onRestart, formData, onAIComplete }: FinalizacaoStepProps) => {
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [currentTask, setCurrentTask] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const { userData } = useAuth();
 
-  React.useEffect(() => {
-    // Scroll to top when component mounts
-    window.scrollTo(0, 0);
-  }, []);
+  const handleGenerateReport = async () => {
+    if (!userData?.id) {
+      toast.error("Usuário não autenticado");
+      return;
+    }
 
-  if (showAiBlock) {
-    return <AIBlock 
-      formData={formData} 
-      onRestart={onRestart}
-      onAIComplete={onAIComplete}
-    />;
+    setIsGenerating(true);
+    setError(null);
+    setProgress(0);
+
+    try {
+      // Etapa 1: Validação dos dados
+      setCurrentTask('Validando dados do formulário...');
+      setProgress(20);
+      
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      if (!reportService.validateReportData(formData)) {
+        throw new Error('Dados do formulário incompletos ou inválidos');
+      }
+
+      // Etapa 2: Salvar dados no banco
+      setCurrentTask('Salvando dados no banco...');
+      setProgress(40);
+
+      const reportId = await reportService.createReport({
+        user_id: userData.id,
+        dados: formData,
+      });
+
+      if (!reportId) {
+        throw new Error('Falha ao salvar dados no banco');
+      }
+
+      // Armazenar ID do relatório para uso posterior
+      sessionStorage.setItem('relatorio_id', reportId);
+
+      // Etapa 3: Gerar análise com IA
+      setCurrentTask('Gerando análise estratégica com IA...');
+      setProgress(60);
+
+      const analysis = await openRouterService.generateAnalysis(formData);
+
+      if (!openRouterService.validateAnalysis(analysis)) {
+        throw new Error('Análise gerada é inválida ou incompleta');
+      }
+
+      // Etapa 4: Processar e formatar resultado
+      setCurrentTask('Formatando resultado final...');
+      setProgress(80);
+
+      const resultadoFinal = openRouterService.formatAnalysisForResults(analysis);
+
+      // Etapa 5: Atualizar relatório com resultado
+      setCurrentTask('Salvando análise completa...');
+      setProgress(90);
+
+      const updateSuccess = await reportService.updateReport(reportId, {
+        resultado_final: resultadoFinal,
+      });
+
+      if (!updateSuccess) {
+        console.warn('⚠️ Falha ao atualizar relatório, mas análise foi gerada');
+      }
+
+      // Finalização
+      setCurrentTask('Análise concluída!');
+      setProgress(100);
+
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      toast.success("Relatório gerado com sucesso!");
+      
+      // Passar resultado para o componente pai
+      onAIComplete(resultadoFinal);
+
+    } catch (error: any) {
+      console.error('❌ Erro na geração do relatório:', error);
+      setError(error.message || 'Erro inesperado na geração do relatório');
+      toast.error("Falha na geração do relatório");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  if (error) {
+    return (
+      <div className="max-w-2xl mx-auto p-6">
+        <Card className="border-red-200 bg-red-50">
+          <CardHeader>
+            <CardTitle className="flex items-center text-red-700">
+              <AlertCircle className="mr-2 h-5 w-5" />
+              Erro na Geração do Relatório
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-red-600 mb-4">{error}</p>
+            <div className="flex gap-3">
+              <Button
+                onClick={handleGenerateReport}
+                className="bg-[#ef0002] hover:bg-[#b70001]"
+              >
+                Tentar Novamente
+              </Button>
+              <Button
+                onClick={() => {
+                  setError(null);
+                  setProgress(0);
+                  setCurrentTask('');
+                }}
+                variant="outline"
+              >
+                Voltar
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (isGenerating) {
+    return (
+      <div className="max-w-2xl mx-auto p-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Sparkles className="mr-2 h-5 w-5 text-[#ef0002]" />
+              Gerando Seu Relatório Estratégico
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {/* Barra de progresso visual */}
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div 
+                  className="bg-[#ef0002] h-2 rounded-full transition-all duration-500 ease-out"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+              
+              {/* Status atual */}
+              <div className="flex items-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin text-[#ef0002]" />
+                <span className="text-sm text-gray-600">{currentTask}</span>
+              </div>
+
+              {/* Progresso percentual */}
+              <p className="text-center text-lg font-semibold text-[#ef0002]">
+                {progress}% concluído
+              </p>
+
+              {/* Mensagem motivacional */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
+                <p className="text-sm text-blue-800">
+                  <strong>🚀 Nossa IA está trabalhando para você!</strong><br />
+                  Estamos analisando seus dados e gerando estratégias personalizadas 
+                  para impulsionar seu negócio. Isso pode levar alguns minutos.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   return (
-    <div className="w-full max-w-2xl mx-auto py-8 flex flex-col items-center animate-fade-in">
-      <div className="text-center">
-        <h2 className="text-2xl font-bold text-[#560005] mb-4">
-          Diagnóstico SWOT concluído com sucesso!
-        </h2>
-        
-        <p className="text-gray-700 mb-8 max-w-md mx-auto">
-          Parabéns! Você completou todos os passos do diagnóstico estratégico.
-          Agora você pode gerar seu relatório personalizado.
-        </p>
-        
-        <div className="bg-white rounded-lg p-6 shadow-md mb-8 w-full max-w-md mx-auto">
-          <h3 className="text-xl font-semibold text-[#ef0002] mb-4">
-            Relatório Estratégico SWOT
-          </h3>
-          <p className="text-gray-600 mb-6">
-            Ao clicar no botão abaixo, nossa inteligência artificial analisará seus dados e criará:
-          </p>
-          <ul className="text-left space-y-3 mb-6">
-            <li className="flex items-start">
-              <span className="text-[#ef0002] font-bold mr-2">✓</span>
-              <span>Matriz SWOT detalhada</span>
-            </li>
-            <li className="flex items-start">
-              <span className="text-[#ef0002] font-bold mr-2">✓</span>
-              <span>Diagnóstico estratégico personalizado</span>
-            </li>
-            <li className="flex items-start">
-              <span className="text-[#ef0002] font-bold mr-2">✓</span>
-              <span>Planos de ação com múltiplas rotas estratégicas</span>
-            </li>
-          </ul>
-          
-          <Button 
-            onClick={() => setShowAiBlock(true)}
-            className="bg-[#ef0002] hover:bg-[#c50000] text-white w-full gap-2"
-          >
-            Gerar Relatório Estratégico
-            <ArrowRight className="h-4 w-4" />
-          </Button>
-        </div>
-        
-        {/* Removed the "Iniciar Novo Diagnóstico" button as requested */}
-      </div>
-      
-      {/* Hidden tracking tag */}
-      <div className="hidden">
-        {/* fase5_finalizacao_ok = true */}
-      </div>
+    <div className="max-w-2xl mx-auto p-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <CheckCircle className="mr-2 h-5 w-5 text-green-500" />
+            Formulário Concluído
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <p className="text-gray-600">
+              Parabéns! Você completou todas as etapas da análise SWOT. 
+              Agora vamos gerar seu relatório estratégico personalizado com 
+              insights e recomendações específicas para seu negócio.
+            </p>
+
+            {/* Resumo dos dados coletados */}
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h4 className="font-semibold mb-2">Dados Coletados:</h4>
+              <ul className="text-sm text-gray-600 space-y-1">
+                <li>✓ Identificação da empresa</li>
+                <li>✓ {formData.forcas?.respostas?.length || 0} forças identificadas</li>
+                <li>✓ {formData.fraquezas?.pontos_inconsistentes?.length || 0} fraquezas mapeadas</li>
+                <li>✓ {formData.oportunidades?.respostas?.length || 0} oportunidades detectadas</li>
+                <li>✓ {formData.ameacas?.respostas?.length || 0} ameaças analisadas</li>
+                <li>✓ Situação financeira avaliada</li>
+                <li>✓ Prioridades estratégicas definidas</li>
+              </ul>
+            </div>
+
+            {/* Botão principal */}
+            <Button
+              onClick={handleGenerateReport}
+              className="w-full bg-[#ef0002] hover:bg-[#b70001] text-white text-lg py-3"
+              size="lg"
+            >
+              <Sparkles className="mr-2 h-5 w-5" />
+              Gerar Relatório Estratégico com IA
+            </Button>
+
+            {/* Botão secundário */}
+            <Button
+              onClick={onRestart}
+              variant="outline"
+              className="w-full"
+            >
+              Recomeçar Análise
+            </Button>
+
+            {/* Aviso sobre tempo */}
+            <p className="text-xs text-gray-500 text-center">
+              ⏱️ A geração do relatório pode levar de 30 segundos a 2 minutos
+            </p>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

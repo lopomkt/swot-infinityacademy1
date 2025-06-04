@@ -1,105 +1,116 @@
 
-import React, { Component, ReactNode } from 'react';
-import { AlertTriangle, Home } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import React, { Component, ErrorInfo, ReactNode } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { AlertTriangle, RefreshCw, Home } from "lucide-react";
 
-interface ErrorBoundaryProps {
+interface Props {
   children: ReactNode;
   fallback?: ReactNode;
-  onReset?: () => void;
 }
 
-interface ErrorBoundaryState {
+interface State {
   hasError: boolean;
   error?: Error;
+  errorInfo?: ErrorInfo;
 }
 
-class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  constructor(props: ErrorBoundaryProps) {
+/**
+ * Componente Error Boundary melhorado
+ * Captura erros JavaScript em qualquer lugar da árvore de componentes
+ */
+class ErrorBoundary extends Component<Props, State> {
+  constructor(props: Props) {
     super(props);
     this.state = { hasError: false };
   }
 
-  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
-    return {
-      hasError: true,
-      error
-    };
+  static getDerivedStateFromError(error: Error): State {
+    return { hasError: true, error };
   }
 
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('ErrorBoundary capturou um erro:', error, errorInfo);
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error("🚨 Error Boundary capturou um erro:", error);
+    console.error("📍 Stack trace:", errorInfo.componentStack);
     
-    // Placeholder para integração futura com Sentry
-    // Sentry.captureException(error, {
-    //   contexts: { errorInfo },
-    //   tags: { component: 'ErrorBoundary' }
-    // });
+    // Log adicional para debug
+    this.setState({ 
+      hasError: true, 
+      error, 
+      errorInfo 
+    });
+
+    // Aqui poderia integrar com serviço de monitoramento como Sentry
+    // Sentry.captureException(error, { contexts: { react: { componentStack: errorInfo.componentStack } } });
   }
 
-  handleReset = () => {
-    this.setState({ hasError: false, error: undefined });
-    if (this.props.onReset) {
-      this.props.onReset();
-    }
+  handleReload = () => {
+    this.setState({ hasError: false, error: undefined, errorInfo: undefined });
+    window.location.reload();
+  };
+
+  handleGoHome = () => {
+    this.setState({ hasError: false, error: undefined, errorInfo: undefined });
+    window.location.href = '/';
   };
 
   render() {
     if (this.state.hasError) {
+      // Interface customizada de erro se fornecida
       if (this.props.fallback) {
         return this.props.fallback;
       }
 
+      // Interface padrão de erro
       return (
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-          <Card className="w-full max-w-lg border-red-200 bg-white">
-            <CardHeader className="text-center pb-4">
-              <div className="flex justify-center mb-4">
-                <div className="bg-red-100 p-3 rounded-full">
-                  <AlertTriangle className="h-8 w-8 text-red-600" />
-                </div>
-              </div>
-              <CardTitle className="text-red-700 text-xl">
-                Oops! Algo deu errado
+        <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+          <Card className="max-w-lg w-full border-red-200">
+            <CardHeader>
+              <CardTitle className="flex items-center text-red-700">
+                <AlertTriangle className="mr-2 h-5 w-5" />
+                Ops! Algo deu errado
               </CardTitle>
             </CardHeader>
-            
-            <CardContent className="text-center space-y-6">
-              <div className="space-y-2">
-                <p className="text-gray-600">
-                  Ocorreu um erro inesperado no sistema.
-                </p>
-                <p className="text-sm text-gray-500">
-                  Nossa equipe foi notificada e está trabalhando para resolver.
-                </p>
-              </div>
+            <CardContent className="space-y-4">
+              <p className="text-gray-600">
+                Ocorreu um erro inesperado na aplicação. Nossa equipe foi notificada 
+                e está trabalhando para resolver o problema.
+              </p>
 
+              {/* Detalhes técnicos em desenvolvimento */}
               {process.env.NODE_ENV === 'development' && this.state.error && (
-                <div className="bg-gray-100 p-3 rounded-md text-left">
-                  <p className="text-xs text-gray-600 font-mono">
+                <details className="bg-gray-100 p-3 rounded text-xs">
+                  <summary className="cursor-pointer font-medium">
+                    Detalhes técnicos (desenvolvimento)
+                  </summary>
+                  <pre className="mt-2 whitespace-pre-wrap break-words">
                     {this.state.error.message}
-                  </p>
-                </div>
+                    {this.state.error.stack}
+                  </pre>
+                </details>
               )}
-              
-              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+
+              <div className="flex gap-3">
                 <Button
-                  onClick={this.handleReset}
-                  className="bg-red-600 hover:bg-red-700 text-white"
+                  onClick={this.handleReload}
+                  className="bg-[#ef0002] hover:bg-[#b70001]"
                 >
-                  Tentar novamente
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                  Recarregar Página
                 </Button>
                 
                 <Button
+                  onClick={this.handleGoHome}
                   variant="outline"
-                  onClick={() => window.location.href = '/'}
-                  className="border-gray-300"
                 >
                   <Home className="mr-2 h-4 w-4" />
-                  Voltar ao Início
+                  Ir para Início
                 </Button>
               </div>
+
+              <p className="text-sm text-gray-500">
+                Se o problema persistir, entre em contato com o suporte.
+              </p>
             </CardContent>
           </Card>
         </div>

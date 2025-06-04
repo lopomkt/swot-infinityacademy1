@@ -1,106 +1,93 @@
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
-import NotFound from "./pages/NotFound";
-import AuthScreen from "./components/Auth/AuthScreen";
-import ExpiredSubscription from "./pages/ExpiredSubscription";
-import { AuthProvider } from "./contexts/AuthContext";
-import ProtectedRoute from "./components/Auth/ProtectedRoute";
-import AdminRoute from "./components/Admin/AdminRoute";
-import HistoricoRelatorios from "./components/Relatorios/HistoricoRelatorios";
-import ResultsPage from "./pages/ResultsPage";
-import AdminPage from "./pages/AdminPage";
-import VisualizarRelatorio from "./pages/VisualizarRelatorio";
-import { useIsMobile } from "./hooks/use-mobile";
-import MobileErrorBoundary from "./components/mobile/MobileErrorBoundary";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { Toaster } from "@/components/ui/sonner";
+import ErrorBoundary from "@/components/ErrorBoundary";
+import ProtectedRoute from "@/components/Auth/ProtectedRoute";
+import AdminRoute from "@/components/Admin/AdminRoute";
+import Index from "@/pages/Index";
+import AuthScreen from "@/components/Auth/AuthScreen";
+import AdminPage from "@/pages/AdminPage";
+import VisualizarRelatorio from "@/pages/VisualizarRelatorio";
+import ExpiredSubscription from "@/pages/ExpiredSubscription";
+import NotFound from "@/pages/NotFound";
+import "./App.css";
 
-// Create a client for React Query
+// Configuração do React Query
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
+      retry: 2,
       refetchOnWindowFocus: false,
-      retry: false,
-      staleTime: 1000 * 60 * 5, // 5 minutes
+      staleTime: 5 * 60 * 1000, // 5 minutos
+    },
+    mutations: {
+      retry: 1,
     },
   },
 });
 
-const AppContent = () => {
-  const isMobile = useIsMobile();
-
-  const routes = (
-    <Routes>
-      <Route 
-        path="/" 
-        element={
-          <ProtectedRoute>
-            <Index />
-          </ProtectedRoute>
-        } 
-      />
-      <Route path="/auth" element={<AuthScreen />} />
-      <Route path="/expired" element={<ExpiredSubscription />} />
-      <Route 
-        path="/historico" 
-        element={
-          <ProtectedRoute>
-            <HistoricoRelatorios />
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/resultados" 
-        element={
-          <ProtectedRoute>
-            <ResultsPage />
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/visualizar" 
-        element={
-          <ProtectedRoute>
-            <VisualizarRelatorio />
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/admin" 
-        element={
-          <AdminRoute>
-            <AdminPage />
-          </AdminRoute>
-        } 
-      />
-      {/* Catch-all route for 404 */}
-      <Route path="*" element={<NotFound />} />
-    </Routes>
+function App() {
+  return (
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <Router>
+          <AuthProvider>
+            <div className="min-h-screen bg-white">
+              <Routes>
+                {/* Rota pública de autenticação */}
+                <Route path="/auth" element={<AuthScreen />} />
+                
+                {/* Rota de assinatura expirada */}
+                <Route path="/expired" element={<ExpiredSubscription />} />
+                
+                {/* Rotas protegidas para usuários */}
+                <Route 
+                  path="/" 
+                  element={
+                    <ProtectedRoute>
+                      <Index />
+                    </ProtectedRoute>
+                  } 
+                />
+                
+                <Route 
+                  path="/relatorio" 
+                  element={
+                    <ProtectedRoute>
+                      <VisualizarRelatorio />
+                    </ProtectedRoute>
+                  } 
+                />
+                
+                {/* Rotas administrativas */}
+                <Route 
+                  path="/admin" 
+                  element={
+                    <AdminRoute>
+                      <AdminPage />
+                    </AdminRoute>
+                  } 
+                />
+                
+                {/* Página 404 */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+              
+              {/* Sistema de notificações global */}
+              <Toaster 
+                position="top-right"
+                expand={true}
+                richColors={true}
+                closeButton={true}
+              />
+            </div>
+          </AuthProvider>
+        </Router>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
-
-  return isMobile ? (
-    <div>
-      <MobileErrorBoundary />
-      {routes}
-    </div>
-  ) : routes;
-};
-
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <AuthProvider>
-          <AppContent />
-        </AuthProvider>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+}
 
 export default App;
