@@ -1,4 +1,3 @@
-
 import { ReactNode, useEffect, useState } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -39,21 +38,20 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     };
   }, [redirectTimer]);
 
-  // Aguardar carregamento completo dos dados - com timeout
+  // Aguardar carregamento completo dos dados - com timeout reduzido
   if (loading) {
     console.log("[ProtectedRoute] Aguardando carregamento inicial...");
     
-    // Timeout para evitar loading infinito
+    // Timeout reduzido para loading mais rápido
     if (!redirectTimer) {
       const timer = setTimeout(() => {
         console.warn("[ProtectedRoute] Timeout no carregamento, forçando verificação");
-        // Se após 10 segundos ainda estiver loading, considerar não autenticado
         if (loading && !user) {
           console.log("[ProtectedRoute] Timeout - redirecionando para auth");
           localStorage.clear();
           sessionStorage.clear();
         }
-      }, 10000);
+      }, 5000); // Reduzido de 10s para 5s
       
       setRedirectTimer(timer);
     }
@@ -71,27 +69,28 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   if (!user) {
     console.log("[ProtectedRoute] Usuário não autenticado, redirecionando para /auth");
     
-    // Limpar dados locais
-    try {
-      localStorage.clear();
-      sessionStorage.clear();
-    } catch (err) {
-      console.warn("[ProtectedRoute] Erro ao limpar storage:", err);
+    // Limpar dados locais apenas se não estiver vindo da página de auth
+    if (location.pathname !== "/auth") {
+      try {
+        localStorage.clear();
+        sessionStorage.clear();
+      } catch (err) {
+        console.warn("[ProtectedRoute] Erro ao limpar storage:", err);
+      }
     }
     
     return <Navigate to="/auth" replace />;
   }
 
-  // Se usuário existe mas userData ainda não carregou, dar mais tempo (até 5 segundos)
+  // Se usuário existe mas userData ainda não carregou, dar tempo menor
   if (user && !userData) {
     console.log("[ProtectedRoute] Usuário autenticado mas aguardando userData...");
     
-    // Timeout específico para userData
+    // Timeout específico para userData - reduzido
     if (!redirectTimer) {
       const timer = setTimeout(() => {
-        console.warn("[ProtectedRoute] Timeout ao carregar userData - assumindo usuário válido");
-        // Após timeout, permitir acesso mesmo sem userData completo
-      }, 5000);
+        console.warn("[ProtectedRoute] Timeout ao carregar userData - permitindo acesso");
+      }, 3000); // Reduzido de 5s para 3s
       
       setRedirectTimer(timer);
     }

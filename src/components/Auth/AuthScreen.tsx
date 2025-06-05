@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -40,26 +39,43 @@ const AuthScreen = () => {
 
   // Redirecionamento automático quando usuário está autenticado
   useEffect(() => {
-    if (isAuthenticated && userData && !authLoading) {
-      console.log("🚀 [AuthScreen] Usuário autenticado detectado, redirecionando...", {
+    // Aguardar que todos os estados estejam prontos
+    if (!authLoading && isAuthenticated && userData) {
+      console.log("🚀 [AuthScreen] REDIRECIONAMENTO INICIADO:", {
+        isAuthenticated,
         email: userData.email,
-        is_admin: userData.is_admin
+        is_admin: userData.is_admin,
+        authLoading,
+        userData: !!userData
       });
       
-      // Mostrar toast de sucesso
+      // Lógica de redirecionamento baseada no tipo de usuário
+      const targetRoute = userData.is_admin ? "/admin" : "/";
+      
+      console.log(`🎯 [AuthScreen] Redirecionando para: ${targetRoute}`);
+      
+      // Toast de sucesso
       toast.success("Login realizado com sucesso!", 
         `Bem-vindo(a), ${userData.nome_empresa}!`);
       
-      // Redirecionamento baseado no tipo de usuário
-      if (userData.is_admin) {
-        console.log("👑 [AuthScreen] Redirecionando para admin");
-        navigate("/admin", { replace: true });
-      } else {
-        console.log("👤 [AuthScreen] Redirecionando para área do usuário");
-        navigate("/", { replace: true });
-      }
+      // Usar setTimeout para garantir que o estado seja atualizado antes do redirect
+      setTimeout(() => {
+        console.log(`🔄 [AuthScreen] Executando navigate para: ${targetRoute}`);
+        navigate(targetRoute, { replace: true });
+      }, 100);
     }
   }, [isAuthenticated, userData, authLoading, navigate, toast]);
+
+  // Log de debug para acompanhar mudanças de estado
+  useEffect(() => {
+    console.log("📊 [AuthScreen] Estado de autenticação:", {
+      authLoading,
+      isAuthenticated,
+      hasUserData: !!userData,
+      userEmail: userData?.email,
+      isAdmin: userData?.is_admin
+    });
+  }, [authLoading, isAuthenticated, userData]);
 
   const loginForm = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -101,9 +117,9 @@ const AuthScreen = () => {
       const result = await signIn(data.email.trim().toLowerCase(), data.password, manterLogado);
       
       if (result.success) {
-        console.log("✅ [AuthScreen] Login bem-sucedido");
-        toast.success("Autenticação bem-sucedida!", "Redirecionando...");
-        // O redirecionamento será feito pelo useEffect acima
+        console.log("✅ [AuthScreen] Login bem-sucedido - aguardando redirecionamento automático");
+        // Não mostrar toast aqui, será mostrado no useEffect quando redirecionar
+        // O redirecionamento será feito pelo useEffect acima quando userData estiver disponível
       } else {
         console.error("❌ [AuthScreen] Falha no login:", result.message);
         
@@ -117,14 +133,16 @@ const AuthScreen = () => {
         } else {
           toast.error("Erro no login", result.message);
         }
+        setIsLoading(false);
       }
     } catch (error: any) {
       console.error("❌ [AuthScreen] Erro inesperado no login:", error);
       toast.error("Erro inesperado", 
         "Ocorreu um erro interno. Tente novamente em alguns instantes.");
-    } finally {
       setIsLoading(false);
     }
+    // Não definir setIsLoading(false) aqui em caso de sucesso, 
+    // deixar que o useEffect handle isso durante o redirecionamento
   };
 
   const onRegisterSubmit = async (data: RegisterFormValues) => {
@@ -216,14 +234,29 @@ const AuthScreen = () => {
     }
   };
 
-  // Mostrar loading se estiver em processo de autenticação
-  if (authLoading || (isAuthenticated && userData)) {
+  // Mostrar loading se estiver em processo de autenticação ou login
+  if (authLoading || (isLoading && isAuthenticated)) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
         <div className="text-center">
           <Loader2 className="h-12 w-12 animate-spin text-[#ef0002] mx-auto mb-4" />
           <p className="text-gray-600">
             {isAuthenticated ? "Redirecionando..." : "Verificando autenticação..."}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Se já está autenticado, mostrar loading de redirecionamento
+  if (isAuthenticated && userData) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <div className="text-center">
+          <Loader2 className="h-12 w-12 animate-spin text-[#ef0002] mx-auto mb-4" />
+          <p className="text-gray-600">Redirecionando...</p>
+          <p className="text-sm text-gray-500 mt-2">
+            {userData.is_admin ? "Área Administrativa" : "Área do Usuário"}
           </p>
         </div>
       </div>
