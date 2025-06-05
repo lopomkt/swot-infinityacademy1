@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -9,8 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
-import { toast } from "@/components/ui/sonner";
-import { Loader2 } from "lucide-react";
+import { useToast } from "@/hooks/useToast";
+import { Loader2, AlertCircle, CheckCircle } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -32,24 +33,33 @@ const AuthScreen = () => {
   const [activeTab, setActiveTab] = useState<string>("login");
   const [isLoading, setIsLoading] = useState(false);
   const [manterLogado, setManterLogado] = useState(false);
-  const { signIn, isAuthenticated, userData } = useAuth();
+  const [loginAttempts, setLoginAttempts] = useState(0);
+  const { signIn, isAuthenticated, userData, loading: authLoading } = useAuth();
   const navigate = useNavigate();
+  const toast = useToast();
 
   // Redirecionamento automático quando usuário está autenticado
   useEffect(() => {
-    if (isAuthenticated && userData) {
-      console.log("🚀 Usuário autenticado detectado, redirecionando...", userData);
+    if (isAuthenticated && userData && !authLoading) {
+      console.log("🚀 [AuthScreen] Usuário autenticado detectado, redirecionando...", {
+        email: userData.email,
+        is_admin: userData.is_admin
+      });
+      
+      // Mostrar toast de sucesso
+      toast.success("Login realizado com sucesso!", 
+        `Bem-vindo(a), ${userData.nome_empresa}!`);
       
       // Redirecionamento baseado no tipo de usuário
       if (userData.is_admin) {
-        console.log("👑 Redirecionando para admin");
+        console.log("👑 [AuthScreen] Redirecionando para admin");
         navigate("/admin", { replace: true });
       } else {
-        console.log("👤 Redirecionando para área do usuário");
+        console.log("👤 [AuthScreen] Redirecionando para área do usuário");
         navigate("/", { replace: true });
       }
     }
-  }, [isAuthenticated, userData, navigate]);
+  }, [isAuthenticated, userData, authLoading, navigate, toast]);
 
   const loginForm = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -69,22 +79,49 @@ const AuthScreen = () => {
   });
 
   const onLoginSubmit = async (data: LoginFormValues) => {
+    if (isLoading) return; // Prevenir múltiplos clicks
+    
     setIsLoading(true);
+    setLoginAttempts(prev => prev + 1);
+    
     try {
-      localStorage.clear();
-      sessionStorage.clear();
+      console.log("🔐 [AuthScreen] Tentativa de login:", {
+        email: data.email,
+        attempt: loginAttempts + 1
+      });
+
+      // Limpar storage antes do login
+      try {
+        localStorage.clear();
+        sessionStorage.clear();
+      } catch (err) {
+        console.warn("⚠️ [AuthScreen] Erro ao limpar storage:", err);
+      }
       
-      const result = await signIn(data.email, data.password, manterLogado);
+      const result = await signIn(data.email.trim().toLowerCase(), data.password, manterLogado);
+      
       if (result.success) {
-        console.log("✅ Login realizado com sucesso, aguardando redirecionamento...");
-        toast.success("Login realizado com sucesso!");
+        console.log("✅ [AuthScreen] Login bem-sucedido");
+        toast.success("Autenticação bem-sucedida!", "Redirecionando...");
         // O redirecionamento será feito pelo useEffect acima
       } else {
-        toast.error(result.message);
+        console.error("❌ [AuthScreen] Falha no login:", result.message);
+        
+        // Mensagens de erro mais específicas
+        if (result.message.includes("Email ou senha")) {
+          toast.error("Credenciais inválidas", 
+            "Verifique seu email e senha e tente novamente.");
+        } else if (result.message.includes("Muitas tentativas")) {
+          toast.error("Muitas tentativas", 
+            "Aguarde alguns minutos antes de tentar novamente.");
+        } else {
+          toast.error("Erro no login", result.message);
+        }
       }
-    } catch (error) {
-      console.error("❌ Erro no login:", error);
-      toast.error("Erro ao fazer login");
+    } catch (error: any) {
+      console.error("❌ [AuthScreen] Erro inesperado no login:", error);
+      toast.error("Erro inesperado", 
+        "Ocorreu um erro interno. Tente novamente em alguns instantes.");
     } finally {
       setIsLoading(false);
     }
@@ -95,14 +132,16 @@ const AuthScreen = () => {
     try {
       const { email, password, nome_empresa } = data;
       
+      console.log("📝 [AuthScreen] Tentativa de cadastro:", { email, nome_empresa });
+      
       if (!email || !password || !nome_empresa) {
-        toast.error("Preencha todos os campos.");
+        toast.error("Dados incompletos", "Preencha todos os campos.");
         setIsLoading(false);
         return;
       }
 
       const { data: authData, error } = await supabase.auth.signUp({
-        email,
+        email: email.trim().toLowerCase(),
         password,
         options: {
           data: { nome_empresa },
@@ -110,7 +149,8 @@ const AuthScreen = () => {
       });
 
       if (error) {
-        toast.error("Erro ao cadastrar: " + error.message);
+        console.error("❌ [AuthScreen] Erro no cadastro:", error);
+        toast.error("Erro ao cadastrar", error.message);
         setIsLoading(false);
         return;
       }
@@ -118,10 +158,13 @@ const AuthScreen = () => {
       const { user } = authData;
 
       if (user) {
+        console.log("✅ [AuthScreen] Usuário criado no Auth:", user.email);
+        
         const { data: sessionData } = await supabase.auth.getSession();
         const userId = sessionData?.session?.user?.id || user.id;
         
         if (userId) {
+          // Verificar se já existe na tabela users
           const { data: existing } = await supabase
             .from("users")
             .select("*")
@@ -131,6 +174,8 @@ const AuthScreen = () => {
           if (!existing) {
             const dataValidade = new Date(Date.now() + 1000 * 60 * 60 * 24 * 30).toISOString();
             const dataEntrada = new Date().toISOString();
+            
+            console.log("📝 [AuthScreen] Criando registro na tabela users...");
             
             const { error: insertError } = await supabase.from("users").insert({
               id: userId,
@@ -143,24 +188,47 @@ const AuthScreen = () => {
             });
 
             if (insertError) {
-              console.error("Erro ao criar registro na tabela users:", insertError);
-              toast.error("Erro ao finalizar cadastro: " + insertError.message);
+              console.error("❌ [AuthScreen] Erro ao criar registro na tabela users:", insertError);
+              toast.error("Erro ao finalizar cadastro", insertError.message);
               setIsLoading(false);
               return;
             }
+            
+            console.log("✅ [AuthScreen] Registro criado na tabela users");
+          } else {
+            console.log("ℹ️ [AuthScreen] Usuário já existe na tabela users");
           }
         }
         
-        toast.success("Cadastro realizado com sucesso!");
+        toast.success("Cadastro realizado com sucesso!", 
+          "Você já pode fazer login com suas credenciais.");
         setActiveTab("login");
+        
+        // Pré-preencher o email no formulário de login
+        loginForm.setValue("email", email);
       }
       
     } catch (error: any) {
-      toast.error("Erro inesperado: " + (error?.message || "Falha no cadastro"));
+      console.error("❌ [AuthScreen] Erro inesperado no cadastro:", error);
+      toast.error("Erro inesperado", error?.message || "Falha no cadastro");
     } finally {
       setIsLoading(false);
     }
   };
+
+  // Mostrar loading se estiver em processo de autenticação
+  if (authLoading || (isAuthenticated && userData)) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <div className="text-center">
+          <Loader2 className="h-12 w-12 animate-spin text-[#ef0002] mx-auto mb-4" />
+          <p className="text-gray-600">
+            {isAuthenticated ? "Redirecionando..." : "Verificando autenticação..."}
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-50 p-4">
@@ -179,8 +247,19 @@ const AuthScreen = () => {
           <TabsContent value="login">
             <Card>
               <CardHeader>
-                <CardTitle>Acesse sua conta</CardTitle>
-                <CardDescription>Digite seu email e senha para continuar</CardDescription>
+                <CardTitle className="flex items-center gap-2">
+                  <CheckCircle className="h-5 w-5 text-green-600" />
+                  Acesse sua conta
+                </CardTitle>
+                <CardDescription>
+                  Digite seu email e senha para continuar
+                  {loginAttempts > 2 && (
+                    <div className="flex items-center gap-1 mt-2 text-orange-600">
+                      <AlertCircle className="h-4 w-4" />
+                      <span className="text-sm">Várias tentativas detectadas</span>
+                    </div>
+                  )}
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <Form {...loginForm}>
@@ -192,7 +271,12 @@ const AuthScreen = () => {
                         <FormItem>
                           <FormLabel>Email</FormLabel>
                           <FormControl>
-                            <Input placeholder="seu@email.com" {...field} />
+                            <Input 
+                              placeholder="seu@email.com" 
+                              {...field} 
+                              disabled={isLoading}
+                              autoComplete="email"
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -205,7 +289,13 @@ const AuthScreen = () => {
                         <FormItem>
                           <FormLabel>Senha</FormLabel>
                           <FormControl>
-                            <Input type="password" placeholder="******" {...field} />
+                            <Input 
+                              type="password" 
+                              placeholder="******" 
+                              {...field} 
+                              disabled={isLoading}
+                              autoComplete="current-password"
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -216,6 +306,7 @@ const AuthScreen = () => {
                         id="manter-logado"
                         checked={manterLogado}
                         onCheckedChange={(checked) => setManterLogado(checked === true)}
+                        disabled={isLoading}
                       />
                       <label 
                         htmlFor="manter-logado" 
@@ -232,7 +323,7 @@ const AuthScreen = () => {
                       {isLoading ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Carregando...
+                          Entrando...
                         </>
                       ) : (
                         "Entrar"
@@ -246,6 +337,7 @@ const AuthScreen = () => {
                   variant="link" 
                   onClick={() => setActiveTab("register")}
                   className="text-sm text-gray-600"
+                  disabled={isLoading}
                 >
                   Não tem uma conta? Cadastre-se
                 </Button>
@@ -269,7 +361,12 @@ const AuthScreen = () => {
                         <FormItem>
                           <FormLabel>Nome da Empresa</FormLabel>
                           <FormControl>
-                            <Input placeholder="Sua Empresa Ltda." {...field} />
+                            <Input 
+                              placeholder="Sua Empresa Ltda." 
+                              {...field} 
+                              disabled={isLoading}
+                              autoComplete="organization"
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -282,7 +379,12 @@ const AuthScreen = () => {
                         <FormItem>
                           <FormLabel>Email</FormLabel>
                           <FormControl>
-                            <Input placeholder="seu@email.com" {...field} />
+                            <Input 
+                              placeholder="seu@email.com" 
+                              {...field} 
+                              disabled={isLoading}
+                              autoComplete="email"
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -295,7 +397,13 @@ const AuthScreen = () => {
                         <FormItem>
                           <FormLabel>Senha</FormLabel>
                           <FormControl>
-                            <Input type="password" placeholder="******" {...field} />
+                            <Input 
+                              type="password" 
+                              placeholder="******" 
+                              {...field} 
+                              disabled={isLoading}
+                              autoComplete="new-password"
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -323,6 +431,7 @@ const AuthScreen = () => {
                   variant="link" 
                   onClick={() => setActiveTab("login")}
                   className="text-sm text-gray-600"
+                  disabled={isLoading}
                 >
                   Já tem uma conta? Faça login
                 </Button>

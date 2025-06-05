@@ -29,82 +29,71 @@ interface UserData {
 
 /**
  * Serviço de autenticação integrado com Supabase
- * Gerencia login, logout, sessões e polling de status do usuário
+ * VERSÃO SIMPLIFICADA - Foco na estabilidade do login
  */
 class AuthService {
   private pollingInterval: NodeJS.Timeout | null = null;
   private readonly POLLING_INTERVAL_MS = 30000; // 30 segundos
+  private readonly MAX_RETRIES = 3;
+  private readonly RETRY_DELAY = 1000; // 1 segundo
 
   /**
-   * Realiza login do usuário com validação de dados
+   * Realiza login do usuário - FLUXO SIMPLIFICADO
    * @param email Email do usuário
    * @param password Senha do usuário
    * @param rememberMe Se true, mantém sessão ativa por mais tempo
-   * @returns Resultado da autenticação com dados do usuário
+   * @returns Resultado da autenticação
    */
   async signIn(email: string, password: string, rememberMe: boolean = false): Promise<AuthResult> {
     try {
-      console.log("🔐 Iniciando processo de login...");
+      console.log("🔐 [AuthService] Iniciando login para:", email);
 
+      // ETAPA 1: Autenticação básica no Supabase Auth
       const { data, error } = await supabase.auth.signInWithPassword({
-        email,
+        email: email.trim().toLowerCase(),
         password,
       });
 
       if (error) {
-        console.error("❌ Erro na autenticação:", error);
+        console.error("❌ [AuthService] Erro na autenticação Supabase:", error.message);
         return {
           success: false,
           message: this.getErrorMessage(error.message),
         };
       }
 
-      if (data.user && data.session) {
-        console.log("✅ Autenticação bem-sucedida");
-
-        // Verificar dados do usuário na tabela users
-        const userData = await this.fetchUserData(data.user.id);
-        
-        if (!userData || !userData.ativo) {
-          console.warn("⚠️ Usuário inativo ou não encontrado");
-          await this.signOut();
-          return {
-            success: false,
-            message: "Usuário inativo ou não encontrado",
-          };
-        }
-
-        // Verificar validade da assinatura
-        if (!this.isSubscriptionValid(userData.data_validade)) {
-          console.warn("⚠️ Assinatura expirada");
-          return {
-            success: false,
-            message: "Assinatura expirada",
-            user: data.user,
-            session: data.session,
-          };
-        }
-
-        // Configurar persistência da sessão
-        if (rememberMe) {
-          localStorage.setItem('supabase.auth.token', data.session.access_token);
-          console.log("💾 Sessão configurada para lembrar");
-        }
-
+      if (!data.user || !data.session) {
+        console.error("❌ [AuthService] Dados de autenticação inválidos");
         return {
-          success: true,
-          message: "Login realizado com sucesso",
-          user: data.user,
-          session: data.session,
+          success: false,
+          message: "Falha na autenticação - dados inválidos",
         };
       }
 
+      console.log("✅ [AuthService] Autenticação Supabase bem-sucedida para:", data.user.email);
+
+      // ETAPA 2: Configurar persistência se solicitado
+      if (rememberMe) {
+        try {
+          localStorage.setItem('supabase.auth.token', data.session.access_token);
+          localStorage.setItem('remember_me', 'true');
+          console.log("💾 [AuthService] Sessão configurada para persistir");
+        } catch (err) {
+          console.warn("⚠️ [AuthService] Falha ao configurar persistência:", err);
+        }
+      }
+
+      // ETAPA 3: Retornar sucesso IMEDIATAMENTE
+      // A validação de userData será feita em background pelo useAuthState
       return {
-        success: false,
-        message: "Falha na autenticação",
+        success: true,
+        message: "Login realizado com sucesso",
+        user: data.user,
+        session: data.session,
       };
+
     } catch (error: any) {
-      console.error("❌ Erro interno no login:", error);
+      console.error("❌ [AuthService] Erro interno no login:", error);
       return {
         success: false,
         message: "Erro interno do servidor",
@@ -113,21 +102,92 @@ class AuthService {
   }
 
   /**
+   * Busca dados do usuário com retry automático
+   * @param userId ID do usuário
+   * @param retryCount Contador de tentativas
+   * @returns Dados do usuário ou null
+   */
+  async fetchUserData(userId: string, retryCount: number = 0): Promise<UserData | null> {
+    try {
+      console.log(`🔍 [AuthService] Buscando dados do usuário (tentativa ${retryCount + 1}):`, userId);
+
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', userId)
+        .maybeSingle();
+
+      if (error) {
+        console.error("❌ [AuthService] Erro ao buscar dados do usuário:", error);
+        
+        // Retry automático em caso de erro
+        if (retryCount < this.MAX_RETRIES) {
+          console.log(`🔄 [AuthService] Tentando novamente em ${this.RETRY_DELAY}ms...`);
+          await new Promise(resolve => setTimeout(resolve, this.RETRY_DELAY));
+          return this.fetchUserData(userId, retryCount + 1);
+        }
+        
+        return null;
+      }
+
+      if (!data) {
+        console.warn("⚠️ [AuthService] Usuário não encontrado na tabela users:", userId);
+        
+        // Retry para casos de eventual inconsistência
+        if (retryCount < this.MAX_RETRIES) {
+          console.log(`🔄 [AuthService] Retry para usuário não encontrado em ${this.RETRY_DELAY}ms...`);
+          await new Promise(resolve => setTimeout(resolve, this.RETRY_DELAY));
+          return this.fetchUserData(userId, retryCount + 1);
+        }
+        
+        return null;
+      }
+
+      console.log("✅ [AuthService] Dados do usuário obtidos:", {
+        email: data.email,
+        nome_empresa: data.nome_empresa,
+        is_admin: data.is_admin,
+        ativo: data.ativo
+      });
+
+      return data;
+    } catch (error: any) {
+      console.error("❌ [AuthService] Erro na consulta de usuário:", error);
+      
+      // Retry em caso de erro de rede
+      if (retryCount < this.MAX_RETRIES) {
+        console.log(`🔄 [AuthService] Retry por erro de rede em ${this.RETRY_DELAY}ms...`);
+        await new Promise(resolve => setTimeout(resolve, this.RETRY_DELAY));
+        return this.fetchUserData(userId, retryCount + 1);
+      }
+      
+      return null;
+    }
+  }
+
+  /**
    * Realiza logout do usuário e limpa dados armazenados
    */
   async signOut(): Promise<void> {
     try {
-      console.log("🚪 Executando logout...");
+      console.log("🚪 [AuthService] Executando logout...");
       
       this.stopPolling();
-      localStorage.removeItem('supabase.auth.token');
-      sessionStorage.clear();
+      
+      // Limpar dados locais
+      try {
+        localStorage.removeItem('supabase.auth.token');
+        localStorage.removeItem('remember_me');
+        sessionStorage.clear();
+      } catch (err) {
+        console.warn("⚠️ [AuthService] Erro ao limpar storage local:", err);
+      }
       
       await supabase.auth.signOut();
       
-      console.log("✅ Logout realizado com sucesso");
+      console.log("✅ [AuthService] Logout realizado com sucesso");
     } catch (error: any) {
-      console.error("❌ Erro no logout:", error);
+      console.error("❌ [AuthService] Erro no logout:", error);
     }
   }
 
@@ -140,7 +200,7 @@ class AuthService {
       const { data: { session } } = await supabase.auth.getSession();
       return session;
     } catch (error: any) {
-      console.error("❌ Erro ao obter sessão:", error);
+      console.error("❌ [AuthService] Erro ao obter sessão:", error);
       return null;
     }
   }
@@ -154,7 +214,7 @@ class AuthService {
       const { data: { user } } = await supabase.auth.getUser();
       return user;
     } catch (error: any) {
-      console.error("❌ Erro ao obter usuário:", error);
+      console.error("❌ [AuthService] Erro ao obter usuário:", error);
       return null;
     }
   }
@@ -165,19 +225,19 @@ class AuthService {
    */
   async refreshSession(): Promise<AuthResult> {
     try {
-      console.log("🔄 Renovando sessão...");
+      console.log("🔄 [AuthService] Renovando sessão...");
       
       const { data, error } = await supabase.auth.refreshSession();
       
       if (error) {
-        console.error("❌ Erro ao renovar sessão:", error);
+        console.error("❌ [AuthService] Erro ao renovar sessão:", error);
         return {
           success: false,
           message: "Falha ao renovar sessão",
         };
       }
 
-      console.log("✅ Sessão renovada com sucesso");
+      console.log("✅ [AuthService] Sessão renovada com sucesso");
       return {
         success: true,
         message: "Token renovado",
@@ -185,7 +245,7 @@ class AuthService {
         session: data.session,
       };
     } catch (error: any) {
-      console.error("❌ Erro interno ao renovar token:", error);
+      console.error("❌ [AuthService] Erro interno ao renovar token:", error);
       return {
         success: false,
         message: "Erro interno",
@@ -194,37 +254,16 @@ class AuthService {
   }
 
   /**
-   * Busca dados completos do usuário na tabela users
-   * @param userId ID do usuário
-   * @returns Dados do usuário ou null se não encontrado
-   */
-  async fetchUserData(userId: string): Promise<UserData | null> {
-    try {
-      const { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', userId)
-        .maybeSingle();
-
-      if (error) {
-        console.error("❌ Erro ao buscar dados do usuário:", error);
-        return null;
-      }
-
-      return data;
-    } catch (error: any) {
-      console.error("❌ Erro na consulta de usuário:", error);
-      return null;
-    }
-  }
-
-  /**
    * Verifica se a assinatura do usuário está válida
    * @param dataValidade Data de validade da assinatura
    * @returns true se válida, false se expirada
    */
-  private isSubscriptionValid(dataValidade: string): boolean {
-    return new Date(dataValidade) > new Date();
+  isSubscriptionValid(dataValidade: string): boolean {
+    try {
+      return new Date(dataValidade) > new Date();
+    } catch {
+      return false;
+    }
   }
 
   /**
@@ -234,14 +273,14 @@ class AuthService {
   startPolling(callback: (user: User | null) => void): void {
     this.stopPolling();
     
-    console.log("🔄 Iniciando polling de usuário");
+    console.log("🔄 [AuthService] Iniciando polling de usuário");
     
     this.pollingInterval = setInterval(async () => {
       try {
         const user = await this.getCurrentUser();
         callback(user);
       } catch (error) {
-        console.error("❌ Erro no polling:", error);
+        console.error("❌ [AuthService] Erro no polling:", error);
       }
     }, this.POLLING_INTERVAL_MS);
   }
@@ -253,7 +292,7 @@ class AuthService {
     if (this.pollingInterval) {
       clearInterval(this.pollingInterval);
       this.pollingInterval = null;
-      console.log("⏹️ Polling parado");
+      console.log("⏹️ [AuthService] Polling parado");
     }
   }
 
@@ -271,9 +310,12 @@ class AuthService {
       'Invalid email': 'Email inválido',
       'Password should be at least 6 characters': 'A senha deve ter pelo menos 6 caracteres',
       'User already registered': 'Este email já está cadastrado',
+      'signup_disabled': 'Cadastro temporariamente desabilitado',
+      'email_address_invalid': 'Endereço de email inválido',
+      'weak_password': 'Senha muito fraca',
     };
 
-    return errorMap[error] || 'Erro na autenticação';
+    return errorMap[error] || `Erro na autenticação: ${error}`;
   }
 }
 

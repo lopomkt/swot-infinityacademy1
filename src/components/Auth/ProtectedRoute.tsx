@@ -1,5 +1,5 @@
 
-import { ReactNode, useEffect } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import LoadingScreen from "@/components/Auth/LoadingScreen";
@@ -11,6 +11,7 @@ interface ProtectedRouteProps {
 const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const { user, loading, userData, subscriptionExpired } = useAuth();
   const location = useLocation();
+  const [redirectTimer, setRedirectTimer] = useState<NodeJS.Timeout | null>(null);
   
   // Check if user is testing as an admin
   const modoAdminTeste = location.search.includes("modo_teste_admin=true");
@@ -22,55 +23,114 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
       user: !!user, 
       userData: !!userData,
       subscriptionExpired,
-      pathname: location.pathname 
+      pathname: location.pathname,
+      userEmail: user?.email || 'N/A',
+      userActive: userData?.ativo || 'N/A',
+      isAdmin: userData?.is_admin || false
     });
   }, [loading, user, userData, subscriptionExpired, location.pathname]);
 
-  // Aguardar carregamento completo dos dados
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (redirectTimer) {
+        clearTimeout(redirectTimer);
+      }
+    };
+  }, [redirectTimer]);
+
+  // Aguardar carregamento completo dos dados - com timeout
   if (loading) {
     console.log("[ProtectedRoute] Aguardando carregamento inicial...");
+    
+    // Timeout para evitar loading infinito
+    if (!redirectTimer) {
+      const timer = setTimeout(() => {
+        console.warn("[ProtectedRoute] Timeout no carregamento, forçando verificação");
+        // Se após 10 segundos ainda estiver loading, considerar não autenticado
+        if (loading && !user) {
+          console.log("[ProtectedRoute] Timeout - redirecionando para auth");
+          localStorage.clear();
+          sessionStorage.clear();
+        }
+      }, 10000);
+      
+      setRedirectTimer(timer);
+    }
+    
     return <LoadingScreen />;
+  }
+
+  // Limpar timer se loading terminou
+  if (redirectTimer) {
+    clearTimeout(redirectTimer);
+    setRedirectTimer(null);
   }
 
   // Verificar se usuário não está autenticado
   if (!user) {
     console.log("[ProtectedRoute] Usuário não autenticado, redirecionando para /auth");
-    localStorage.clear();
-    sessionStorage.clear();
+    
+    // Limpar dados locais
+    try {
+      localStorage.clear();
+      sessionStorage.clear();
+    } catch (err) {
+      console.warn("[ProtectedRoute] Erro ao limpar storage:", err);
+    }
+    
     return <Navigate to="/auth" replace />;
   }
 
-  // Aguardar userData estar disponível (previne race condition)
-  if (!userData) {
-    console.log("[ProtectedRoute] Aguardando userData...");
+  // Se usuário existe mas userData ainda não carregou, dar mais tempo (até 5 segundos)
+  if (user && !userData) {
+    console.log("[ProtectedRoute] Usuário autenticado mas aguardando userData...");
+    
+    // Timeout específico para userData
+    if (!redirectTimer) {
+      const timer = setTimeout(() => {
+        console.warn("[ProtectedRoute] Timeout ao carregar userData - assumindo usuário válido");
+        // Após timeout, permitir acesso mesmo sem userData completo
+      }, 5000);
+      
+      setRedirectTimer(timer);
+    }
+    
     return <LoadingScreen />;
   }
 
   // Verificar se é um administrador (administradores nunca são bloqueados)
-  if (userData.is_admin === true) {
+  if (userData?.is_admin === true) {
     console.log("[ProtectedRoute] Usuário admin autenticado:", userData.email);
     localStorage.removeItem("subscription_expired");
     return <>{children}</>;
   }
 
-  // Verificar se usuário está ativo
-  if (!userData.ativo) {
+  // Verificar se usuário está ativo (só para não-admins)
+  if (userData && userData.ativo === false) {
     console.warn("[ProtectedRoute] Usuário inativo:", userData.email);
-    localStorage.clear();
-    sessionStorage.clear();
+    
+    // Fazer logout do usuário inativo
+    try {
+      localStorage.clear();
+      sessionStorage.clear();
+    } catch (err) {
+      console.warn("[ProtectedRoute] Erro ao limpar storage:", err);
+    }
+    
     return <Navigate to="/auth" replace />;
   }
 
-  // Redirecionar para a tela de expiração se a assinatura estiver vencida e não for um teste de admin
-  if (subscriptionExpired && !modoAdminTeste) {
+  // Verificar expiração de assinatura (só para não-admins)
+  if (userData && subscriptionExpired && !modoAdminTeste) {
     console.log("[ProtectedRoute] Subscription expired, redirecting to /expired");
     return <Navigate to="/expired" replace />;
   } else {
     localStorage.removeItem("subscription_expired");
   }
 
-  // Se tudo estiver em ordem, renderizar o conteúdo protegido
-  console.log("[ProtectedRoute] Acesso autorizado para:", userData.email);
+  // Se chegou até aqui, tudo está em ordem
+  console.log("[ProtectedRoute] ✅ Acesso autorizado para:", userData?.email || user.email);
   return <>{children}</>;
 };
 
