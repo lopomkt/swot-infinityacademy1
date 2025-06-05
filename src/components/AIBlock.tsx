@@ -164,7 +164,7 @@ const AIBlock: React.FC<AIBlockProps> = ({ formData, onRestart, onAIComplete }) 
   }, [loading]);
 
   return (
-    <ErrorBoundary onReset={clearReport}>
+    <ErrorBoundary>
       <div className="w-full max-w-4xl mx-auto py-8 px-4 animate-fade-in">
         {loading || processingState === 'processing' ? (
           <div className="flex flex-col items-center justify-center min-h-[30vh] sm:min-h-[400px]">
