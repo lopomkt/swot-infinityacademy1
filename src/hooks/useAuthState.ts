@@ -4,9 +4,6 @@ import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { authService } from '@/services/auth.service';
 
-/**
- * Interface para dados do usuário
- */
 interface UserData {
   id: string;
   email: string;
@@ -17,9 +14,6 @@ interface UserData {
   subscription_expires_at?: string;
 }
 
-/**
- * Estado de autenticação
- */
 interface AuthState {
   user: User | null;
   session: Session | null;
@@ -29,86 +23,71 @@ interface AuthState {
   subscriptionExpired: boolean;
 }
 
-/**
- * Ações de autenticação
- */
 interface AuthActions {
   signIn: (email: string, password: string, rememberMe?: boolean) => Promise<{success: boolean; message: string}>;
   signOut: () => Promise<void>;
   refreshToken: () => Promise<{success: boolean; message: string}>;
 }
 
-/**
- * Hook personalizado para controle de estado de autenticação - VERSÃO OTIMIZADA
- * Implementa retry logic e melhor handling de race conditions
- * @returns Estado e ações de autenticação
- */
 export function useAuthState(): AuthState & AuthActions {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [userData, setUserData] = useState<UserData | null>(null);
-  const [initializing, setInitializing] = useState(true);
 
   // Calcula se a assinatura está expirada
   const subscriptionExpired = userData?.subscription_status === 'expired' || 
     (userData?.subscription_expires_at && new Date(userData.subscription_expires_at) < new Date()) || false;
 
-  /**
-   * Busca dados do usuário com timeout e retry
-   */
-  const fetchUserDataSafely = useCallback(async (userId: string, timeout: number = 5000) => {
-    const timeoutPromise = new Promise<null>((_, reject) => {
-      setTimeout(() => reject(new Error('Timeout')), timeout);
-    });
-
+  // CORREÇÃO CRÍTICA 3: Busca userData com retry otimizado
+  const fetchUserDataSafely = useCallback(async (userId: string) => {
     try {
-      const result = await Promise.race([
-        authService.fetchUserData(userId),
-        timeoutPromise
-      ]);
+      console.log(`🔍 [useAuthState] Buscando userData para:`, userId);
       
-      return result;
+      const result = await authService.fetchUserData(userId);
+      
+      if (result) {
+        console.log("✅ [useAuthState] UserData obtido:", result.email);
+        return result;
+      } else {
+        console.warn("⚠️ [useAuthState] Falha ao obter userData");
+        return null;
+      }
     } catch (error) {
-      console.warn("⚠️ [useAuthState] Timeout ou erro ao buscar userData:", error);
+      console.error("❌ [useAuthState] Erro ao buscar userData:", error);
       return null;
     }
   }, []);
 
-  /**
-   * Executa login através do auth.service - FLUXO OTIMIZADO
-   */
+  // Login com fluxo otimizado
   const signIn = useCallback(async (email: string, password: string, rememberMe: boolean = false) => {
-    console.log("🔐 [useAuthState] Iniciando processo de login...");
+    console.log("🔐 [useAuthState] Iniciando login...");
     setLoading(true);
     
     try {
       const result = await authService.signIn(email, password, rememberMe);
       
       if (result.success && result.user && result.session) {
-        console.log("✅ [useAuthState] Login bem-sucedido, atualizando estado...");
+        console.log("✅ [useAuthState] Login bem-sucedido");
         
-        // Atualizar estado imediatamente
+        // Atualizar estado básico IMEDIATAMENTE
         setUser(result.user);
         setSession(result.session);
         
-        // Buscar dados do usuário em background
-        const fetchedUserData = await fetchUserDataSafely(result.user.id, 3000);
+        // Buscar userData em background
+        const fetchedUserData = await fetchUserDataSafely(result.user.id);
         
         if (fetchedUserData) {
-          console.log("✅ [useAuthState] UserData obtido:", fetchedUserData.email);
-          setUserData(fetchedUserData);
-          
-          // Verificar se usuário está ativo
           if (!fetchedUserData.ativo) {
             console.warn("⚠️ [useAuthState] Usuário inativo detectado");
             await signOut();
             return { success: false, message: "Usuário inativo" };
           }
-        } else {
-          console.warn("⚠️ [useAuthState] Falha ao obter userData, mas login foi bem-sucedido");
-          // Não bloquear o login por falha na busca de userData
+          setUserData(fetchedUserData);
         }
+        
+        setLoading(false);
+        return { success: true, message: "Login realizado com sucesso" };
       }
       
       setLoading(false);
@@ -120,9 +99,7 @@ export function useAuthState(): AuthState & AuthActions {
     }
   }, [fetchUserDataSafely]);
 
-  /**
-   * Executa logout através do auth.service
-   */
+  // Logout
   const signOut = useCallback(async () => {
     console.log("🚪 [useAuthState] Iniciando logout...");
     setLoading(true);
@@ -140,9 +117,7 @@ export function useAuthState(): AuthState & AuthActions {
     }
   }, []);
 
-  /**
-   * Renova token através do auth.service
-   */
+  // Refresh token
   const refreshToken = useCallback(async () => {
     try {
       const result = await authService.refreshSession();
@@ -151,7 +126,6 @@ export function useAuthState(): AuthState & AuthActions {
         setUser(result.user);
         setSession(result.session);
         
-        // Atualizar dados do usuário
         const fetchedUserData = await fetchUserDataSafely(result.user.id);
         if (fetchedUserData) {
           setUserData(fetchedUserData);
@@ -165,6 +139,7 @@ export function useAuthState(): AuthState & AuthActions {
     }
   }, [fetchUserDataSafely]);
 
+  // Inicialização do estado de autenticação
   useEffect(() => {
     let mounted = true;
     let authSubscription: any = null;
@@ -173,14 +148,13 @@ export function useAuthState(): AuthState & AuthActions {
       try {
         console.log("🔧 [useAuthState] Inicializando autenticação...");
 
-        // Configurar listener de mudanças de autenticação PRIMEIRO
+        // Configurar listener PRIMEIRO
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
           async (event, session) => {
             if (!mounted) return;
 
-            console.log(`🔐 [useAuthState] Auth state changed: ${event}`);
+            console.log(`🔐 [useAuthState] Auth event: ${event}`);
             
-            // Atualizar estado básico imediatamente
             setSession(session);
             setUser(session?.user ?? null);
             
@@ -189,32 +163,20 @@ export function useAuthState(): AuthState & AuthActions {
               setUserData(null);
               setLoading(false);
             } else if (event === 'SIGNED_IN' && session?.user) {
-              console.log("👤 [useAuthState] Usuário logado, buscando dados...");
+              console.log("👤 [useAuthState] Usuário logado");
               
-              // Buscar dados do usuário em background
-              try {
-                const fetchedUserData = await fetchUserDataSafely(session.user.id, 3000);
-                
+              // Buscar userData de forma não-bloqueante
+              fetchUserDataSafely(session.user.id).then((userData) => {
                 if (mounted) {
-                  if (fetchedUserData) {
-                    setUserData(fetchedUserData);
-                    
-                    // Verificar se usuário está ativo (apenas warning, não bloquear)
-                    if (!fetchedUserData.ativo) {
-                      console.warn("⚠️ [useAuthState] Usuário inativo detectado durante auth change");
+                  if (userData) {
+                    setUserData(userData);
+                    if (!userData.ativo) {
+                      console.warn("⚠️ [useAuthState] Usuário inativo");
                     }
-                  } else {
-                    console.warn("⚠️ [useAuthState] Falha ao buscar userData durante auth change");
                   }
                   setLoading(false);
                 }
-              } catch (error) {
-                console.error("❌ [useAuthState] Erro ao buscar dados do usuário:", error);
-                if (mounted) setLoading(false);
-              }
-            } else if (event === 'TOKEN_REFRESHED') {
-              console.log("🔄 [useAuthState] Token refreshed");
-              setLoading(false);
+              });
             } else {
               setLoading(false);
             }
@@ -223,38 +185,34 @@ export function useAuthState(): AuthState & AuthActions {
 
         authSubscription = subscription;
 
-        // Verificar sessão existente DEPOIS de configurar o listener
+        // Verificar sessão existente DEPOIS
         const existingSession = await authService.getUserSession();
         
         if (!mounted) return;
         
         if (existingSession?.user) {
-          console.log("🔍 [useAuthState] Sessão existente encontrada:", existingSession.user.email);
+          console.log("🔍 [useAuthState] Sessão existente:", existingSession.user.email);
           
           setSession(existingSession);
           setUser(existingSession.user);
           
-          // Buscar dados do usuário
-          const fetchedUserData = await fetchUserDataSafely(existingSession.user.id, 3000);
+          const fetchedUserData = await fetchUserDataSafely(existingSession.user.id);
           
           if (mounted) {
             if (fetchedUserData) {
               setUserData(fetchedUserData);
             }
             setLoading(false);
-            setInitializing(false);
           }
         } else {
           console.log("📭 [useAuthState] Nenhuma sessão existente");
           setLoading(false);
-          setInitializing(false);
         }
 
       } catch (error) {
         console.error("❌ [useAuthState] Erro na inicialização:", error);
         if (mounted) {
           setLoading(false);
-          setInitializing(false);
         }
       }
     };
@@ -270,18 +228,16 @@ export function useAuthState(): AuthState & AuthActions {
     };
   }, [fetchUserDataSafely]);
 
-  // Log de debug para acompanhar mudanças de estado
+  // Debug logs
   useEffect(() => {
-    if (!initializing) {
-      console.log("📊 [useAuthState] Estado atual:", {
-        user: !!user,
-        userData: !!userData,
-        loading,
-        isAuthenticated: !!user,
-        subscriptionExpired
-      });
-    }
-  }, [user, userData, loading, initializing, subscriptionExpired]);
+    console.log("📊 [useAuthState] Estado:", {
+      user: !!user,
+      userData: !!userData,
+      loading,
+      isAuthenticated: !!user,
+      subscriptionExpired
+    });
+  }, [user, userData, loading, subscriptionExpired]);
 
   return {
     user,
