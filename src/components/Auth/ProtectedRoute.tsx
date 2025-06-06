@@ -16,13 +16,13 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   // Check if user is testing as an admin
   const modoAdminTeste = location.search.includes("modo_teste_admin=true");
 
-  // CORREÇÃO CRÍTICA 2: Timeout simplificado e preciso
+  // Timeout de segurança OTIMIZADO
   useEffect(() => {
     if (loading) {
       const timer = setTimeout(() => {
         console.warn("[ProtectedRoute] Timeout de carregamento atingido");
         setTimeoutReached(true);
-      }, 8000); // 8 segundos para carregamento completo
+      }, 6000); // 6 segundos - tempo mais generoso mas limitado
       
       return () => clearTimeout(timer);
     } else {
@@ -30,7 +30,7 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     }
   }, [loading]);
 
-  // Debug logs consolidados
+  // Debug logs otimizados
   useEffect(() => {
     console.log("[ProtectedRoute] Estado atual:", { 
       loading, 
@@ -45,7 +45,7 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     });
   }, [loading, user, userData, subscriptionExpired, location.pathname, timeoutReached]);
 
-  // PRIORIDADE 1: Aguardar carregamento (com timeout)
+  // PRIORIDADE 1: Aguardar carregamento (com timeout de segurança)
   if (loading && !timeoutReached) {
     console.log("[ProtectedRoute] Aguardando carregamento...");
     return <LoadingScreen />;
@@ -55,7 +55,7 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   if (!user || timeoutReached) {
     console.log("[ProtectedRoute] Usuário não autenticado ou timeout, redirecionando para /auth");
     
-    // Limpar dados apenas se não vier de /auth
+    // Limpar dados apenas se não vier de /auth (evitar loops)
     if (location.pathname !== "/auth") {
       try {
         localStorage.clear();

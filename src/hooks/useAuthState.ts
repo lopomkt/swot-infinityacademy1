@@ -34,13 +34,14 @@ export function useAuthState(): AuthState & AuthActions {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [userData, setUserData] = useState<UserData | null>(null);
+  const [initialized, setInitialized] = useState(false);
 
   // Calcula se a assinatura está expirada
   const subscriptionExpired = userData?.subscription_status === 'expired' || 
     (userData?.subscription_expires_at && new Date(userData.subscription_expires_at) < new Date()) || false;
 
-  // CORREÇÃO CRÍTICA 3: Busca userData com retry otimizado
-  const fetchUserDataSafely = useCallback(async (userId: string) => {
+  // Busca userData com controle de erro robusto
+  const fetchUserDataSafely = useCallback(async (userId: string): Promise<UserData | null> => {
     try {
       console.log(`🔍 [useAuthState] Buscando userData para:`, userId);
       
@@ -59,7 +60,7 @@ export function useAuthState(): AuthState & AuthActions {
     }
   }, []);
 
-  // Login com fluxo otimizado
+  // Login otimizado
   const signIn = useCallback(async (email: string, password: string, rememberMe: boolean = false) => {
     console.log("🔐 [useAuthState] Iniciando login...");
     setLoading(true);
@@ -81,6 +82,7 @@ export function useAuthState(): AuthState & AuthActions {
           if (!fetchedUserData.ativo) {
             console.warn("⚠️ [useAuthState] Usuário inativo detectado");
             await signOut();
+            setLoading(false);
             return { success: false, message: "Usuário inativo" };
           }
           setUserData(fetchedUserData);
@@ -99,20 +101,19 @@ export function useAuthState(): AuthState & AuthActions {
     }
   }, [fetchUserDataSafely]);
 
-  // Logout
+  // Logout limpo
   const signOut = useCallback(async () => {
     console.log("🚪 [useAuthState] Iniciando logout...");
-    setLoading(true);
     
     try {
       await authService.signOut();
       setUser(null);
       setSession(null);
       setUserData(null);
+      setLoading(false);
       console.log("✅ [useAuthState] Logout completo");
     } catch (error: any) {
       console.error("❌ [useAuthState] Erro no signOut:", error);
-    } finally {
       setLoading(false);
     }
   }, []);
@@ -139,7 +140,7 @@ export function useAuthState(): AuthState & AuthActions {
     }
   }, [fetchUserDataSafely]);
 
-  // Inicialização do estado de autenticação
+  // Inicialização CORRIGIDA e simplificada
   useEffect(() => {
     let mounted = true;
     let authSubscription: any = null;
@@ -148,7 +149,12 @@ export function useAuthState(): AuthState & AuthActions {
       try {
         console.log("🔧 [useAuthState] Inicializando autenticação...");
 
-        // Configurar listener PRIMEIRO
+        // 1. Verificar sessão existente PRIMEIRO
+        const { data: { session: existingSession } } = await supabase.auth.getSession();
+        
+        if (!mounted) return;
+
+        // 2. Configurar listener DEPOIS
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
           async (event, session) => {
             if (!mounted) return;
@@ -158,38 +164,33 @@ export function useAuthState(): AuthState & AuthActions {
             setSession(session);
             setUser(session?.user ?? null);
             
-            if (event === 'SIGNED_OUT') {
-              console.log("👋 [useAuthState] Usuário deslogado");
+            if (event === 'SIGNED_OUT' || !session) {
+              console.log("👋 [useAuthState] Usuário deslogado ou sem sessão");
               setUserData(null);
               setLoading(false);
-            } else if (event === 'SIGNED_IN' && session?.user) {
-              console.log("👤 [useAuthState] Usuário logado");
+              setInitialized(true);
+            } else if (session?.user) {
+              console.log("👤 [useAuthState] Usuário logado, buscando dados...");
               
-              // Buscar userData de forma não-bloqueante
-              fetchUserDataSafely(session.user.id).then((userData) => {
-                if (mounted) {
-                  if (userData) {
-                    setUserData(userData);
-                    if (!userData.ativo) {
-                      console.warn("⚠️ [useAuthState] Usuário inativo");
-                    }
+              const userData = await fetchUserDataSafely(session.user.id);
+              
+              if (mounted) {
+                if (userData) {
+                  setUserData(userData);
+                  if (!userData.ativo) {
+                    console.warn("⚠️ [useAuthState] Usuário inativo");
                   }
-                  setLoading(false);
                 }
-              });
-            } else {
-              setLoading(false);
+                setLoading(false);
+                setInitialized(true);
+              }
             }
           }
         );
 
         authSubscription = subscription;
 
-        // Verificar sessão existente DEPOIS
-        const existingSession = await authService.getUserSession();
-        
-        if (!mounted) return;
-        
+        // 3. Processar sessão existente se houver
         if (existingSession?.user) {
           console.log("🔍 [useAuthState] Sessão existente:", existingSession.user.email);
           
@@ -203,16 +204,21 @@ export function useAuthState(): AuthState & AuthActions {
               setUserData(fetchedUserData);
             }
             setLoading(false);
+            setInitialized(true);
           }
         } else {
           console.log("📭 [useAuthState] Nenhuma sessão existente");
-          setLoading(false);
+          if (mounted) {
+            setLoading(false);
+            setInitialized(true);
+          }
         }
 
       } catch (error) {
         console.error("❌ [useAuthState] Erro na inicialização:", error);
         if (mounted) {
           setLoading(false);
+          setInitialized(true);
         }
       }
     };
@@ -228,16 +234,30 @@ export function useAuthState(): AuthState & AuthActions {
     };
   }, [fetchUserDataSafely]);
 
+  // Timeout de segurança para evitar loading infinito
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (!initialized && loading) {
+        console.warn("⏰ [useAuthState] Timeout de inicialização atingido");
+        setLoading(false);
+        setInitialized(true);
+      }
+    }, 5000); // 5 segundos
+
+    return () => clearTimeout(timeoutId);
+  }, [initialized, loading]);
+
   // Debug logs
   useEffect(() => {
     console.log("📊 [useAuthState] Estado:", {
       user: !!user,
       userData: !!userData,
       loading,
+      initialized,
       isAuthenticated: !!user,
       subscriptionExpired
     });
-  }, [user, userData, loading, subscriptionExpired]);
+  }, [user, userData, loading, initialized, subscriptionExpired]);
 
   return {
     user,

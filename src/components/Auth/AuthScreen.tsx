@@ -34,53 +34,41 @@ const AuthScreen = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [manterLogado, setManterLogado] = useState(false);
   const [loginAttempts, setLoginAttempts] = useState(0);
-  const [redirecting, setRedirecting] = useState(false);
   
   const { signIn, isAuthenticated, userData, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const toast = useToast();
 
-  // CORREÇÃO CRÍTICA 1: Lógica de redirecionamento simplificada e precisa
+  // Redirecionamento SIMPLIFICADO e direto
   useEffect(() => {
-    // Só redireciona se estiver COMPLETAMENTE autenticado E com dados carregados
-    if (!authLoading && isAuthenticated && userData && !isLoading && !redirecting) {
-      console.log("🎯 [AuthScreen] REDIRECIONAMENTO AUTORIZADO:", {
+    // Só redireciona se: não está carregando E está autenticado E tem dados do usuário
+    if (!authLoading && !isLoading && isAuthenticated && userData) {
+      console.log("🎯 [AuthScreen] Redirecionamento autorizado:", {
         isAuthenticated,
         hasUserData: !!userData,
         userEmail: userData.email,
-        isAdmin: userData.is_admin,
-        authLoading,
-        isLoading,
-        redirecting
+        isAdmin: userData.is_admin
       });
-      
-      setRedirecting(true);
       
       const targetRoute = userData.is_admin ? "/admin" : "/";
       
       toast.success("Login realizado com sucesso!", 
         `Bem-vindo(a), ${userData.nome_empresa}!`);
       
-      // Redirecionamento garantido com timeout de segurança
-      const redirectTimer = setTimeout(() => {
-        console.log(`🚀 [AuthScreen] Executando navigate para: ${targetRoute}`);
-        navigate(targetRoute, { replace: true });
-      }, 500);
-      
-      return () => clearTimeout(redirectTimer);
+      // Redirecionamento imediato
+      navigate(targetRoute, { replace: true });
     }
-  }, [isAuthenticated, userData, authLoading, isLoading, redirecting, navigate, toast]);
+  }, [authLoading, isLoading, isAuthenticated, userData, navigate, toast]);
 
-  // Log de debug simplificado
+  // Debug simplificado
   useEffect(() => {
     console.log("📊 [AuthScreen] Estado:", {
       authLoading,
-      isAuthenticated,
-      hasUserData: !!userData,
       isLoading,
-      redirecting
+      isAuthenticated,
+      hasUserData: !!userData
     });
-  }, [authLoading, isAuthenticated, userData, isLoading, redirecting]);
+  }, [authLoading, isLoading, isAuthenticated, userData]);
 
   const loginForm = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -100,7 +88,7 @@ const AuthScreen = () => {
   });
 
   const onLoginSubmit = async (data: LoginFormValues) => {
-    if (isLoading || redirecting) return;
+    if (isLoading) return;
     
     setIsLoading(true);
     setLoginAttempts(prev => prev + 1);
@@ -114,7 +102,7 @@ const AuthScreen = () => {
       const result = await signIn(data.email.trim().toLowerCase(), data.password, manterLogado);
       
       if (result.success) {
-        console.log("✅ [AuthScreen] Login bem-sucedido - aguardando dados completos");
+        console.log("✅ [AuthScreen] Login bem-sucedido");
         // Não definir setIsLoading(false) aqui - deixar o useEffect handle o redirecionamento
       } else {
         console.error("❌ [AuthScreen] Falha no login:", result.message);
@@ -225,27 +213,20 @@ const AuthScreen = () => {
     }
   };
 
-  // Loading state consolidado
-  if (authLoading || redirecting) {
+  // Loading state CORRIGIDO
+  if (authLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
         <div className="text-center">
           <Loader2 className="h-12 w-12 animate-spin text-[#ef0002] mx-auto mb-4" />
-          <p className="text-gray-600">
-            {redirecting ? "Redirecionando..." : "Verificando autenticação..."}
-          </p>
-          {userData && redirecting && (
-            <p className="text-sm text-gray-500 mt-2">
-              {userData.is_admin ? "Área Administrativa" : "Área do Usuário"}
-            </p>
-          )}
+          <p className="text-gray-600">Verificando autenticação...</p>
         </div>
       </div>
     );
   }
 
-  // Se já autenticado mas ainda carregando userData
-  if (isAuthenticated && !userData) {
+  // Se já autenticado mas carregando dados (não deve mais acontecer com a correção)
+  if (isAuthenticated && !userData && !authLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
         <div className="text-center">
