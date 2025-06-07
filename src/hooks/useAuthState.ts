@@ -40,7 +40,7 @@ export function useAuthState(): AuthState & AuthActions {
   const subscriptionExpired = userData?.subscription_status === 'expired' || 
     (userData?.subscription_expires_at && new Date(userData.subscription_expires_at) < new Date()) || false;
 
-  // Busca userData com controle de erro robusto
+  // Busca userData com retry e controle de erro
   const fetchUserDataSafely = useCallback(async (userId: string): Promise<UserData | null> => {
     try {
       console.log(`🔍 [useAuthState] Buscando userData para:`, userId);
@@ -60,7 +60,7 @@ export function useAuthState(): AuthState & AuthActions {
     }
   }, []);
 
-  // Login otimizado
+  // Login otimizado com controle de estado preciso
   const signIn = useCallback(async (email: string, password: string, rememberMe: boolean = false) => {
     console.log("🔐 [useAuthState] Iniciando login...");
     setLoading(true);
@@ -101,7 +101,7 @@ export function useAuthState(): AuthState & AuthActions {
     }
   }, [fetchUserDataSafely]);
 
-  // Logout limpo
+  // Logout limpo e completo
   const signOut = useCallback(async () => {
     console.log("🚪 [useAuthState] Iniciando logout...");
     
@@ -118,7 +118,7 @@ export function useAuthState(): AuthState & AuthActions {
     }
   }, []);
 
-  // Refresh token
+  // Refresh token com controle de estado
   const refreshToken = useCallback(async () => {
     try {
       const result = await authService.refreshSession();
@@ -140,7 +140,7 @@ export function useAuthState(): AuthState & AuthActions {
     }
   }, [fetchUserDataSafely]);
 
-  // Inicialização CORRIGIDA e simplificada
+  // Inicialização CORRIGIDA - SEM LOOPS
   useEffect(() => {
     let mounted = true;
     let authSubscription: any = null;
@@ -149,38 +149,38 @@ export function useAuthState(): AuthState & AuthActions {
       try {
         console.log("🔧 [useAuthState] Inicializando autenticação...");
 
-        // 1. Verificar sessão existente PRIMEIRO
-        const { data: { session: existingSession } } = await supabase.auth.getSession();
-        
-        if (!mounted) return;
-
-        // 2. Configurar listener DEPOIS
+        // 1. Configurar listener de auth PRIMEIRO
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
           async (event, session) => {
             if (!mounted) return;
 
             console.log(`🔐 [useAuthState] Auth event: ${event}`);
             
+            // Atualizar estado básico SEMPRE
             setSession(session);
             setUser(session?.user ?? null);
             
             if (event === 'SIGNED_OUT' || !session) {
-              console.log("👋 [useAuthState] Usuário deslogado ou sem sessão");
+              console.log("👋 [useAuthState] Usuário deslogado");
               setUserData(null);
               setLoading(false);
               setInitialized(true);
-            } else if (session?.user) {
+              return;
+            }
+            
+            if (session?.user) {
               console.log("👤 [useAuthState] Usuário logado, buscando dados...");
               
-              const userData = await fetchUserDataSafely(session.user.id);
-              
-              if (mounted) {
-                if (userData) {
-                  setUserData(userData);
-                  if (!userData.ativo) {
-                    console.warn("⚠️ [useAuthState] Usuário inativo");
-                  }
+              // Buscar userData apenas se necessário
+              if (!userData || userData.id !== session.user.id) {
+                const fetchedUserData = await fetchUserDataSafely(session.user.id);
+                
+                if (mounted) {
+                  setUserData(fetchedUserData);
+                  setLoading(false);
+                  setInitialized(true);
                 }
+              } else {
                 setLoading(false);
                 setInitialized(true);
               }
@@ -190,9 +190,13 @@ export function useAuthState(): AuthState & AuthActions {
 
         authSubscription = subscription;
 
-        // 3. Processar sessão existente se houver
+        // 2. Verificar sessão existente DEPOIS
+        const { data: { session: existingSession } } = await supabase.auth.getSession();
+        
+        if (!mounted) return;
+
         if (existingSession?.user) {
-          console.log("🔍 [useAuthState] Sessão existente:", existingSession.user.email);
+          console.log("🔍 [useAuthState] Sessão existente encontrada");
           
           setSession(existingSession);
           setUser(existingSession.user);
@@ -200,9 +204,7 @@ export function useAuthState(): AuthState & AuthActions {
           const fetchedUserData = await fetchUserDataSafely(existingSession.user.id);
           
           if (mounted) {
-            if (fetchedUserData) {
-              setUserData(fetchedUserData);
-            }
+            setUserData(fetchedUserData);
             setLoading(false);
             setInitialized(true);
           }
@@ -230,34 +232,21 @@ export function useAuthState(): AuthState & AuthActions {
       if (authSubscription) {
         authSubscription.unsubscribe();
       }
-      authService.stopPolling();
     };
-  }, [fetchUserDataSafely]);
+  }, []); // Dependencies vazias para evitar loops
 
-  // Timeout de segurança para evitar loading infinito
+  // Timeout de segurança OTIMIZADO
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       if (!initialized && loading) {
-        console.warn("⏰ [useAuthState] Timeout de inicialização atingido");
+        console.warn("⏰ [useAuthState] Timeout de inicialização - forçando loading=false");
         setLoading(false);
         setInitialized(true);
       }
-    }, 5000); // 5 segundos
+    }, 8000); // 8 segundos
 
     return () => clearTimeout(timeoutId);
   }, [initialized, loading]);
-
-  // Debug logs
-  useEffect(() => {
-    console.log("📊 [useAuthState] Estado:", {
-      user: !!user,
-      userData: !!userData,
-      loading,
-      initialized,
-      isAuthenticated: !!user,
-      subscriptionExpired
-    });
-  }, [user, userData, loading, initialized, subscriptionExpired]);
 
   return {
     user,

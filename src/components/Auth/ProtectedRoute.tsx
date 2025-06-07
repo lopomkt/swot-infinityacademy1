@@ -16,13 +16,13 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   // Check if user is testing as an admin
   const modoAdminTeste = location.search.includes("modo_teste_admin=true");
 
-  // Timeout de segurança OTIMIZADO
+  // Timeout de segurança para evitar loading infinito
   useEffect(() => {
     if (loading) {
       const timer = setTimeout(() => {
-        console.warn("[ProtectedRoute] Timeout de carregamento atingido");
+        console.warn("[ProtectedRoute] Timeout de carregamento atingido - forçando navegação");
         setTimeoutReached(true);
-      }, 6000); // 6 segundos - tempo mais generoso mas limitado
+      }, 10000); // 10 segundos - tempo mais generoso
       
       return () => clearTimeout(timer);
     } else {
@@ -30,7 +30,7 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     }
   }, [loading]);
 
-  // Debug logs otimizados
+  // Debug logs simplificados
   useEffect(() => {
     console.log("[ProtectedRoute] Estado atual:", { 
       loading, 
@@ -38,10 +38,10 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
       userData: !!userData,
       subscriptionExpired,
       pathname: location.pathname,
+      timeoutReached,
       userEmail: user?.email || 'N/A',
       userActive: userData?.ativo || 'N/A',
-      isAdmin: userData?.is_admin || false,
-      timeoutReached
+      isAdmin: userData?.is_admin || false
     });
   }, [loading, user, userData, subscriptionExpired, location.pathname, timeoutReached]);
 

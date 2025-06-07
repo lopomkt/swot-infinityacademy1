@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -34,41 +34,55 @@ const AuthScreen = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [manterLogado, setManterLogado] = useState(false);
   const [loginAttempts, setLoginAttempts] = useState(0);
+  const [hasRedirected, setHasRedirected] = useState(false);
   
   const { signIn, isAuthenticated, userData, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const toast = useToast();
+  const redirectTimeoutRef = useRef<NodeJS.Timeout>();
 
-  // Redirecionamento SIMPLIFICADO e direto
+  // Redirecionamento CORRIGIDO - apenas uma vez
   useEffect(() => {
-    // Só redireciona se: não está carregando E está autenticado E tem dados do usuário
+    // Evitar múltiplos redirecionamentos
+    if (hasRedirected) return;
+    
+    // Só redireciona se tudo estiver carregado e autenticado
     if (!authLoading && !isLoading && isAuthenticated && userData) {
-      console.log("🎯 [AuthScreen] Redirecionamento autorizado:", {
+      console.log("🎯 [AuthScreen] Executando redirecionamento único:", {
         isAuthenticated,
         hasUserData: !!userData,
         userEmail: userData.email,
-        isAdmin: userData.is_admin
+        isAdmin: userData.is_admin,
+        hasRedirected
       });
+      
+      setHasRedirected(true);
+      
+      // Limpar timeout anterior se existir
+      if (redirectTimeoutRef.current) {
+        clearTimeout(redirectTimeoutRef.current);
+      }
       
       const targetRoute = userData.is_admin ? "/admin" : "/";
       
       toast.success("Login realizado com sucesso!", 
         `Bem-vindo(a), ${userData.nome_empresa}!`);
       
-      // Redirecionamento imediato
-      navigate(targetRoute, { replace: true });
+      // Redirecionamento com pequeno delay para evitar race conditions
+      redirectTimeoutRef.current = setTimeout(() => {
+        navigate(targetRoute, { replace: true });
+      }, 100);
     }
-  }, [authLoading, isLoading, isAuthenticated, userData, navigate, toast]);
+  }, [authLoading, isLoading, isAuthenticated, userData, navigate, toast, hasRedirected]);
 
-  // Debug simplificado
+  // Cleanup do timeout ao desmontar
   useEffect(() => {
-    console.log("📊 [AuthScreen] Estado:", {
-      authLoading,
-      isLoading,
-      isAuthenticated,
-      hasUserData: !!userData
-    });
-  }, [authLoading, isLoading, isAuthenticated, userData]);
+    return () => {
+      if (redirectTimeoutRef.current) {
+        clearTimeout(redirectTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const loginForm = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -88,7 +102,7 @@ const AuthScreen = () => {
   });
 
   const onLoginSubmit = async (data: LoginFormValues) => {
-    if (isLoading) return;
+    if (isLoading || hasRedirected) return;
     
     setIsLoading(true);
     setLoginAttempts(prev => prev + 1);
@@ -102,7 +116,7 @@ const AuthScreen = () => {
       const result = await signIn(data.email.trim().toLowerCase(), data.password, manterLogado);
       
       if (result.success) {
-        console.log("✅ [AuthScreen] Login bem-sucedido");
+        console.log("✅ [AuthScreen] Login bem-sucedido - aguardando redirecionamento");
         // Não definir setIsLoading(false) aqui - deixar o useEffect handle o redirecionamento
       } else {
         console.error("❌ [AuthScreen] Falha no login:", result.message);
@@ -127,6 +141,8 @@ const AuthScreen = () => {
   };
 
   const onRegisterSubmit = async (data: RegisterFormValues) => {
+    if (isLoading) return;
+    
     setIsLoading(true);
     try {
       const { email, password, nome_empresa } = data;
@@ -213,8 +229,8 @@ const AuthScreen = () => {
     }
   };
 
-  // Loading state CORRIGIDO
-  if (authLoading) {
+  // Loading state principal - apenas se estiver realmente carregando auth
+  if (authLoading && !hasRedirected) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
         <div className="text-center">
@@ -225,13 +241,13 @@ const AuthScreen = () => {
     );
   }
 
-  // Se já autenticado mas carregando dados (não deve mais acontecer com a correção)
-  if (isAuthenticated && !userData && !authLoading) {
+  // Se já autenticado e tem userData, mostrar loading de redirecionamento
+  if (isAuthenticated && userData && !hasRedirected) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
         <div className="text-center">
           <Loader2 className="h-12 w-12 animate-spin text-[#ef0002] mx-auto mb-4" />
-          <p className="text-gray-600">Carregando dados do usuário...</p>
+          <p className="text-gray-600">Redirecionando...</p>
         </div>
       </div>
     );
@@ -325,7 +341,7 @@ const AuthScreen = () => {
                     <Button 
                       type="submit" 
                       className="w-full bg-[#ef0002] hover:bg-[#b70001]" 
-                      disabled={isLoading}
+                      disabled={isLoading || hasRedirected}
                     >
                       {isLoading ? (
                         <>
