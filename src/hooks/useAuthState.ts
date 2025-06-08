@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { authService } from '@/services/auth.service';
@@ -29,79 +29,100 @@ interface AuthActions {
   refreshToken: () => Promise<{success: boolean; message: string}>;
 }
 
+// Estados do sistema de auth
+type AuthSystemState = 'initializing' | 'unauthenticated' | 'authenticated' | 'loading_user_data' | 'ready' | 'error';
+
 export function useAuthState(): AuthState & AuthActions {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
   const [userData, setUserData] = useState<UserData | null>(null);
-  const [initialized, setInitialized] = useState(false);
+  const [systemState, setSystemState] = useState<AuthSystemState>('initializing');
+  
+  // Refs para controle de estado
+  const mounted = useRef(true);
+  const initializationDone = useRef(false);
+  const authSubscription = useRef<any>(null);
 
-  // Calcula se a assinatura está expirada
+  // Estados derivados
+  const loading = systemState === 'initializing' || systemState === 'loading_user_data';
+  const isAuthenticated = !!user && !!session;
   const subscriptionExpired = userData?.subscription_status === 'expired' || 
     (userData?.subscription_expires_at && new Date(userData.subscription_expires_at) < new Date()) || false;
 
-  // Busca userData com retry e controle de erro
+  // Busca userData com controle de estado
   const fetchUserDataSafely = useCallback(async (userId: string): Promise<UserData | null> => {
+    if (!mounted.current) return null;
+    
     try {
       console.log(`🔍 [useAuthState] Buscando userData para:`, userId);
+      setSystemState('loading_user_data');
       
       const result = await authService.fetchUserData(userId);
       
+      if (!mounted.current) return null;
+      
       if (result) {
         console.log("✅ [useAuthState] UserData obtido:", result.email);
+        setUserData(result);
+        setSystemState('ready');
         return result;
       } else {
         console.warn("⚠️ [useAuthState] Falha ao obter userData");
+        setSystemState('error');
         return null;
       }
     } catch (error) {
       console.error("❌ [useAuthState] Erro ao buscar userData:", error);
+      if (mounted.current) {
+        setSystemState('error');
+      }
       return null;
     }
   }, []);
 
-  // Login otimizado com controle de estado preciso
+  // Login com estado controlado
   const signIn = useCallback(async (email: string, password: string, rememberMe: boolean = false) => {
     console.log("🔐 [useAuthState] Iniciando login...");
-    setLoading(true);
+    setSystemState('initializing');
     
     try {
       const result = await authService.signIn(email, password, rememberMe);
       
+      if (!mounted.current) return { success: false, message: "Componente desmontado" };
+      
       if (result.success && result.user && result.session) {
         console.log("✅ [useAuthState] Login bem-sucedido");
         
-        // Atualizar estado básico IMEDIATAMENTE
+        // Atualizar estado básico imediatamente
         setUser(result.user);
         setSession(result.session);
         
-        // Buscar userData em background
+        // Buscar userData
         const fetchedUserData = await fetchUserDataSafely(result.user.id);
         
-        if (fetchedUserData) {
-          if (!fetchedUserData.ativo) {
-            console.warn("⚠️ [useAuthState] Usuário inativo detectado");
-            await signOut();
-            setLoading(false);
-            return { success: false, message: "Usuário inativo" };
-          }
-          setUserData(fetchedUserData);
+        if (!mounted.current) return { success: false, message: "Componente desmontado" };
+        
+        if (fetchedUserData && !fetchedUserData.ativo) {
+          console.warn("⚠️ [useAuthState] Usuário inativo detectado");
+          await signOut();
+          return { success: false, message: "Usuário inativo" };
         }
         
-        setLoading(false);
         return { success: true, message: "Login realizado com sucesso" };
       }
       
-      setLoading(false);
+      setSystemState('unauthenticated');
       return { success: result.success, message: result.message };
     } catch (error: any) {
       console.error("❌ [useAuthState] Erro no signIn:", error);
-      setLoading(false);
+      if (mounted.current) {
+        setSystemState('error');
+      }
       return { success: false, message: "Erro interno no login" };
     }
   }, [fetchUserDataSafely]);
 
-  // Logout limpo e completo
+  // Logout limpo
   const signOut = useCallback(async () => {
     console.log("🚪 [useAuthState] Iniciando logout...");
     
@@ -110,18 +131,20 @@ export function useAuthState(): AuthState & AuthActions {
       setUser(null);
       setSession(null);
       setUserData(null);
-      setLoading(false);
+      setSystemState('unauthenticated');
       console.log("✅ [useAuthState] Logout completo");
     } catch (error: any) {
       console.error("❌ [useAuthState] Erro no signOut:", error);
-      setLoading(false);
+      setSystemState('error');
     }
   }, []);
 
-  // Refresh token com controle de estado
+  // Refresh token
   const refreshToken = useCallback(async () => {
     try {
       const result = await authService.refreshSession();
+      
+      if (!mounted.current) return { success: false, message: "Componente desmontado" };
       
       if (result.success && result.user && result.session) {
         setUser(result.user);
@@ -140,87 +163,63 @@ export function useAuthState(): AuthState & AuthActions {
     }
   }, [fetchUserDataSafely]);
 
-  // Inicialização CORRIGIDA - SEM LOOPS
+  // Inicialização única e controlada
   useEffect(() => {
-    let mounted = true;
-    let authSubscription: any = null;
-
+    // Evitar inicialização múltipla
+    if (initializationDone.current) return;
+    
     const initializeAuth = async () => {
       try {
         console.log("🔧 [useAuthState] Inicializando autenticação...");
-
-        // 1. Configurar listener de auth PRIMEIRO
+        
+        // Setup do listener PRIMEIRO
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
           async (event, session) => {
-            if (!mounted) return;
+            if (!mounted.current) return;
 
             console.log(`🔐 [useAuthState] Auth event: ${event}`);
             
-            // Atualizar estado básico SEMPRE
+            // Atualizar estado básico sempre
             setSession(session);
             setUser(session?.user ?? null);
             
             if (event === 'SIGNED_OUT' || !session) {
               console.log("👋 [useAuthState] Usuário deslogado");
               setUserData(null);
-              setLoading(false);
-              setInitialized(true);
+              setSystemState('unauthenticated');
               return;
             }
             
             if (session?.user) {
               console.log("👤 [useAuthState] Usuário logado, buscando dados...");
-              
-              // Buscar userData apenas se necessário
-              if (!userData || userData.id !== session.user.id) {
-                const fetchedUserData = await fetchUserDataSafely(session.user.id);
-                
-                if (mounted) {
-                  setUserData(fetchedUserData);
-                  setLoading(false);
-                  setInitialized(true);
-                }
-              } else {
-                setLoading(false);
-                setInitialized(true);
-              }
+              await fetchUserDataSafely(session.user.id);
             }
           }
         );
 
-        authSubscription = subscription;
+        authSubscription.current = subscription;
 
-        // 2. Verificar sessão existente DEPOIS
+        // Verificar sessão existente DEPOIS
         const { data: { session: existingSession } } = await supabase.auth.getSession();
         
-        if (!mounted) return;
+        if (!mounted.current) return;
 
         if (existingSession?.user) {
           console.log("🔍 [useAuthState] Sessão existente encontrada");
-          
           setSession(existingSession);
           setUser(existingSession.user);
-          
-          const fetchedUserData = await fetchUserDataSafely(existingSession.user.id);
-          
-          if (mounted) {
-            setUserData(fetchedUserData);
-            setLoading(false);
-            setInitialized(true);
-          }
+          await fetchUserDataSafely(existingSession.user.id);
         } else {
           console.log("📭 [useAuthState] Nenhuma sessão existente");
-          if (mounted) {
-            setLoading(false);
-            setInitialized(true);
-          }
+          setSystemState('unauthenticated');
         }
+
+        initializationDone.current = true;
 
       } catch (error) {
         console.error("❌ [useAuthState] Erro na inicialização:", error);
-        if (mounted) {
-          setLoading(false);
-          setInitialized(true);
+        if (mounted.current) {
+          setSystemState('error');
         }
       }
     };
@@ -228,31 +227,32 @@ export function useAuthState(): AuthState & AuthActions {
     initializeAuth();
 
     return () => {
-      mounted = false;
-      if (authSubscription) {
-        authSubscription.unsubscribe();
+      mounted.current = false;
+      if (authSubscription.current) {
+        authSubscription.current.unsubscribe();
       }
     };
-  }, []); // Dependencies vazias para evitar loops
+  }, []); // Dependências vazias para inicialização única
 
-  // Timeout de segurança OTIMIZADO
+  // Timeout de segurança reduzido
   useEffect(() => {
+    if (systemState !== 'initializing' && systemState !== 'loading_user_data') return;
+    
     const timeoutId = setTimeout(() => {
-      if (!initialized && loading) {
-        console.warn("⏰ [useAuthState] Timeout de inicialização - forçando loading=false");
-        setLoading(false);
-        setInitialized(true);
+      if (systemState === 'initializing' || systemState === 'loading_user_data') {
+        console.warn("⏰ [useAuthState] Timeout de carregamento - forçando estado de erro");
+        setSystemState('error');
       }
-    }, 8000); // 8 segundos
+    }, 3000); // Reduzido para 3 segundos
 
     return () => clearTimeout(timeoutId);
-  }, [initialized, loading]);
+  }, [systemState]);
 
   return {
     user,
     session,
     loading,
-    isAuthenticated: !!user,
+    isAuthenticated,
     userData,
     subscriptionExpired,
     signIn,

@@ -1,5 +1,4 @@
-
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -34,55 +33,25 @@ const AuthScreen = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [manterLogado, setManterLogado] = useState(false);
   const [loginAttempts, setLoginAttempts] = useState(0);
-  const [hasRedirected, setHasRedirected] = useState(false);
   
   const { signIn, isAuthenticated, userData, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const toast = useToast();
-  const redirectTimeoutRef = useRef<NodeJS.Timeout>();
 
-  // Redirecionamento CORRIGIDO - apenas uma vez
+  // Redirecionamento simplificado - apenas uma verificação
   useEffect(() => {
-    // Evitar múltiplos redirecionamentos
-    if (hasRedirected) return;
-    
-    // Só redireciona se tudo estiver carregado e autenticado
-    if (!authLoading && !isLoading && isAuthenticated && userData) {
-      console.log("🎯 [AuthScreen] Executando redirecionamento único:", {
-        isAuthenticated,
-        hasUserData: !!userData,
-        userEmail: userData.email,
-        isAdmin: userData.is_admin,
-        hasRedirected
-      });
-      
-      setHasRedirected(true);
-      
-      // Limpar timeout anterior se existir
-      if (redirectTimeoutRef.current) {
-        clearTimeout(redirectTimeoutRef.current);
-      }
+    // Se usuário já está autenticado e tem dados, redirecionar uma única vez
+    if (!authLoading && isAuthenticated && userData) {
+      console.log("🎯 [AuthScreen] Redirecionando usuário autenticado:", userData.email);
       
       const targetRoute = userData.is_admin ? "/admin" : "/";
       
-      toast.success("Login realizado com sucesso!", 
-        `Bem-vindo(a), ${userData.nome_empresa}!`);
-      
-      // Redirecionamento com pequeno delay para evitar race conditions
-      redirectTimeoutRef.current = setTimeout(() => {
+      // Timeout para evitar race conditions
+      setTimeout(() => {
         navigate(targetRoute, { replace: true });
       }, 100);
     }
-  }, [authLoading, isLoading, isAuthenticated, userData, navigate, toast, hasRedirected]);
-
-  // Cleanup do timeout ao desmontar
-  useEffect(() => {
-    return () => {
-      if (redirectTimeoutRef.current) {
-        clearTimeout(redirectTimeoutRef.current);
-      }
-    };
-  }, []);
+  }, [authLoading, isAuthenticated, userData, navigate]);
 
   const loginForm = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -102,31 +71,27 @@ const AuthScreen = () => {
   });
 
   const onLoginSubmit = async (data: LoginFormValues) => {
-    if (isLoading || hasRedirected) return;
+    if (isLoading) return;
     
     setIsLoading(true);
     setLoginAttempts(prev => prev + 1);
     
     try {
-      console.log("🔐 [AuthScreen] Iniciando login:", {
-        email: data.email,
-        attempt: loginAttempts + 1
-      });
+      console.log("🔐 [AuthScreen] Iniciando login:", data.email);
 
       const result = await signIn(data.email.trim().toLowerCase(), data.password, manterLogado);
       
       if (result.success) {
-        console.log("✅ [AuthScreen] Login bem-sucedido - aguardando redirecionamento");
-        // Não definir setIsLoading(false) aqui - deixar o useEffect handle o redirecionamento
+        console.log("✅ [AuthScreen] Login bem-sucedido");
+        toast.success("Login realizado com sucesso!", "Redirecionando...");
+        // Não limpar loading aqui - deixar o useEffect handle redirection
       } else {
         console.error("❌ [AuthScreen] Falha no login:", result.message);
         
         if (result.message.includes("Email ou senha")) {
-          toast.error("Credenciais inválidas", 
-            "Verifique seu email e senha e tente novamente.");
+          toast.error("Credenciais inválidas", "Verifique seu email e senha.");
         } else if (result.message.includes("Muitas tentativas")) {
-          toast.error("Muitas tentativas", 
-            "Aguarde alguns minutos antes de tentar novamente.");
+          toast.error("Muitas tentativas", "Aguarde alguns minutos.");
         } else {
           toast.error("Erro no login", result.message);
         }
@@ -134,8 +99,7 @@ const AuthScreen = () => {
       }
     } catch (error: any) {
       console.error("❌ [AuthScreen] Erro inesperado no login:", error);
-      toast.error("Erro inesperado", 
-        "Ocorreu um erro interno. Tente novamente em alguns instantes.");
+      toast.error("Erro inesperado", "Tente novamente em alguns instantes.");
       setIsLoading(false);
     }
   };
@@ -148,12 +112,6 @@ const AuthScreen = () => {
       const { email, password, nome_empresa } = data;
       
       console.log("📝 [AuthScreen] Tentativa de cadastro:", { email, nome_empresa });
-      
-      if (!email || !password || !nome_empresa) {
-        toast.error("Dados incompletos", "Preencha todos os campos.");
-        setIsLoading(false);
-        return;
-      }
 
       const { data: authData, error } = await supabase.auth.signUp({
         email: email.trim().toLowerCase(),
@@ -166,7 +124,6 @@ const AuthScreen = () => {
       if (error) {
         console.error("❌ [AuthScreen] Erro no cadastro:", error);
         toast.error("Erro ao cadastrar", error.message);
-        setIsLoading(false);
         return;
       }
       
@@ -189,8 +146,6 @@ const AuthScreen = () => {
             const dataValidade = new Date(Date.now() + 1000 * 60 * 60 * 24 * 30).toISOString();
             const dataEntrada = new Date().toISOString();
             
-            console.log("📝 [AuthScreen] Criando registro na tabela users...");
-            
             const { error: insertError } = await supabase.from("users").insert({
               id: userId,
               email: user.email,
@@ -204,20 +159,13 @@ const AuthScreen = () => {
             if (insertError) {
               console.error("❌ [AuthScreen] Erro ao criar registro na tabela users:", insertError);
               toast.error("Erro ao finalizar cadastro", insertError.message);
-              setIsLoading(false);
               return;
             }
-            
-            console.log("✅ [AuthScreen] Registro criado na tabela users");
-          } else {
-            console.log("ℹ️ [AuthScreen] Usuário já existe na tabela users");
           }
         }
         
-        toast.success("Cadastro realizado com sucesso!", 
-          "Você já pode fazer login com suas credenciais.");
+        toast.success("Cadastro realizado com sucesso!", "Você já pode fazer login.");
         setActiveTab("login");
-        
         loginForm.setValue("email", email);
       }
       
@@ -229,25 +177,13 @@ const AuthScreen = () => {
     }
   };
 
-  // Loading state principal - apenas se estiver realmente carregando auth
-  if (authLoading && !hasRedirected) {
+  // Loading state enquanto carrega auth
+  if (authLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
         <div className="text-center">
           <Loader2 className="h-12 w-12 animate-spin text-[#ef0002] mx-auto mb-4" />
           <p className="text-gray-600">Verificando autenticação...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Se já autenticado e tem userData, mostrar loading de redirecionamento
-  if (isAuthenticated && userData && !hasRedirected) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
-        <div className="text-center">
-          <Loader2 className="h-12 w-12 animate-spin text-[#ef0002] mx-auto mb-4" />
-          <p className="text-gray-600">Redirecionando...</p>
         </div>
       </div>
     );
@@ -341,7 +277,7 @@ const AuthScreen = () => {
                     <Button 
                       type="submit" 
                       className="w-full bg-[#ef0002] hover:bg-[#b70001]" 
-                      disabled={isLoading || hasRedirected}
+                      disabled={isLoading}
                     >
                       {isLoading ? (
                         <>
