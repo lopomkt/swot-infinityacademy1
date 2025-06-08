@@ -38,106 +38,80 @@ serve(async (req) => {
       throw new Error('Dados do formulário não fornecidos')
     }
 
-    // Construir prompt estruturado para OpenRouter
-    const prompt = `
-Você é um consultor especialista em análise SWOT e estratégia empresarial. Analise os dados fornecidos e gere um relatório estratégico completo.
+    // Construir prompt estruturado para GPT-4o-mini
+    const prompt = `Você é um consultor estratégico especialista em análise SWOT. Gere um relatório estratégico completo no formato EXATO abaixo.
 
 DADOS DA EMPRESA:
 Nome: ${formData.identificacao?.nomeEmpresa || 'Não informado'}
-Setor: ${formData.identificacao?.setorAtuacao || 'Não informado'}
-Porte: ${formData.identificacao?.porteEmpresa || 'Não informado'}
-Situação Financeira: ${formData.saudeFinanceira?.situacaoAtual || 'Não informado'}
+Setor: ${formData.identificacao?.segmento || 'Não informado'}
+Tempo de Mercado: ${formData.identificacao?.tempoDeMercado || 'Não informado'}
+Situação Financeira: ${formData.saudeFinanceira?.maturidade_financeira || 'Não informado'}
 
 FORÇAS IDENTIFICADAS:
-${formData.forcas?.respostas?.map((f: any, i: number) => `${i + 1}. ${f.resposta}`).join('\n') || 'Nenhuma força identificada'}
+${formData.forcas?.respostas?.map((f, i) => `${i + 1}. ${f}`).join('\n') || 'Nenhuma força identificada'}
 
 FRAQUEZAS IDENTIFICADAS:
-${formData.fraquezas?.pontos_inconsistentes?.map((f: any, i: number) => `${i + 1}. ${f.ponto} - ${f.impacto}`).join('\n') || 'Nenhuma fraqueza identificada'}
+${formData.fraquezas?.pontos_inconsistentes?.map((f, i) => `${i + 1}. ${f}`).join('\n') || 'Nenhuma fraqueza identificada'}
 
 OPORTUNIDADES:
-${formData.oportunidades?.respostas?.map((o: any, i: number) => `${i + 1}. ${o.resposta}`).join('\n') || 'Nenhuma oportunidade identificada'}
+${formData.oportunidades?.respostas?.map((o, i) => `${i + 1}. ${o}`).join('\n') || 'Nenhuma oportunidade identificada'}
 
 AMEAÇAS:
-${formData.ameacas?.respostas?.map((a: any, i: number) => `${i + 1}. ${a.resposta}`).join('\n') || 'Nenhuma ameaça identificada'}
+${formData.ameacas?.respostas?.map((a, i) => `${i + 1}. ${a}`).join('\n') || 'Nenhuma ameaça identificada'}
 
-PRIORIDADES ESTRATÉGICAS:
-Engajamento da Equipe: ${formData.prioridades?.engajamento_equipe || 'N/A'}/10
-Comprometimento Estratégico: ${formData.prioridades?.comprometimento_estrategico || 'N/A'}/10
-Foco Principal: ${formData.prioridades?.foco_principal || 'Não definido'}
+RESPONDA SEGUINDO EXATAMENTE ESTE FORMATO (use os delimitadores ### obrigatoriamente):
 
-GERE UM RELATÓRIO ESTRUTURADO COM:
+### MATRIZ SWOT
+**FORÇAS:**
+- [análise detalhada de cada força com recomendações]
 
-1. DIAGNÓSTICO ESTRATÉGICO (resumo executivo da situação atual)
+**FRAQUEZAS:**
+- [análise detalhada de cada fraqueza com planos de melhoria]
 
-2. MATRIZ SWOT DETALHADA:
-   - Análise de cada Força com recomendações de potencialização
-   - Análise de cada Fraqueza com planos de melhoria específicos
-   - Análise de cada Oportunidade com estratégias de aproveitamento
-   - Análise de cada Ameaça com planos de mitigação
+**OPORTUNIDADES:**
+- [análise detalhada de cada oportunidade com estratégias]
 
-3. ESTRATÉGIAS CRUZADAS (TOWS):
-   - FO (Forças × Oportunidades): Estratégias ofensivas
-   - FA (Forças × Ameaças): Estratégias defensivas
-   - DO (Fraquezas × Oportunidades): Estratégias de reorientação
-   - DA (Fraquezas × Ameaças): Estratégias de sobrevivência
+**AMEAÇAS:**
+- [análise detalhada de cada ameaça com planos de mitigação]
 
-4. PLANO DE AÇÃO PRIORITÁRIO:
-   - 3-5 ações de curto prazo (próximos 90 dias)
-   - 3-5 ações de médio prazo (6-12 meses)
-   - Métricas de acompanhamento sugeridas
+### DIAGNÓSTICO CONSULTIVO
+[Análise executiva da situação atual da empresa, identificando pontos críticos, potenciais e recomendações estratégicas personalizadas. Mínimo 3 parágrafos detalhados.]
 
-5. SCORE ESTRATÉGICO (0-100):
-   - Posição Competitiva
-   - Preparação para Oportunidades
-   - Gestão de Riscos
-   - Score Geral
+### PLANO DE AÇÃO A/B/C
+**AÇÕES DE CURTO PRAZO (30-90 dias):**
+1. [Ação específica com justificativa]
+2. [Ação específica com justificativa]
+3. [Ação específica com justificativa]
 
-Formate a resposta em JSON seguindo esta estrutura:
-{
-  "diagnostico": "texto do diagnóstico executivo",
-  "matriz_swot": {
-    "forcas_analise": [{"item": "força", "recomendacao": "como potencializar"}],
-    "fraquezas_analise": [{"item": "fraqueza", "plano_melhoria": "como corrigir"}],
-    "oportunidades_analise": [{"item": "oportunidade", "estrategia": "como aproveitar"}],
-    "ameacas_analise": [{"item": "ameaça", "mitigacao": "como se proteger"}]
-  },
-  "estrategias_cruzadas": {
-    "fo": ["estratégia ofensiva 1", "estratégia ofensiva 2"],
-    "fa": ["estratégia defensiva 1", "estratégia defensiva 2"],
-    "do": ["estratégia reorientação 1", "estratégia reorientação 2"],
-    "da": ["estratégia sobrevivência 1", "estratégia sobrevivência 2"]
-  },
-  "plano_acao": {
-    "curto_prazo": [{"acao": "descrição", "prazo": "dias", "responsavel": "área"}],
-    "medio_prazo": [{"acao": "descrição", "prazo": "meses", "responsavel": "área"}],
-    "metricas": ["métrica 1", "métrica 2", "métrica 3"]
-  },
-  "score_estrategico": {
-    "posicao_competitiva": 85,
-    "preparacao_oportunidades": 75,
-    "gestao_riscos": 90,
-    "score_geral": 83
-  }
-}
-`
+**AÇÕES DE MÉDIO PRAZO (6-12 meses):**
+1. [Ação estratégica com planejamento]
+2. [Ação estratégica com planejamento]
+3. [Ação estratégica com planejamento]
 
-    // Chamar OpenRouter API
+**MÉTRICAS DE ACOMPANHAMENTO:**
+- [Indicadores específicos para medir progresso]`
+
+    // Chamar OpenRouter API com GPT-4o-mini
     const openrouterResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${Deno.env.get('OPENROUTER_API_KEY')}`,
+        'Authorization': 'Bearer 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',
         'Content-Type': 'application/json',
-        'X-Title': 'SWOT Insights Analysis',
+        'X-Title': 'SWOT Insights Analysis - GPT4o-mini',
       },
       body: JSON.stringify({
-        model: 'anthropic/claude-3.5-sonnet',
+        model: 'openai/gpt-4o-mini',
         messages: [
+          {
+            role: 'system',
+            content: 'Você é um consultor estratégico especialista em análise SWOT. Sempre responda seguindo EXATAMENTE o formato solicitado com os delimitadores ###.'
+          },
           {
             role: 'user',
             content: prompt
           }
         ],
-        max_tokens: 4000,
+        max_tokens: 3000,
         temperature: 0.7,
       })
     })
@@ -155,29 +129,25 @@ Formate a resposta em JSON seguindo esta estrutura:
       throw new Error('Resposta vazia da API OpenRouter')
     }
 
-    // Tentar fazer parse do JSON da resposta
-    let parsedAnalysis
-    try {
-      // Remover possível markdown formatting
-      const cleanContent = analysisContent.replace(/```json\n?|\n?```/g, '').trim()
-      parsedAnalysis = JSON.parse(cleanContent)
-    } catch (parseError) {
-      console.error('Erro ao fazer parse da resposta:', parseError)
-      // Fallback: retornar resposta bruta se não conseguir fazer parse
-      parsedAnalysis = {
-        diagnostico: analysisContent,
-        raw_response: true
-      }
-    }
+    // Processar resposta estruturada
+    const sections = analysisContent.split('### ')
+    const matrizSwot = sections.find(s => s.startsWith('MATRIZ SWOT'))?.replace('MATRIZ SWOT', '').trim() || 'Matriz SWOT não gerada'
+    const diagnostico = sections.find(s => s.startsWith('DIAGNÓSTICO CONSULTIVO'))?.replace('DIAGNÓSTICO CONSULTIVO', '').trim() || 'Diagnóstico não gerado'
+    const planoAcao = sections.find(s => s.startsWith('PLANO DE AÇÃO A/B/C'))?.replace('PLANO DE AÇÃO A/B/C', '').trim() || 'Plano de ação não gerado'
 
-    // Estruturar resultado final
+    // Estruturar resultado final compatível
     const resultado = {
       ai_block_pronto: true,
       openrouter_prompt_ok: true,
       groq_prompt_ok: true, // Manter compatibilidade
-      analise_completa: parsedAnalysis,
+      analise_completa: {
+        diagnostico_textual: diagnostico,
+        matriz_swot: matrizSwot,
+        planos_acao: planoAcao,
+        raw_response: analysisContent
+      },
       timestamp: new Date().toISOString(),
-      model_used: 'anthropic/claude-3.5-sonnet'
+      model_used: 'openai/gpt-4o-mini'
     }
 
     return new Response(

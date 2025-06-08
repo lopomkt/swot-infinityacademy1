@@ -4,10 +4,8 @@ import { Loader, AlertCircle, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { ResultadoFinalData } from "@/types/formData";
-import { FormData as GROQFormData } from "@/types/groq";
 import { useAuth } from "@/contexts/AuthContext";
-import { useGroqGeneration } from "@/hooks/useGroqGeneration";
-import { reportService } from "@/services/report.service";
+import { useOpenRouterGeneration } from "@/hooks/useOpenRouterGeneration";
 import ErrorMessageBlock from "@/components/ErrorMessageBlock";
 import ErrorBoundary from "@/components/ErrorBoundary";
 
@@ -24,67 +22,14 @@ const AIBlock: React.FC<AIBlockProps> = ({ formData, onRestart, onAIComplete }) 
   const { user } = useAuth();
   const debounceRef = useRef<NodeJS.Timeout>();
   
-  // Hook personalizado para geração do relatório com GROQ
-  const { loading, error, resultado, generateReport, clearReport } = useGroqGeneration();
-
-  // Função para converter formData para o formato esperado pelo GROQ
-  const convertToGROQFormData = (data: any): GROQFormData => {
-    return {
-      identificacao: data.identificacao,
-      forcas: data.forcas,
-      fraquezas: data.fraquezas,
-      oportunidades: data.oportunidades,
-      ameacas: data.ameacas,
-      saudeFinanceira: data.saudeFinanceira,
-      prioridades: data.prioridades,
-      resultadoFinal: data.resultadoFinal
-    };
-  };
-
-  // Função para salvar no Supabase usando o service
-  const salvarNoSupabase = async (resultados: any) => {
-    if (!user) return;
-
-    try {
-      const reportId = await reportService.createReport({
-        user_id: user.id,
-        dados: formData,
-        resultado_final: {
-          ...resultados,
-          created_at: new Date().toISOString(),
-          tipo: "GROQ_PRODUCAO"
-        }
-      });
-      
-      if (reportId) {
-        console.log('✅ Relatório salvo com IA GROQ - ID:', reportId);
-        toast({
-          title: "Relatório gerado e salvo com sucesso!",
-          description: "Seu relatório estratégico está pronto para análise.",
-        });
-      } else {
-        toast({
-          title: "Relatório gerado com sucesso!",
-          description: "Mas houve um erro ao salvar. Você pode tentar salvar manualmente.",
-          variant: "destructive",
-        });
-      }
-    } catch (dbError) {
-      console.error("Erro ao salvar no banco de dados:", dbError);
-      toast({
-        title: "Relatório gerado",
-        description: "Erro ao salvar automaticamente. Tente salvar manualmente.",
-        variant: "destructive",
-      });
-    }
-  };
+  // Hook para geração com OpenRouter + GPT-4o-mini
+  const { loading, error, resultado, generateReport, clearReport } = useOpenRouterGeneration();
 
   // Função para processar o resultado da IA
   const processarResultado = async (resultados: any) => {
     setProcessingState('completed');
     
-    // Salvar no Supabase
-    await salvarNoSupabase(resultados);
+    console.log("✅ Resultado processado com OpenRouter + GPT-4o-mini:", resultados);
     
     // Enviar para o componente pai
     if (onAIComplete) {
@@ -92,7 +37,7 @@ const AIBlock: React.FC<AIBlockProps> = ({ formData, onRestart, onAIComplete }) 
         diagnostico_textual: resultados.diagnostico_textual,
         matriz_swot: resultados.matriz_swot,
         planos_acao: resultados.planos_acao,
-        acoes_priorizadas: resultados.acoes_priorizadas || [],
+        acoes_priorizadas: [],
         ai_block_pronto: resultados.ai_block_pronto,
         groq_prompt_ok: resultados.groq_prompt_ok,
         tipo: resultados.tipo,
@@ -101,6 +46,11 @@ const AIBlock: React.FC<AIBlockProps> = ({ formData, onRestart, onAIComplete }) 
       
       onAIComplete(resultadoFinal);
     }
+
+    toast({
+      title: "Relatório gerado com sucesso!",
+      description: "Análise estratégica criada com GPT-4o-mini via OpenRouter.",
+    });
   };
 
   // Função para tentar novamente
@@ -110,8 +60,7 @@ const AIBlock: React.FC<AIBlockProps> = ({ formData, onRestart, onAIComplete }) 
     setTimeoutWarning(false);
     
     if (user) {
-      const groqFormData = convertToGROQFormData(formData);
-      generateReport(groqFormData, user.id);
+      generateReport(formData, user.id);
     }
   };
 
@@ -124,8 +73,7 @@ const AIBlock: React.FC<AIBlockProps> = ({ formData, onRestart, onAIComplete }) 
     debounceRef.current = setTimeout(() => {
       if (formData && processingState === 'idle' && user) {
         setProcessingState('processing');
-        const groqFormData = convertToGROQFormData(formData);
-        generateReport(groqFormData, user.id);
+        generateReport(formData, user.id);
       }
     }, 1500);
 
@@ -171,12 +119,12 @@ const AIBlock: React.FC<AIBlockProps> = ({ formData, onRestart, onAIComplete }) 
             <div className="text-center py-10">
               <Loader className="h-12 w-12 animate-spin text-[#ef0002] mx-auto mb-6" />
               <h3 className="text-xl font-medium text-gray-800 mb-2">
-                ⏳ Processando sua análise com inteligência estratégica GROQ...
+                🤖 Gerando análise estratégica com GPT-4o-mini...
               </h3>
               <p className="text-gray-600 max-w-md mx-auto text-center">
                 {timeoutWarning 
                   ? "Isso está demorando mais do que o esperado. Por favor, aguarde..." 
-                  : "Estamos analisando seus dados e gerando um relatório estratégico personalizado usando IA GROQ."}
+                  : "Nossa IA está analisando seus dados via OpenRouter e criando um relatório estratégico personalizado."}
               </p>
               <div className="w-full max-w-md mt-8 mx-auto">
                 <div className="h-1 w-full bg-gray-200 rounded-full overflow-hidden">
@@ -211,86 +159,46 @@ const AIBlock: React.FC<AIBlockProps> = ({ formData, onRestart, onAIComplete }) 
                 Relatório Estratégico SWOT Insights
               </h2>
               <p className="text-gray-600 max-w-2xl mx-auto">
-                Análise personalizada gerada por IA GROQ com base nos dados fornecidos sobre seu negócio. 
+                Análise personalizada gerada por GPT-4o-mini via OpenRouter com base nos dados fornecidos sobre seu negócio. 
                 Use este relatório como guia para suas decisões estratégicas.
               </p>
             </div>
 
             {/* Matriz SWOT */}
-            <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-              <h3 className="text-2xl font-bold text-[#ef0002] mb-4">
-                Matriz SWOT detalhada da sua empresa
-              </h3>
-              <div className="prose max-w-none">
-                {resultado.matriz_swot?.split('\n\n').map((section, index) => {
-                  const lines = section.split('\n');
-                  const title = lines[0];
-                  const items = lines.slice(1);
-                  
-                  return (
-                    <div key={index} className="mb-6">
-                      {title.startsWith('##') && (
-                        <h4 className="text-xl font-semibold mb-3">
-                          {title.replace('##', '').trim()}
-                        </h4>
-                      )}
-                      <ul className="list-disc pl-6 space-y-2">
-                        {items.map((item, i) => (
-                          <li key={i}>{item.replace('-', '').trim()}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  );
-                })}
+            {resultado.matriz_swot && (
+              <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+                <h3 className="text-2xl font-bold text-[#ef0002] mb-4">
+                  Matriz SWOT detalhada da sua empresa
+                </h3>
+                <div className="prose max-w-none">
+                  <div dangerouslySetInnerHTML={{ __html: resultado.matriz_swot.replace(/\n/g, '<br>') }} />
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Diagnóstico Textual */}
-            <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-              <h3 className="text-2xl font-bold text-[#ef0002] mb-4">
-                Análise estratégica gerada por inteligência artificial
-              </h3>
-              <div className="prose max-w-none text-gray-700">
-                {resultado.diagnostico_textual?.split('\n\n').map((paragraph, index) => (
-                  <p key={index} className="mb-4">
-                    {paragraph}
-                  </p>
-                ))}
+            {resultado.diagnostico_textual && (
+              <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+                <h3 className="text-2xl font-bold text-[#ef0002] mb-4">
+                  Análise estratégica gerada por inteligência artificial
+                </h3>
+                <div className="prose max-w-none text-gray-700">
+                  <div dangerouslySetInnerHTML={{ __html: resultado.diagnostico_textual.replace(/\n/g, '<br>') }} />
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Planos de Ação */}
-            <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-              <h3 className="text-2xl font-bold text-[#ef0002] mb-4">
-                Plano de ação com rotas estratégicas sugeridas
-              </h3>
-              <div className="prose max-w-none">
-                {resultado.planos_acao?.split('\n\n').map((section, index) => {
-                  const lines = section.split('\n');
-                  const title = lines[0];
-                  const items = lines.slice(1);
-                  
-                  return (
-                    <div key={index} className="mb-8">
-                      {title.startsWith('#') && (
-                        <h4 className="text-xl font-semibold mb-3">
-                          {title.replace('#', '').trim()}
-                        </h4>
-                      )}
-                      <ol className="list-decimal pl-6 space-y-2">
-                        {items.map((item, i) => {
-                          const parts = item.trim().split('.');
-                          if (parts.length > 1) {
-                            return <li key={i}>{parts.slice(1).join('.').trim()}</li>;
-                          }
-                          return <li key={i}>{item}</li>;
-                        })}
-                      </ol>
-                    </div>
-                  );
-                })}
+            {resultado.planos_acao && (
+              <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+                <h3 className="text-2xl font-bold text-[#ef0002] mb-4">
+                  Plano de ação com rotas estratégicas sugeridas
+                </h3>
+                <div className="prose max-w-none">
+                  <div dangerouslySetInnerHTML={{ __html: resultado.planos_acao.replace(/\n/g, '<br>') }} />
+                </div>
               </div>
-            </div>
+            )}
 
             <div className="flex justify-center space-x-4 pt-8">
               <Button 

@@ -59,8 +59,8 @@ const FinalizacaoStep = ({ onRestart, formData, onAIComplete }: FinalizacaoStepP
       // Armazenar ID do relatório para uso posterior
       sessionStorage.setItem('relatorio_id', reportId);
 
-      // Etapa 3: Gerar análise com IA
-      setCurrentTask('Gerando análise estratégica com IA...');
+      // Etapa 3: Gerar análise com IA OpenRouter + GPT-4o-mini
+      setCurrentTask('Gerando análise estratégica com GPT-4o-mini...');
       setProgress(60);
 
       const analysis = await openRouterService.generateAnalysis(formData);
@@ -73,7 +73,20 @@ const FinalizacaoStep = ({ onRestart, formData, onAIComplete }: FinalizacaoStepP
       setCurrentTask('Formatando resultado final...');
       setProgress(80);
 
-      const resultadoFinal = openRouterService.formatAnalysisForResults(analysis);
+      const formattedResult = openRouterService.formatAnalysisForResults(analysis);
+
+      // Criar estrutura compatível com o sistema
+      const resultadoFinal = {
+        diagnostico_textual: formattedResult.diagnostico_consultivo || formattedResult.analise_completa?.diagnostico_textual || 'Diagnóstico gerado com sucesso',
+        matriz_swot: formattedResult.analise_completa?.matriz_swot || 'Matriz SWOT gerada',
+        planos_acao: formattedResult.analise_completa?.planos_acao || 'Planos de ação gerados',
+        ai_block_pronto: true,
+        groq_prompt_ok: true,
+        tipo: "OPENROUTER_GPT4O_MINI",
+        created_at: new Date().toISOString(),
+        score_estrategico: formattedResult.score_estrategico || 75,
+        model_used: 'openai/gpt-4o-mini'
+      };
 
       // Etapa 5: Atualizar relatório com resultado
       setCurrentTask('Salvando análise completa...');
@@ -88,18 +101,18 @@ const FinalizacaoStep = ({ onRestart, formData, onAIComplete }: FinalizacaoStepP
       }
 
       // Finalização
-      setCurrentTask('Análise concluída!');
+      setCurrentTask('Análise concluída com GPT-4o-mini!');
       setProgress(100);
 
       await new Promise(resolve => setTimeout(resolve, 1000));
 
-      toast.success("Relatório gerado com sucesso!");
+      toast.success("Relatório gerado com sucesso usando GPT-4o-mini!");
       
       // Passar resultado para o componente pai
       onAIComplete(resultadoFinal);
 
     } catch (error: any) {
-      console.error('❌ Erro na geração do relatório:', error);
+      console.error('❌ Erro na geração do relatório OpenRouter:', error);
       setError(error.message || 'Erro inesperado na geração do relatório');
       toast.error("Falha na geração do relatório");
     } finally {
@@ -177,8 +190,8 @@ const FinalizacaoStep = ({ onRestart, formData, onAIComplete }: FinalizacaoStepP
               {/* Mensagem motivacional */}
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
                 <p className="text-sm text-blue-800">
-                  <strong>🚀 Nossa IA está trabalhando para você!</strong><br />
-                  Estamos analisando seus dados e gerando estratégias personalizadas 
+                  <strong>🤖 GPT-4o-mini está trabalhando para você!</strong><br />
+                  Estamos analisando seus dados via OpenRouter e gerando estratégias personalizadas 
                   para impulsionar seu negócio. Isso pode levar alguns minutos.
                 </p>
               </div>
@@ -203,7 +216,7 @@ const FinalizacaoStep = ({ onRestart, formData, onAIComplete }: FinalizacaoStepP
             <p className="text-gray-600">
               Parabéns! Você completou todas as etapas da análise SWOT. 
               Agora vamos gerar seu relatório estratégico personalizado com 
-              insights e recomendações específicas para seu negócio.
+              insights e recomendações específicas usando GPT-4o-mini via OpenRouter.
             </p>
 
             {/* Resumo dos dados coletados */}
@@ -227,7 +240,7 @@ const FinalizacaoStep = ({ onRestart, formData, onAIComplete }: FinalizacaoStepP
               size="lg"
             >
               <Sparkles className="mr-2 h-5 w-5" />
-              Gerar Relatório Estratégico com IA
+              Gerar Relatório com GPT-4o-mini
             </Button>
 
             {/* Botão secundário */}
@@ -239,10 +252,13 @@ const FinalizacaoStep = ({ onRestart, formData, onAIComplete }: FinalizacaoStepP
               Recomeçar Análise
             </Button>
 
-            {/* Aviso sobre tempo */}
-            <p className="text-xs text-gray-500 text-center">
-              ⏱️ A geração do relatório pode levar de 30 segundos a 2 minutos
-            </p>
+            {/* Aviso sobre tempo e modelo */}
+            <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+              <p className="text-xs text-green-700 text-center">
+                🤖 Análise gerada com GPT-4o-mini via OpenRouter<br />
+                ⏱️ Tempo estimado: 30 segundos a 2 minutos
+              </p>
+            </div>
           </div>
         </CardContent>
       </Card>
