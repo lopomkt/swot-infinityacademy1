@@ -14,6 +14,8 @@ serve(async (req) => {
   }
 
   try {
+    console.log('🚀 Iniciando edge function openrouter-analysis...');
+
     // Verificar autenticação
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) {
@@ -30,13 +32,24 @@ serve(async (req) => {
     // Verificar usuário autenticado
     const { data: { user }, error: userError } = await supabaseClient.auth.getUser()
     if (userError || !user) {
+      console.error('❌ Erro de autenticação:', userError);
       throw new Error('Usuário não autenticado')
     }
+
+    console.log('✅ Usuário autenticado:', user.id);
 
     const { formData } = await req.json()
     if (!formData) {
       throw new Error('Dados do formulário não fornecidos')
     }
+
+    console.log('📝 Dados recebidos para análise:', {
+      empresa: formData.identificacao?.nomeEmpresa,
+      forcas: formData.forcas?.respostas?.length || 0,
+      fraquezas: formData.fraquezas?.pontos_inconsistentes?.length || 0,
+      oportunidades: formData.oportunidades?.respostas?.length || 0,
+      ameacas: formData.ameacas?.respostas?.length || 0
+    });
 
     // Construir prompt estruturado para GPT-4o-mini
     const prompt = `Você é um consultor estratégico especialista em análise SWOT. Gere um relatório estratégico completo no formato EXATO abaixo.
@@ -63,33 +76,35 @@ RESPONDA SEGUINDO EXATAMENTE ESTE FORMATO (use os delimitadores ### obrigatoriam
 
 ### MATRIZ SWOT
 **FORÇAS:**
-- [análise detalhada de cada força com recomendações]
+- [análise detalhada de cada força com recomendações estratégicas]
 
 **FRAQUEZAS:**
-- [análise detalhada de cada fraqueza com planos de melhoria]
+- [análise detalhada de cada fraqueza com planos de melhoria específicos]
 
 **OPORTUNIDADES:**
-- [análise detalhada de cada oportunidade com estratégias]
+- [análise detalhada de cada oportunidade com estratégias de aproveitamento]
 
 **AMEAÇAS:**
 - [análise detalhada de cada ameaça com planos de mitigação]
 
 ### DIAGNÓSTICO CONSULTIVO
-[Análise executiva da situação atual da empresa, identificando pontos críticos, potenciais e recomendações estratégicas personalizadas. Mínimo 3 parágrafos detalhados.]
+[Análise executiva da situação atual da empresa, identificando pontos críticos, potenciais e recomendações estratégicas personalizadas. Mínimo 3 parágrafos detalhados com linguagem consultiva profissional.]
 
 ### PLANO DE AÇÃO A/B/C
 **AÇÕES DE CURTO PRAZO (30-90 dias):**
-1. [Ação específica com justificativa]
-2. [Ação específica com justificativa]
-3. [Ação específica com justificativa]
+1. [Ação específica com justificativa e recursos necessários]
+2. [Ação específica com justificativa e recursos necessários]
+3. [Ação específica com justificativa e recursos necessários]
 
 **AÇÕES DE MÉDIO PRAZO (6-12 meses):**
-1. [Ação estratégica com planejamento]
-2. [Ação estratégica com planejamento]
-3. [Ação estratégica com planejamento]
+1. [Ação estratégica com planejamento detalhado]
+2. [Ação estratégica com planejamento detalhado]
+3. [Ação estratégica com planejamento detalhado]
 
 **MÉTRICAS DE ACOMPANHAMENTO:**
-- [Indicadores específicos para medir progresso]`
+- [Indicadores específicos para medir progresso das ações]`
+
+    console.log('🤖 Enviando requisição para OpenRouter...');
 
     // Chamar OpenRouter API com GPT-4o-mini
     const openrouterResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
@@ -104,30 +119,33 @@ RESPONDA SEGUINDO EXATAMENTE ESTE FORMATO (use os delimitadores ### obrigatoriam
         messages: [
           {
             role: 'system',
-            content: 'Você é um consultor estratégico especialista em análise SWOT. Sempre responda seguindo EXATAMENTE o formato solicitado com os delimitadores ###.'
+            content: 'Você é um consultor estratégico especialista em análise SWOT. Sempre responda seguindo EXATAMENTE o formato solicitado com os delimitadores ###. Use linguagem profissional, clara e orientada para ação.'
           },
           {
             role: 'user',
             content: prompt
           }
         ],
-        max_tokens: 3000,
+        max_tokens: 4000,
         temperature: 0.7,
       })
     })
 
     if (!openrouterResponse.ok) {
       const errorText = await openrouterResponse.text()
-      console.error('OpenRouter API Error:', errorText)
-      throw new Error(`Erro na API OpenRouter: ${openrouterResponse.status}`)
+      console.error('❌ Erro na API OpenRouter:', errorText)
+      throw new Error(`Erro na API OpenRouter: ${openrouterResponse.status} - ${errorText}`)
     }
 
     const openrouterData = await openrouterResponse.json()
     const analysisContent = openrouterData.choices[0]?.message?.content
 
     if (!analysisContent) {
+      console.error('❌ Resposta vazia da OpenRouter:', openrouterData);
       throw new Error('Resposta vazia da API OpenRouter')
     }
+
+    console.log('✅ Análise recebida da OpenRouter, processando...');
 
     // Processar resposta estruturada
     const sections = analysisContent.split('### ')
@@ -150,6 +168,8 @@ RESPONDA SEGUINDO EXATAMENTE ESTE FORMATO (use os delimitadores ### obrigatoriam
       model_used: 'openai/gpt-4o-mini'
     }
 
+    console.log('✅ Resultado estruturado com sucesso');
+
     return new Response(
       JSON.stringify({ success: true, resultado }),
       { 
@@ -161,7 +181,7 @@ RESPONDA SEGUINDO EXATAMENTE ESTE FORMATO (use os delimitadores ### obrigatoriam
     )
 
   } catch (error) {
-    console.error('Erro no edge function:', error)
+    console.error('❌ Erro no edge function:', error)
     return new Response(
       JSON.stringify({ 
         success: false, 
