@@ -9,7 +9,7 @@ interface GenerationResult {
   matriz_swot?: string;
   planos_acao?: string;
   ai_block_pronto: boolean;
-  groq_prompt_ok: boolean;
+  openrouter_prompt_ok: boolean;
   tipo: string;
   created_at: string;
 }
@@ -74,7 +74,7 @@ export function useOpenRouterGeneration(): GenerationState & GenerationActions {
           matriz_swot: formattedResult.analise_completa?.matriz_swot || 'Matriz SWOT gerada com sucesso',
           planos_acao: formattedResult.analise_completa?.planos_acao || 'Planos de ação gerados com sucesso',
           ai_block_pronto: true,
-          groq_prompt_ok: true, // Manter compatibilidade
+          openrouter_prompt_ok: true,
           tipo: "OPENROUTER_GPT4O_MINI",
           created_at: new Date().toISOString(),
           model_used: 'openai/gpt-4o-mini'
@@ -136,7 +136,7 @@ export function useOpenRouterGeneration(): GenerationState & GenerationActions {
           matriz_swot: formattedResult.analise_completa?.matriz_swot || 'Matriz SWOT regenerada com sucesso',
           planos_acao: formattedResult.analise_completa?.planos_acao || 'Planos de ação regenerados com sucesso',
           ai_block_pronto: true,
-          groq_prompt_ok: true,
+          openrouter_prompt_ok: true,
           tipo: "OPENROUTER_GPT4O_MINI_REGENERATED",
           created_at: new Date().toISOString(),
           model_used: 'openai/gpt-4o-mini'

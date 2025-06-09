@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import ProgressBar from "@/components/ProgressBar";
 import WelcomeStep from "@/components/WelcomeStep";
@@ -149,7 +150,7 @@ const Index = () => {
 
   // Check if AI results are ready to show results screen
   const areResultsReady = () => {
-    return formData.resultadoFinal?.ai_block_pronto === true && formData.resultadoFinal?.groq_prompt_ok === true;
+    return formData.resultadoFinal?.ai_block_pronto === true && formData.resultadoFinal?.openrouter_prompt_ok === true;
   };
 
   return (
@@ -269,7 +270,7 @@ const Index = () => {
             }}
           />
         )}
-        {step === EnumSteps.RESULTADOS && formData.resultadoFinal?.ai_block_pronto && formData.resultadoFinal?.groq_prompt_ok && (
+        {step === EnumSteps.RESULTADOS && formData.resultadoFinal?.ai_block_pronto && formData.resultadoFinal?.openrouter_prompt_ok && (
           <ResultsScreen 
             formData={formData}
             onRestart={resetAppFlow}
@@ -277,7 +278,7 @@ const Index = () => {
           />
         )}
         
-        {step === EnumSteps.RESULTADOS && (!formData.resultadoFinal?.ai_block_pronto || !formData.resultadoFinal?.groq_prompt_ok) && (
+        {step === EnumSteps.RESULTADOS && (!formData.resultadoFinal?.ai_block_pronto || !formData.resultadoFinal?.openrouter_prompt_ok) && (
           <p className="text-center text-red-600 mt-10">⏳ Seu relatório ainda está sendo processado.</p>
         )}
       </main>
