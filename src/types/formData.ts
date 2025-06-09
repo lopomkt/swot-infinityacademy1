@@ -175,6 +175,7 @@ export interface ResultadoFinalData {
   acoes_priorizadas?: string[];
   ai_block_pronto?: boolean;
   groq_prompt_ok?: boolean;
+  openrouter_prompt_ok?: boolean; // Added missing property
   resultados_pdf_export_ready?: boolean;
   resultados_bloco5_e_4b_ok?: boolean;
   fase7_2_consultivo_avancado_ok?: boolean;
