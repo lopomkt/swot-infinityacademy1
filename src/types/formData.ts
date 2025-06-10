@@ -1,4 +1,3 @@
-
 export interface FormData {
   identificacao?: Identificacao;
   forcas?: Forcas;
@@ -174,15 +173,14 @@ export interface ResultadoFinalData {
   planoC?: string[];
   acoes_priorizadas?: string[];
   ai_block_pronto?: boolean;
-  groq_prompt_ok?: boolean;
-  openrouter_prompt_ok?: boolean; // Added missing property
+  openrouter_prompt_ok?: boolean; // OpenRouter integration flag
   resultados_pdf_export_ready?: boolean;
   resultados_bloco5_e_4b_ok?: boolean;
   fase7_2_consultivo_avancado_ok?: boolean;
   fase7_5_1_correcao_total_ok?: boolean;
   maturidade_setorial?: AreaMaturidade[] | string; // Allow both string and array of objects
   acoes_priorizadas_lista?: string[];
-  tipo?: string; // Added field for GROQ integration
+  tipo?: string; // Added field for OpenRouter integration
   created_at?: string; // Added field for timestamp
 }
 

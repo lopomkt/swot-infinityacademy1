@@ -10,7 +10,7 @@ interface DiagnosticoConsultivoProps {
   diagnostico: string;
 }
 
-const DiagnosticoConsultivo: React.FC<DiagnosticoConsultivoProps> = ({ diagnostico }) => {
+const DiagnosticoConsultivo: React.FC<DiagnostivoConsultivoProps> = ({ diagnostico }) => {
   const prefersReducedMotion = useReducedMotion();
 
   return (
@@ -24,7 +24,7 @@ const DiagnosticoConsultivo: React.FC<DiagnosticoConsultivoProps> = ({ diagnosti
         </h2>
         <p className="text-gray-600 max-w-2xl mx-auto">
           Abaixo está a interpretação completa da situação atual da sua empresa, 
-          com base nos dados fornecidos, feita por inteligência artificial estratégica.
+          com base nos dados fornecidos, feita por inteligência artificial OpenRouter + GPT-4o-mini.
         </p>
       </div>
 
@@ -38,7 +38,7 @@ const DiagnosticoConsultivo: React.FC<DiagnosticoConsultivoProps> = ({ diagnosti
               />
             ) : (
               <p className="text-center text-gray-500 italic py-4">
-                Diagnóstico não disponível. Por favor, aguarde o processamento ou tente novamente.
+                Diagnóstico não disponível. Por favor, aguarde o processamento via OpenRouter ou tente novamente.
               </p>
             )}
           </ScrollArea>
@@ -47,7 +47,7 @@ const DiagnosticoConsultivo: React.FC<DiagnosticoConsultivoProps> = ({ diagnosti
       
       {/* Tag for tracking refactoring progress */}
       <div className="hidden">
-        {/* refatoracao_diagnostico_ok = true */}
+        {/* refatoracao_diagnostico_openrouter_ok = true */}
       </div>
     </div>
   );

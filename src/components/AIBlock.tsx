@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { Loader, AlertCircle, CheckCircle, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -27,11 +26,11 @@ const AIBlock: React.FC<AIBlockProps> = ({ formData, onRestart, onAIComplete }) 
   // Hook para geração com OpenRouter + GPT-4o-mini
   const { loading, error, resultado, generateReport, clearReport, regenerateReport } = useOpenRouterGeneration();
 
-  // Função para processar o resultado da IA
+  // Função para processar o resultado da IA (OpenRouter apenas)
   const processarResultado = async (resultados: any) => {
     setProcessingState('completed');
     setProgress(100);
-    setCurrentTask('Análise concluída com GPT-4o-mini!');
+    setCurrentTask('Análise concluída com OpenRouter + GPT-4o-mini!');
     
     console.log("✅ Resultado processado com OpenRouter + GPT-4o-mini:", resultados);
     
@@ -43,7 +42,7 @@ const AIBlock: React.FC<AIBlockProps> = ({ formData, onRestart, onAIComplete }) 
         planos_acao: resultados.planos_acao,
         acoes_priorizadas: [],
         ai_block_pronto: resultados.ai_block_pronto,
-        groq_prompt_ok: resultados.groq_prompt_ok,
+        openrouter_prompt_ok: resultados.openrouter_prompt_ok, // OpenRouter flag apenas
         tipo: resultados.tipo,
         created_at: resultados.created_at
       };
@@ -53,7 +52,7 @@ const AIBlock: React.FC<AIBlockProps> = ({ formData, onRestart, onAIComplete }) 
 
     toast({
       title: "Relatório gerado com sucesso!",
-      description: "Análise estratégica criada com GPT-4o-mini via OpenRouter.",
+      description: "Análise estratégica criada com OpenRouter + GPT-4o-mini.",
     });
   };
 
@@ -174,7 +173,7 @@ const AIBlock: React.FC<AIBlockProps> = ({ formData, onRestart, onAIComplete }) 
             <div className="text-center py-10 w-full max-w-2xl">
               <Sparkles className="h-12 w-12 text-[#ef0002] mx-auto mb-6 animate-pulse" />
               <h3 className="text-xl font-medium text-gray-800 mb-2">
-                🤖 Gerando análise estratégica com GPT-4o-mini...
+                🤖 Gerando análise estratégica com OpenRouter + GPT-4o-mini...
               </h3>
               <p className="text-gray-600 max-w-md mx-auto text-center mb-4">
                 {timeoutWarning 
@@ -195,11 +194,11 @@ const AIBlock: React.FC<AIBlockProps> = ({ formData, onRestart, onAIComplete }) 
                 </p>
               </div>
 
-              {/* Mensagem motivacional */}
+              {/* Mensagem motivacional atualizada */}
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6">
                 <p className="text-sm text-blue-800">
-                  <strong>🤖 GPT-4o-mini está trabalhando para você!</strong><br />
-                  Estamos analisando seus dados via OpenRouter e gerando estratégias personalizadas 
+                  <strong>🤖 OpenRouter + GPT-4o-mini está trabalhando para você!</strong><br />
+                  Estamos analisando seus dados e gerando estratégias personalizadas 
                   para impulsionar seu negócio.
                 </p>
               </div>
@@ -238,7 +237,7 @@ const AIBlock: React.FC<AIBlockProps> = ({ formData, onRestart, onAIComplete }) 
                 Relatório Estratégico SWOT Insights
               </h2>
               <p className="text-gray-600 max-w-2xl mx-auto">
-                Análise personalizada gerada por GPT-4o-mini via OpenRouter com base nos dados fornecidos sobre seu negócio. 
+                Análise personalizada gerada por OpenRouter + GPT-4o-mini com base nos dados fornecidos sobre seu negócio. 
                 Use este relatório como guia para suas decisões estratégicas.
               </p>
             </div>

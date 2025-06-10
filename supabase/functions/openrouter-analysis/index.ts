@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
@@ -147,17 +146,10 @@ RESPONDA SEGUINDO EXATAMENTE ESTE FORMATO (use os delimitadores ### obrigatoriam
 
     console.log('✅ Análise recebida da OpenRouter, processando...');
 
-    // Processar resposta estruturada
-    const sections = analysisContent.split('### ')
-    const matrizSwot = sections.find(s => s.startsWith('MATRIZ SWOT'))?.replace('MATRIZ SWOT', '').trim() || 'Matriz SWOT não gerada'
-    const diagnostico = sections.find(s => s.startsWith('DIAGNÓSTICO CONSULTIVO'))?.replace('DIAGNÓSTICO CONSULTIVO', '').trim() || 'Diagnóstico não gerado'
-    const planoAcao = sections.find(s => s.startsWith('PLANO DE AÇÃO A/B/C'))?.replace('PLANO DE AÇÃO A/B/C', '').trim() || 'Plano de ação não gerado'
-
-    // Estruturar resultado final compatível
+    // Estruturar resultado final (apenas OpenRouter)
     const resultado = {
       ai_block_pronto: true,
       openrouter_prompt_ok: true,
-      groq_prompt_ok: true, // Manter compatibilidade
       analise_completa: {
         diagnostico_textual: diagnostico,
         matriz_swot: matrizSwot,
@@ -168,7 +160,7 @@ RESPONDA SEGUINDO EXATAMENTE ESTE FORMATO (use os delimitadores ### obrigatoriam
       model_used: 'openai/gpt-4o-mini'
     }
 
-    console.log('✅ Resultado estruturado com sucesso');
+    console.log('✅ Resultado estruturado com OpenRouter apenas');
 
     return new Response(
       JSON.stringify({ success: true, resultado }),
@@ -181,11 +173,11 @@ RESPONDA SEGUINDO EXATAMENTE ESTE FORMATO (use os delimitadores ### obrigatoriam
     )
 
   } catch (error) {
-    console.error('❌ Erro no edge function:', error)
+    console.error('❌ Erro no edge function OpenRouter:', error)
     return new Response(
       JSON.stringify({ 
         success: false, 
-        error: error.message || 'Erro interno do servidor' 
+        error: error.message || 'Erro interno do servidor OpenRouter' 
       }),
       { 
         status: 500,

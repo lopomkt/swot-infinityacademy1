@@ -8,7 +8,6 @@ import { FormData } from '@/types/formData';
 interface OpenRouterAnalysis {
   ai_block_pronto: boolean;
   openrouter_prompt_ok: boolean;
-  groq_prompt_ok: boolean;
   analise_completa: any;
   timestamp: string;
   model_used: string;
@@ -90,7 +89,7 @@ class OpenRouterService {
       return false;
     }
 
-    // Verificar estrutura mínima
+    // Verificar estrutura mínima (apenas OpenRouter)
     return (
       analysis.ai_block_pronto === true &&
       analysis.openrouter_prompt_ok === true &&
@@ -112,7 +111,7 @@ class OpenRouterService {
       if (analise_completa.raw_response) {
         return {
           ...analysis,
-          diagnostico_consultivo: analise_completa.diagnostico || 'Análise gerada com sucesso',
+          diagnostico_consultivo: analise_completa.diagnostico || 'Análise gerada com sucesso via OpenRouter',
           score_estrategico: 75, // Score padrão
         };
       }
@@ -129,12 +128,12 @@ class OpenRouterService {
       };
 
     } catch (error) {
-      console.error('❌ Erro ao formatar análise:', error);
+      console.error('❌ Erro ao formatar análise OpenRouter:', error);
       
       // Fallback básico
       return {
         ...analysis,
-        diagnostico_consultivo: 'Análise gerada. Verifique os dados detalhados.',
+        diagnostico_consultivo: 'Análise gerada via OpenRouter. Verifique os dados detalhados.',
         score_estrategico: 70,
       };
     }
