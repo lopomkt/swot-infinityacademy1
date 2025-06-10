@@ -10,7 +10,7 @@ interface DiagnosticoConsultivoProps {
   diagnostico: string;
 }
 
-const DiagnosticoConsultivo: React.FC<DiagnostivoConsultivoProps> = ({ diagnostico }) => {
+const DiagnosticoConsultivo: React.FC<DiagnosticoConsultivoProps> = ({ diagnostico }) => {
   const prefersReducedMotion = useReducedMotion();
 
   return (

@@ -129,7 +129,7 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ formData, onRestart, onNo
     return <p className="text-center text-gray-600 mt-12">Relatório ainda não disponível. Tente novamente em instantes.</p>;
   }
 
-  if (!formData.resultadoFinal?.ai_block_pronto || !formData.resultadoFinal?.groq_prompt_ok) {
+  if (!formData.resultadoFinal?.ai_block_pronto || !formData.resultadoFinal?.openrouter_prompt_ok) {
     return <p className="text-center text-red-600 mt-10">⏳ O relatório ainda não está pronto. Aguarde o processamento.</p>;
   }
 
