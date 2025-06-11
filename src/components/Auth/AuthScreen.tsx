@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -39,25 +40,22 @@ const AuthScreen = () => {
   const navigate = useNavigate();
   const toast = useToast();
 
-  // Redirecionamento melhorado com controle de estado
+  // Redirecionamento melhorado sem navigate nas dependências
   useEffect(() => {
-    // Se já está redirecionando, não fazer nada
     if (redirecting || authLoading) return;
 
-    // Se usuário está autenticado e tem dados
     if (isAuthenticated && userData) {
       console.log("🎯 [AuthScreen] Iniciando redirecionamento para usuário autenticado:", userData.email);
       setRedirecting(true);
       
       const targetRoute = userData.is_admin ? "/admin" : "/";
       
-      // Pequeno delay para evitar race conditions
       setTimeout(() => {
         console.log("🎯 [AuthScreen] Executando navegação para:", targetRoute);
         navigate(targetRoute, { replace: true });
-      }, 200);
+      }, 300);
     }
-  }, [isAuthenticated, userData, authLoading, navigate, redirecting]);
+  }, [isAuthenticated, userData, authLoading, redirecting]);
 
   const loginForm = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -90,7 +88,6 @@ const AuthScreen = () => {
       if (result.success) {
         console.log("✅ [AuthScreen] Login bem-sucedido");
         toast.success("Login realizado com sucesso!", "Redirecionando...");
-        setRedirecting(true);
         // O redirecionamento será handled pelo useEffect
       } else {
         console.error("❌ [AuthScreen] Falha no login:", result.message);
@@ -413,5 +410,3 @@ const AuthScreen = () => {
 };
 
 export default AuthScreen;
-
-</initial_code>
