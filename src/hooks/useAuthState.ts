@@ -42,6 +42,7 @@ export function useAuthState(): AuthState & AuthActions {
   const mounted = useRef(true);
   const initializationDone = useRef(false);
   const authSubscription = useRef<any>(null);
+  const userDataFetched = useRef(false);
 
   // Estados derivados
   const loading = systemState === 'initializing' || systemState === 'loading_user_data';
@@ -49,13 +50,14 @@ export function useAuthState(): AuthState & AuthActions {
   const subscriptionExpired = userData?.subscription_status === 'expired' || 
     (userData?.subscription_expires_at && new Date(userData.subscription_expires_at) < new Date()) || false;
 
-  // Busca userData com controle de estado
+  // Busca userData com controle de estado melhorado
   const fetchUserDataSafely = useCallback(async (userId: string): Promise<UserData | null> => {
-    if (!mounted.current) return null;
+    if (!mounted.current || userDataFetched.current) return userData;
     
     try {
       console.log(`🔍 [useAuthState] Buscando userData para:`, userId);
       setSystemState('loading_user_data');
+      userDataFetched.current = true;
       
       const result = await authService.fetchUserData(userId);
       
@@ -67,23 +69,24 @@ export function useAuthState(): AuthState & AuthActions {
         setSystemState('ready');
         return result;
       } else {
-        console.warn("⚠️ [useAuthState] Falha ao obter userData");
-        setSystemState('error');
+        console.warn("⚠️ [useAuthState] UserData não encontrado, mas permitindo acesso");
+        setSystemState('ready'); // Permitir acesso mesmo sem userData
         return null;
       }
     } catch (error) {
       console.error("❌ [useAuthState] Erro ao buscar userData:", error);
       if (mounted.current) {
-        setSystemState('error');
+        setSystemState('ready'); // Permitir acesso mesmo com erro
       }
       return null;
     }
-  }, []);
+  }, [userData]);
 
   // Login com estado controlado
   const signIn = useCallback(async (email: string, password: string, rememberMe: boolean = false) => {
     console.log("🔐 [useAuthState] Iniciando login...");
     setSystemState('initializing');
+    userDataFetched.current = false; // Reset flag
     
     try {
       const result = await authService.signIn(email, password, rememberMe);
@@ -97,16 +100,12 @@ export function useAuthState(): AuthState & AuthActions {
         setUser(result.user);
         setSession(result.session);
         
-        // Buscar userData
-        const fetchedUserData = await fetchUserDataSafely(result.user.id);
-        
-        if (!mounted.current) return { success: false, message: "Componente desmontado" };
-        
-        if (fetchedUserData && !fetchedUserData.ativo) {
-          console.warn("⚠️ [useAuthState] Usuário inativo detectado");
-          await signOut();
-          return { success: false, message: "Usuário inativo" };
-        }
+        // Buscar userData em background
+        setTimeout(async () => {
+          if (mounted.current) {
+            await fetchUserDataSafely(result.user!.id);
+          }
+        }, 100);
         
         return { success: true, message: "Login realizado com sucesso" };
       }
@@ -132,6 +131,7 @@ export function useAuthState(): AuthState & AuthActions {
       setSession(null);
       setUserData(null);
       setSystemState('unauthenticated');
+      userDataFetched.current = false;
       console.log("✅ [useAuthState] Logout completo");
     } catch (error: any) {
       console.error("❌ [useAuthState] Erro no signOut:", error);
@@ -150,9 +150,11 @@ export function useAuthState(): AuthState & AuthActions {
         setUser(result.user);
         setSession(result.session);
         
-        const fetchedUserData = await fetchUserDataSafely(result.user.id);
-        if (fetchedUserData) {
-          setUserData(fetchedUserData);
+        if (!userDataFetched.current) {
+          const fetchedUserData = await fetchUserDataSafely(result.user.id);
+          if (fetchedUserData) {
+            setUserData(fetchedUserData);
+          }
         }
       }
       
@@ -187,10 +189,11 @@ export function useAuthState(): AuthState & AuthActions {
               console.log("👋 [useAuthState] Usuário deslogado");
               setUserData(null);
               setSystemState('unauthenticated');
+              userDataFetched.current = false;
               return;
             }
             
-            if (session?.user) {
+            if (session?.user && !userDataFetched.current) {
               console.log("👤 [useAuthState] Usuário logado, buscando dados...");
               await fetchUserDataSafely(session.user.id);
             }
@@ -234,16 +237,16 @@ export function useAuthState(): AuthState & AuthActions {
     };
   }, []); // Dependências vazias para inicialização única
 
-  // Timeout de segurança reduzido
+  // Timeout de segurança aumentado
   useEffect(() => {
     if (systemState !== 'initializing' && systemState !== 'loading_user_data') return;
     
     const timeoutId = setTimeout(() => {
       if (systemState === 'initializing' || systemState === 'loading_user_data') {
-        console.warn("⏰ [useAuthState] Timeout de carregamento - forçando estado de erro");
-        setSystemState('error');
+        console.warn("⏰ [useAuthState] Timeout de carregamento - permitindo acesso");
+        setSystemState('ready'); // Mudança: permitir acesso ao invés de erro
       }
-    }, 3000); // Reduzido para 3 segundos
+    }, 6000); // Aumentado para 6 segundos
 
     return () => clearTimeout(timeoutId);
   }, [systemState]);

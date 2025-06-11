@@ -1,3 +1,4 @@
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
@@ -146,21 +147,39 @@ RESPONDA SEGUINDO EXATAMENTE ESTE FORMATO (use os delimitadores ### obrigatoriam
 
     console.log('✅ Análise recebida da OpenRouter, processando...');
 
-    // Estruturar resultado final (apenas OpenRouter)
+    // Extrair seções do conteúdo usando delimitadores
+    const sections = analysisContent.split('###').filter(section => section.trim());
+    
+    let matrizSwot = '';
+    let diagnostico = '';
+    let planoAcao = '';
+
+    sections.forEach(section => {
+      const content = section.trim();
+      if (content.toLowerCase().includes('matriz swot')) {
+        matrizSwot = content.replace(/matriz swot/i, '').trim();
+      } else if (content.toLowerCase().includes('diagnóstico consultivo')) {
+        diagnostico = content.replace(/diagnóstico consultivo/i, '').trim();
+      } else if (content.toLowerCase().includes('plano de ação')) {
+        planoAcao = content.replace(/plano de ação a\/b\/c/i, '').trim();
+      }
+    });
+
+    // Estruturar resultado final
     const resultado = {
       ai_block_pronto: true,
       openrouter_prompt_ok: true,
       analise_completa: {
-        diagnostico_textual: diagnostico,
-        matriz_swot: matrizSwot,
-        planos_acao: planoAcao,
+        diagnostico_textual: diagnostico || analysisContent.substring(0, 1000),
+        matriz_swot: matrizSwot || analysisContent.substring(0, 800),
+        planos_acao: planoAcao || analysisContent.substring(-600),
         raw_response: analysisContent
       },
       timestamp: new Date().toISOString(),
       model_used: 'openai/gpt-4o-mini'
     }
 
-    console.log('✅ Resultado estruturado com OpenRouter apenas');
+    console.log('✅ Resultado estruturado com OpenRouter');
 
     return new Response(
       JSON.stringify({ success: true, resultado }),

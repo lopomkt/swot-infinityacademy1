@@ -33,25 +33,31 @@ const AuthScreen = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [manterLogado, setManterLogado] = useState(false);
   const [loginAttempts, setLoginAttempts] = useState(0);
+  const [redirecting, setRedirecting] = useState(false);
   
   const { signIn, isAuthenticated, userData, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const toast = useToast();
 
-  // Redirecionamento simplificado - apenas uma verificação
+  // Redirecionamento melhorado com controle de estado
   useEffect(() => {
-    // Se usuário já está autenticado e tem dados, redirecionar uma única vez
-    if (!authLoading && isAuthenticated && userData) {
-      console.log("🎯 [AuthScreen] Redirecionando usuário autenticado:", userData.email);
+    // Se já está redirecionando, não fazer nada
+    if (redirecting || authLoading) return;
+
+    // Se usuário está autenticado e tem dados
+    if (isAuthenticated && userData) {
+      console.log("🎯 [AuthScreen] Iniciando redirecionamento para usuário autenticado:", userData.email);
+      setRedirecting(true);
       
       const targetRoute = userData.is_admin ? "/admin" : "/";
       
-      // Timeout para evitar race conditions
+      // Pequeno delay para evitar race conditions
       setTimeout(() => {
+        console.log("🎯 [AuthScreen] Executando navegação para:", targetRoute);
         navigate(targetRoute, { replace: true });
-      }, 100);
+      }, 200);
     }
-  }, [authLoading, isAuthenticated, userData, navigate]);
+  }, [isAuthenticated, userData, authLoading, navigate, redirecting]);
 
   const loginForm = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -71,7 +77,7 @@ const AuthScreen = () => {
   });
 
   const onLoginSubmit = async (data: LoginFormValues) => {
-    if (isLoading) return;
+    if (isLoading || redirecting) return;
     
     setIsLoading(true);
     setLoginAttempts(prev => prev + 1);
@@ -84,7 +90,8 @@ const AuthScreen = () => {
       if (result.success) {
         console.log("✅ [AuthScreen] Login bem-sucedido");
         toast.success("Login realizado com sucesso!", "Redirecionando...");
-        // Não limpar loading aqui - deixar o useEffect handle redirection
+        setRedirecting(true);
+        // O redirecionamento será handled pelo useEffect
       } else {
         console.error("❌ [AuthScreen] Falha no login:", result.message);
         
@@ -177,13 +184,15 @@ const AuthScreen = () => {
     }
   };
 
-  // Loading state enquanto carrega auth
-  if (authLoading) {
+  // Loading state melhorado
+  if (authLoading || redirecting) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
         <div className="text-center">
           <Loader2 className="h-12 w-12 animate-spin text-[#ef0002] mx-auto mb-4" />
-          <p className="text-gray-600">Verificando autenticação...</p>
+          <p className="text-gray-600">
+            {redirecting ? "Redirecionando..." : "Verificando autenticação..."}
+          </p>
         </div>
       </div>
     );
@@ -233,7 +242,7 @@ const AuthScreen = () => {
                             <Input 
                               placeholder="seu@email.com" 
                               {...field} 
-                              disabled={isLoading}
+                              disabled={isLoading || redirecting}
                               autoComplete="email"
                             />
                           </FormControl>
@@ -252,7 +261,7 @@ const AuthScreen = () => {
                               type="password" 
                               placeholder="******" 
                               {...field} 
-                              disabled={isLoading}
+                              disabled={isLoading || redirecting}
                               autoComplete="current-password"
                             />
                           </FormControl>
@@ -265,7 +274,7 @@ const AuthScreen = () => {
                         id="manter-logado"
                         checked={manterLogado}
                         onCheckedChange={(checked) => setManterLogado(checked === true)}
-                        disabled={isLoading}
+                        disabled={isLoading || redirecting}
                       />
                       <label 
                         htmlFor="manter-logado" 
@@ -277,12 +286,12 @@ const AuthScreen = () => {
                     <Button 
                       type="submit" 
                       className="w-full bg-[#ef0002] hover:bg-[#b70001]" 
-                      disabled={isLoading}
+                      disabled={isLoading || redirecting}
                     >
-                      {isLoading ? (
+                      {isLoading || redirecting ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Entrando...
+                          {redirecting ? "Redirecionando..." : "Entrando..."}
                         </>
                       ) : (
                         "Entrar"
@@ -296,7 +305,7 @@ const AuthScreen = () => {
                   variant="link" 
                   onClick={() => setActiveTab("register")}
                   className="text-sm text-gray-600"
-                  disabled={isLoading}
+                  disabled={isLoading || redirecting}
                 >
                   Não tem uma conta? Cadastre-se
                 </Button>
@@ -404,3 +413,5 @@ const AuthScreen = () => {
 };
 
 export default AuthScreen;
+
+</initial_code>
