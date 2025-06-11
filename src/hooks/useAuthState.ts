@@ -29,64 +29,54 @@ interface AuthActions {
   refreshToken: () => Promise<{success: boolean; message: string}>;
 }
 
-// Estados do sistema de auth
-type AuthSystemState = 'initializing' | 'unauthenticated' | 'authenticated' | 'loading_user_data' | 'ready' | 'error';
-
 export function useAuthState(): AuthState & AuthActions {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [userData, setUserData] = useState<UserData | null>(null);
-  const [systemState, setSystemState] = useState<AuthSystemState>('initializing');
+  const [loading, setLoading] = useState(true);
   
-  // Refs para controle de estado
   const mounted = useRef(true);
-  const initializationDone = useRef(false);
+  const initialized = useRef(false);
   const authSubscription = useRef<any>(null);
-  const userDataFetched = useRef(false);
 
   // Estados derivados
-  const loading = systemState === 'initializing' || systemState === 'loading_user_data';
   const isAuthenticated = !!user && !!session;
   const subscriptionExpired = userData?.subscription_status === 'expired' || 
     (userData?.subscription_expires_at && new Date(userData.subscription_expires_at) < new Date()) || false;
 
-  // Busca userData com controle de estado melhorado
-  const fetchUserDataSafely = useCallback(async (userId: string): Promise<UserData | null> => {
-    if (!mounted.current || userDataFetched.current) return userData;
-    
+  // Busca userData de forma simples
+  const fetchUserData = useCallback(async (userId: string): Promise<void> => {
     try {
       console.log(`🔍 [useAuthState] Buscando userData para:`, userId);
-      setSystemState('loading_user_data');
-      userDataFetched.current = true;
       
-      const result = await authService.fetchUserData(userId);
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', userId)
+        .maybeSingle();
       
-      if (!mounted.current) return null;
+      if (!mounted.current) return;
       
-      if (result) {
-        console.log("✅ [useAuthState] UserData obtido:", result.email);
-        setUserData(result);
-        setSystemState('ready');
-        return result;
+      if (error) {
+        console.error("❌ [useAuthState] Erro ao buscar userData:", error);
+        return;
+      }
+      
+      if (data) {
+        console.log("✅ [useAuthState] UserData obtido:", data.email);
+        setUserData(data);
       } else {
-        console.warn("⚠️ [useAuthState] UserData não encontrado, mas permitindo acesso");
-        setSystemState('ready'); // Permitir acesso mesmo sem userData
-        return null;
+        console.warn("⚠️ [useAuthState] UserData não encontrado para:", userId);
       }
-    } catch (error) {
-      console.error("❌ [useAuthState] Erro ao buscar userData:", error);
-      if (mounted.current) {
-        setSystemState('ready'); // Permitir acesso mesmo com erro
-      }
-      return null;
+    } catch (error: any) {
+      console.error("❌ [useAuthState] Erro na consulta userData:", error);
     }
-  }, [userData]);
+  }, []);
 
-  // Login com estado controlado
+  // Login simplificado
   const signIn = useCallback(async (email: string, password: string, rememberMe: boolean = false) => {
     console.log("🔐 [useAuthState] Iniciando login...");
-    setSystemState('initializing');
-    userDataFetched.current = false; // Reset flag
+    setLoading(true);
     
     try {
       const result = await authService.signIn(email, password, rememberMe);
@@ -94,34 +84,30 @@ export function useAuthState(): AuthState & AuthActions {
       if (!mounted.current) return { success: false, message: "Componente desmontado" };
       
       if (result.success && result.user && result.session) {
-        console.log("✅ [useAuthState] Login bem-sucedido");
+        console.log("✅ [useAuthState] Login bem-sucedido, atualizando estado");
         
-        // Atualizar estado básico imediatamente
         setUser(result.user);
         setSession(result.session);
         
-        // Buscar userData em background
-        setTimeout(async () => {
-          if (mounted.current) {
-            await fetchUserDataSafely(result.user!.id);
-          }
-        }, 100);
+        // Buscar userData imediatamente
+        await fetchUserData(result.user.id);
         
+        setLoading(false);
         return { success: true, message: "Login realizado com sucesso" };
       }
       
-      setSystemState('unauthenticated');
+      setLoading(false);
       return { success: result.success, message: result.message };
     } catch (error: any) {
       console.error("❌ [useAuthState] Erro no signIn:", error);
       if (mounted.current) {
-        setSystemState('error');
+        setLoading(false);
       }
       return { success: false, message: "Erro interno no login" };
     }
-  }, [fetchUserDataSafely]);
+  }, [fetchUserData]);
 
-  // Logout limpo
+  // Logout simples
   const signOut = useCallback(async () => {
     console.log("🚪 [useAuthState] Iniciando logout...");
     
@@ -130,12 +116,9 @@ export function useAuthState(): AuthState & AuthActions {
       setUser(null);
       setSession(null);
       setUserData(null);
-      setSystemState('unauthenticated');
-      userDataFetched.current = false;
       console.log("✅ [useAuthState] Logout completo");
     } catch (error: any) {
       console.error("❌ [useAuthState] Erro no signOut:", error);
-      setSystemState('error');
     }
   }, []);
 
@@ -150,11 +133,8 @@ export function useAuthState(): AuthState & AuthActions {
         setUser(result.user);
         setSession(result.session);
         
-        if (!userDataFetched.current) {
-          const fetchedUserData = await fetchUserDataSafely(result.user.id);
-          if (fetchedUserData) {
-            setUserData(fetchedUserData);
-          }
+        if (!userData) {
+          await fetchUserData(result.user.id);
         }
       }
       
@@ -163,46 +143,45 @@ export function useAuthState(): AuthState & AuthActions {
       console.error("❌ [useAuthState] Erro no refreshToken:", error);
       return { success: false, message: "Erro ao renovar token" };
     }
-  }, [fetchUserDataSafely]);
+  }, [fetchUserData, userData]);
 
-  // Inicialização única e controlada
+  // Inicialização única e simplificada
   useEffect(() => {
-    // Evitar inicialização múltipla
-    if (initializationDone.current) return;
+    if (initialized.current) return;
     
-    const initializeAuth = async () => {
+    const initAuth = async () => {
       try {
         console.log("🔧 [useAuthState] Inicializando autenticação...");
         
-        // Setup do listener PRIMEIRO
+        // Setup listener
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
           async (event, session) => {
             if (!mounted.current) return;
 
             console.log(`🔐 [useAuthState] Auth event: ${event}`);
             
-            // Atualizar estado básico sempre
             setSession(session);
             setUser(session?.user ?? null);
             
             if (event === 'SIGNED_OUT' || !session) {
               console.log("👋 [useAuthState] Usuário deslogado");
               setUserData(null);
-              setSystemState('unauthenticated');
-              userDataFetched.current = false;
+              setLoading(false);
               return;
             }
             
-            if (session?.user && !userDataFetched.current) {
+            if (session?.user) {
               console.log("👤 [useAuthState] Usuário logado, buscando dados...");
-              await fetchUserDataSafely(session.user.id);
+              await fetchUserData(session.user.id);
             }
+            
+            setLoading(false);
           }
         );
 
         authSubscription.current = subscription;
 
-        // Verificar sessão existente DEPOIS
+        // Verificar sessão existente
         const { data: { session: existingSession } } = await supabase.auth.getSession();
         
         if (!mounted.current) return;
@@ -211,23 +190,21 @@ export function useAuthState(): AuthState & AuthActions {
           console.log("🔍 [useAuthState] Sessão existente encontrada");
           setSession(existingSession);
           setUser(existingSession.user);
-          await fetchUserDataSafely(existingSession.user.id);
-        } else {
-          console.log("📭 [useAuthState] Nenhuma sessão existente");
-          setSystemState('unauthenticated');
+          await fetchUserData(existingSession.user.id);
         }
-
-        initializationDone.current = true;
+        
+        setLoading(false);
+        initialized.current = true;
 
       } catch (error) {
         console.error("❌ [useAuthState] Erro na inicialização:", error);
         if (mounted.current) {
-          setSystemState('error');
+          setLoading(false);
         }
       }
     };
 
-    initializeAuth();
+    initAuth();
 
     return () => {
       mounted.current = false;
@@ -235,21 +212,21 @@ export function useAuthState(): AuthState & AuthActions {
         authSubscription.current.unsubscribe();
       }
     };
-  }, []); // Dependências vazias para inicialização única
+  }, [fetchUserData]);
 
-  // Timeout de segurança aumentado
+  // Timeout de segurança
   useEffect(() => {
-    if (systemState !== 'initializing' && systemState !== 'loading_user_data') return;
+    if (!loading) return;
     
     const timeoutId = setTimeout(() => {
-      if (systemState === 'initializing' || systemState === 'loading_user_data') {
-        console.warn("⏰ [useAuthState] Timeout de carregamento - permitindo acesso");
-        setSystemState('ready'); // Mudança: permitir acesso ao invés de erro
+      if (loading) {
+        console.warn("⏰ [useAuthState] Timeout de carregamento");
+        setLoading(false);
       }
-    }, 6000); // Aumentado para 6 segundos
+    }, 5000);
 
     return () => clearTimeout(timeoutId);
-  }, [systemState]);
+  }, [loading]);
 
   return {
     user,

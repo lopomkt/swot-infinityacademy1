@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -34,28 +33,21 @@ const AuthScreen = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [manterLogado, setManterLogado] = useState(false);
   const [loginAttempts, setLoginAttempts] = useState(0);
-  const [redirecting, setRedirecting] = useState(false);
   
   const { signIn, isAuthenticated, userData, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const toast = useToast();
 
-  // Redirecionamento melhorado sem navigate nas dependências
+  // Redirecionamento simplificado
   useEffect(() => {
-    if (redirecting || authLoading) return;
+    if (authLoading) return;
 
     if (isAuthenticated && userData) {
-      console.log("🎯 [AuthScreen] Iniciando redirecionamento para usuário autenticado:", userData.email);
-      setRedirecting(true);
-      
+      console.log("🎯 [AuthScreen] Redirecionando usuário autenticado:", userData.email);
       const targetRoute = userData.is_admin ? "/admin" : "/";
-      
-      setTimeout(() => {
-        console.log("🎯 [AuthScreen] Executando navegação para:", targetRoute);
-        navigate(targetRoute, { replace: true });
-      }, 300);
+      navigate(targetRoute, { replace: true });
     }
-  }, [isAuthenticated, userData, authLoading, redirecting]);
+  }, [isAuthenticated, userData, authLoading, navigate]);
 
   const loginForm = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -75,7 +67,7 @@ const AuthScreen = () => {
   });
 
   const onLoginSubmit = async (data: LoginFormValues) => {
-    if (isLoading || redirecting) return;
+    if (isLoading) return;
     
     setIsLoading(true);
     setLoginAttempts(prev => prev + 1);
@@ -181,15 +173,13 @@ const AuthScreen = () => {
     }
   };
 
-  // Loading state melhorado
-  if (authLoading || redirecting) {
+  // Loading state simplificado
+  if (authLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
         <div className="text-center">
           <Loader2 className="h-12 w-12 animate-spin text-[#ef0002] mx-auto mb-4" />
-          <p className="text-gray-600">
-            {redirecting ? "Redirecionando..." : "Verificando autenticação..."}
-          </p>
+          <p className="text-gray-600">Verificando autenticação...</p>
         </div>
       </div>
     );
@@ -239,7 +229,7 @@ const AuthScreen = () => {
                             <Input 
                               placeholder="seu@email.com" 
                               {...field} 
-                              disabled={isLoading || redirecting}
+                              disabled={isLoading}
                               autoComplete="email"
                             />
                           </FormControl>
@@ -258,7 +248,7 @@ const AuthScreen = () => {
                               type="password" 
                               placeholder="******" 
                               {...field} 
-                              disabled={isLoading || redirecting}
+                              disabled={isLoading}
                               autoComplete="current-password"
                             />
                           </FormControl>
@@ -271,7 +261,7 @@ const AuthScreen = () => {
                         id="manter-logado"
                         checked={manterLogado}
                         onCheckedChange={(checked) => setManterLogado(checked === true)}
-                        disabled={isLoading || redirecting}
+                        disabled={isLoading}
                       />
                       <label 
                         htmlFor="manter-logado" 
@@ -283,12 +273,12 @@ const AuthScreen = () => {
                     <Button 
                       type="submit" 
                       className="w-full bg-[#ef0002] hover:bg-[#b70001]" 
-                      disabled={isLoading || redirecting}
+                      disabled={isLoading}
                     >
-                      {isLoading || redirecting ? (
+                      {isLoading ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          {redirecting ? "Redirecionando..." : "Entrando..."}
+                          Entrando...
                         </>
                       ) : (
                         "Entrar"
@@ -302,7 +292,7 @@ const AuthScreen = () => {
                   variant="link" 
                   onClick={() => setActiveTab("register")}
                   className="text-sm text-gray-600"
-                  disabled={isLoading || redirecting}
+                  disabled={isLoading}
                 >
                   Não tem uma conta? Cadastre-se
                 </Button>

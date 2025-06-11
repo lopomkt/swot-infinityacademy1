@@ -13,10 +13,9 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const location = useLocation();
   const [emergencyTimeout, setEmergencyTimeout] = useState(false);
   
-  // Check if user is testing as an admin
   const modoAdminTeste = location.search.includes("modo_teste_admin=true");
 
-  // Timeout de emergência aumentado para 8 segundos
+  // Timeout de emergência reduzido
   useEffect(() => {
     if (!loading) {
       setEmergencyTimeout(false);
@@ -24,46 +23,33 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     }
 
     const timer = setTimeout(() => {
-      console.warn("[ProtectedRoute] Timeout de emergência atingido após 8 segundos");
+      console.warn("[ProtectedRoute] Timeout de emergência atingido");
       setEmergencyTimeout(true);
-    }, 8000); // Aumentado para 8 segundos
+    }, 3000);
     
     return () => clearTimeout(timer);
   }, [loading]);
 
-  // Log de debug mais detalhado
-  useEffect(() => {
-    console.log("[ProtectedRoute] Estado detalhado:", { 
-      loading, 
-      user: !!user, 
-      userEmail: user?.email,
-      userData: !!userData,
-      userDataEmail: userData?.email,
-      subscriptionExpired,
-      pathname: location.pathname,
-      emergencyTimeout,
-      modoAdminTeste
-    });
-  }, [loading, user, userData, subscriptionExpired, location.pathname, emergencyTimeout, modoAdminTeste]);
+  console.log("[ProtectedRoute] Estado:", { 
+    loading, 
+    user: !!user, 
+    userData: !!userData,
+    subscriptionExpired,
+    pathname: location.pathname,
+    emergencyTimeout
+  });
 
-  // PRIORIDADE 1: Aguardar carregamento (com timeout de emergência aumentado)
+  // Aguardar carregamento
   if (loading && !emergencyTimeout) {
-    console.log("[ProtectedRoute] Aguardando carregamento...");
     return <LoadingScreen />;
   }
 
-  // PRIORIDADE 2: Verificar se usuário não está autenticado OU timeout de emergência
+  // Verificar autenticação
   if (!user || emergencyTimeout) {
-    console.log("[ProtectedRoute] Redirecionando para /auth:", { 
-      hasUser: !!user, 
-      emergencyTimeout,
-      userEmail: user?.email 
-    });
+    console.log("[ProtectedRoute] Redirecionando para /auth");
     
-    // Só limpar dados se não vier de /auth e não for timeout de emergência com usuário válido
-    if (location.pathname !== "/auth" && !(emergencyTimeout && user)) {
+    if (location.pathname !== "/auth") {
       try {
-        console.log("[ProtectedRoute] Limpando storage...");
         localStorage.removeItem('swotForm');
         localStorage.removeItem('swotStep');
         sessionStorage.clear();
@@ -75,46 +61,29 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     return <Navigate to="/auth" replace />;
   }
 
-  // PRIORIDADE 3: Verificar se é administrador (bypass todas as verificações)
+  // Verificar se é admin (bypass todas as verificações)
   if (userData?.is_admin === true) {
-    console.log("[ProtectedRoute] ✅ Usuário admin autenticado:", userData.email);
+    console.log("[ProtectedRoute] ✅ Admin autenticado");
     return <>{children}</>;
   }
 
-  // PRIORIDADE 4: Se usuário autenticado mas userData ainda carregando (só aguarda 3 segundos)
+  // Se userData ainda carregando, aguardar um pouco
   if (user && !userData && !emergencyTimeout) {
-    console.log("[ProtectedRoute] Usuário autenticado, aguardando userData...");
     return <LoadingScreen />;
   }
 
-  // PRIORIDADE 5: Se userData não carregou após timeout, permitir acesso
-  if (user && !userData && emergencyTimeout) {
-    console.warn("[ProtectedRoute] ✅ Permitindo acesso sem userData devido ao timeout");
-    return <>{children}</>;
-  }
-
-  // PRIORIDADE 6: Verificar se usuário está ativo (apenas não-admins)
+  // Verificar se usuário está ativo
   if (userData && userData.ativo === false) {
-    console.warn("[ProtectedRoute] Usuário inativo:", userData.email);
-    
-    try {
-      localStorage.clear();
-      sessionStorage.clear();
-    } catch (err) {
-      console.warn("[ProtectedRoute] Erro ao limpar storage:", err);
-    }
-    
+    console.warn("[ProtectedRoute] Usuário inativo");
     return <Navigate to="/auth" replace />;
   }
 
-  // PRIORIDADE 7: Verificar expiração de assinatura (apenas não-admins)
+  // Verificar expiração de assinatura
   if (userData && subscriptionExpired && !modoAdminTeste) {
-    console.log("[ProtectedRoute] Subscription expired, redirecting to /expired");
     return <Navigate to="/expired" replace />;
   }
 
-  // SUCESSO: Acesso autorizado
-  console.log("[ProtectedRoute] ✅ Acesso autorizado para:", userData?.email || user.email);
+  // Acesso autorizado
   return <>{children}</>;
 };
 
