@@ -1,55 +1,39 @@
 
 import { ReactNode } from "react";
-import { Navigate, useLocation } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import LoadingScreen from "@/components/Auth/LoadingScreen";
-import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
 
 interface AdminRouteProps {
   children: ReactNode;
 }
 
 const AdminRoute = ({ children }: AdminRouteProps) => {
-  const { user, loading } = useAuth();
-  const location = useLocation();
+  const { user, loading, userData } = useAuth();
 
-  // Query to check if the user is an admin
-  const { data: adminStatus, isLoading } = useQuery({
-    queryKey: ['adminStatus', user?.id],
-    queryFn: async () => {
-      if (!user) return { isAdmin: false };
-      
-      const { data, error } = await supabase
-        .from('users')
-        .select('is_admin')
-        .eq('id', user.id)
-        .single();
-      
-      if (error) {
-        console.error('Error checking admin status:', error);
-        return { isAdmin: false };
-      }
-      
-      return { isAdmin: data?.is_admin || false };
-    },
-    enabled: !!user,
+  console.log("[AdminRoute] Estado:", { 
+    loading, 
+    user: !!user, 
+    userData: !!userData,
+    isAdmin: userData?.is_admin 
   });
 
-  if (loading || isLoading) {
+  if (loading) {
     return <LoadingScreen />;
   }
 
   if (!user) {
+    console.log("[AdminRoute] Usuário não autenticado, redirecionando para /auth");
     return <Navigate to="/auth" replace />;
   }
 
-  // Admin users can access their specific routes or client routes
-  // This allows them to test the client experience while logged in as admin
-  if (!adminStatus?.isAdmin) {
+  // Verificar se o usuário tem permissão de admin
+  if (!userData?.is_admin) {
+    console.log("[AdminRoute] Usuário não é admin, redirecionando para /");
     return <Navigate to="/" replace />;
   }
 
+  console.log("[AdminRoute] ✅ Admin autorizado, carregando painel");
   return <>{children}</>;
 };
 

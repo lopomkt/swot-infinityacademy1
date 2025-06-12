@@ -15,7 +15,7 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   
   const modoAdminTeste = location.search.includes("modo_teste_admin=true");
 
-  // Timeout de emergência reduzido
+  // Timeout de emergência mais longo
   useEffect(() => {
     if (!loading) {
       setEmergencyTimeout(false);
@@ -23,9 +23,9 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     }
 
     const timer = setTimeout(() => {
-      console.warn("[ProtectedRoute] Timeout de emergência atingido");
+      console.warn("[ProtectedRoute] Timeout de emergência atingido (10s)");
       setEmergencyTimeout(true);
-    }, 3000);
+    }, 10000); // Aumentado para 10 segundos
     
     return () => clearTimeout(timer);
   }, [loading]);
@@ -34,6 +34,7 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     loading, 
     user: !!user, 
     userData: !!userData,
+    userDataAdmin: userData?.is_admin,
     subscriptionExpired,
     pathname: location.pathname,
     emergencyTimeout
@@ -46,7 +47,7 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 
   // Verificar autenticação
   if (!user || emergencyTimeout) {
-    console.log("[ProtectedRoute] Redirecionando para /auth");
+    console.log("[ProtectedRoute] Redirecionando para /auth - Usuário não autenticado");
     
     if (location.pathname !== "/auth") {
       try {
@@ -63,12 +64,13 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 
   // Verificar se é admin (bypass todas as verificações)
   if (userData?.is_admin === true) {
-    console.log("[ProtectedRoute] ✅ Admin autenticado");
+    console.log("[ProtectedRoute] ✅ Admin autenticado, acesso liberado");
     return <>{children}</>;
   }
 
-  // Se userData ainda carregando, aguardar um pouco
+  // Se userData ainda está carregando mas temos user, aguardar um pouco mais
   if (user && !userData && !emergencyTimeout) {
+    console.log("[ProtectedRoute] ⏳ Aguardando userData...");
     return <LoadingScreen />;
   }
 
@@ -80,10 +82,12 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 
   // Verificar expiração de assinatura
   if (userData && subscriptionExpired && !modoAdminTeste) {
+    console.log("[ProtectedRoute] Assinatura expirada, redirecionando");
     return <Navigate to="/expired" replace />;
   }
 
   // Acesso autorizado
+  console.log("[ProtectedRoute] ✅ Acesso autorizado para usuário comum");
   return <>{children}</>;
 };
 

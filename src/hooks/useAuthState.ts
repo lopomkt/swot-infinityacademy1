@@ -2,7 +2,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { authService } from '@/services/auth.service';
 
 interface UserData {
   id: string;
@@ -38,14 +37,19 @@ export function useAuthState(): AuthState & AuthActions {
   const mounted = useRef(true);
   const initialized = useRef(false);
   const authSubscription = useRef<any>(null);
+  const fetchingUserData = useRef(false);
 
   // Estados derivados
   const isAuthenticated = !!user && !!session;
   const subscriptionExpired = userData?.subscription_status === 'expired' || 
     (userData?.subscription_expires_at && new Date(userData.subscription_expires_at) < new Date()) || false;
 
-  // Busca userData de forma simples
+  // Função otimizada para buscar userData
   const fetchUserData = useCallback(async (userId: string): Promise<void> => {
+    if (fetchingUserData.current || !mounted.current) return;
+    
+    fetchingUserData.current = true;
+    
     try {
       console.log(`🔍 [useAuthState] Buscando userData para:`, userId);
       
@@ -63,13 +67,16 @@ export function useAuthState(): AuthState & AuthActions {
       }
       
       if (data) {
-        console.log("✅ [useAuthState] UserData obtido:", data.email);
+        console.log("✅ [useAuthState] UserData obtido:", { email: data.email, is_admin: data.is_admin });
         setUserData(data);
       } else {
         console.warn("⚠️ [useAuthState] UserData não encontrado para:", userId);
+        setUserData(null);
       }
     } catch (error: any) {
       console.error("❌ [useAuthState] Erro na consulta userData:", error);
+    } finally {
+      fetchingUserData.current = false;
     }
   }, []);
 
@@ -79,25 +86,33 @@ export function useAuthState(): AuthState & AuthActions {
     setLoading(true);
     
     try {
-      const result = await authService.signIn(email, password, rememberMe);
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email.trim().toLowerCase(),
+        password,
+      });
       
       if (!mounted.current) return { success: false, message: "Componente desmontado" };
       
-      if (result.success && result.user && result.session) {
-        console.log("✅ [useAuthState] Login bem-sucedido, atualizando estado");
-        
-        setUser(result.user);
-        setSession(result.session);
+      if (error) {
+        console.error("❌ [useAuthState] Erro no login:", error);
+        setLoading(false);
+        return { success: false, message: error.message };
+      }
+      
+      if (data.user && data.session) {
+        console.log("✅ [useAuthState] Login bem-sucedido");
+        setUser(data.user);
+        setSession(data.session);
         
         // Buscar userData imediatamente
-        await fetchUserData(result.user.id);
+        await fetchUserData(data.user.id);
         
         setLoading(false);
         return { success: true, message: "Login realizado com sucesso" };
       }
       
       setLoading(false);
-      return { success: result.success, message: result.message };
+      return { success: false, message: "Falha na autenticação" };
     } catch (error: any) {
       console.error("❌ [useAuthState] Erro no signIn:", error);
       if (mounted.current) {
@@ -112,7 +127,7 @@ export function useAuthState(): AuthState & AuthActions {
     console.log("🚪 [useAuthState] Iniciando logout...");
     
     try {
-      await authService.signOut();
+      await supabase.auth.signOut();
       setUser(null);
       setSession(null);
       setUserData(null);
@@ -125,27 +140,32 @@ export function useAuthState(): AuthState & AuthActions {
   // Refresh token
   const refreshToken = useCallback(async () => {
     try {
-      const result = await authService.refreshSession();
+      const { data, error } = await supabase.auth.refreshSession();
       
       if (!mounted.current) return { success: false, message: "Componente desmontado" };
       
-      if (result.success && result.user && result.session) {
-        setUser(result.user);
-        setSession(result.session);
+      if (error) {
+        console.error("❌ [useAuthState] Erro ao renovar sessão:", error);
+        return { success: false, message: "Falha ao renovar sessão" };
+      }
+
+      if (data.user && data.session) {
+        setUser(data.user);
+        setSession(data.session);
         
         if (!userData) {
-          await fetchUserData(result.user.id);
+          await fetchUserData(data.user.id);
         }
       }
       
-      return { success: result.success, message: result.message };
+      return { success: true, message: "Token renovado" };
     } catch (error: any) {
       console.error("❌ [useAuthState] Erro no refreshToken:", error);
       return { success: false, message: "Erro ao renovar token" };
     }
   }, [fetchUserData, userData]);
 
-  // Inicialização única e simplificada
+  // Inicialização única e otimizada
   useEffect(() => {
     if (initialized.current) return;
     
@@ -153,26 +173,31 @@ export function useAuthState(): AuthState & AuthActions {
       try {
         console.log("🔧 [useAuthState] Inicializando autenticação...");
         
-        // Setup listener
+        // Setup listener primeiro
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
           async (event, session) => {
             if (!mounted.current) return;
 
             console.log(`🔐 [useAuthState] Auth event: ${event}`);
             
-            setSession(session);
-            setUser(session?.user ?? null);
-            
             if (event === 'SIGNED_OUT' || !session) {
               console.log("👋 [useAuthState] Usuário deslogado");
+              setSession(null);
+              setUser(null);
               setUserData(null);
               setLoading(false);
               return;
             }
             
             if (session?.user) {
-              console.log("👤 [useAuthState] Usuário logado, buscando dados...");
-              await fetchUserData(session.user.id);
+              console.log("👤 [useAuthState] Sessão ativa detectada");
+              setSession(session);
+              setUser(session.user);
+              
+              // Buscar userData apenas se necessário
+              if (!userData || userData.id !== session.user.id) {
+                await fetchUserData(session.user.id);
+              }
             }
             
             setLoading(false);
@@ -191,6 +216,8 @@ export function useAuthState(): AuthState & AuthActions {
           setSession(existingSession);
           setUser(existingSession.user);
           await fetchUserData(existingSession.user.id);
+        } else {
+          console.log("🔍 [useAuthState] Nenhuma sessão existente");
         }
         
         setLoading(false);
@@ -212,18 +239,18 @@ export function useAuthState(): AuthState & AuthActions {
         authSubscription.current.unsubscribe();
       }
     };
-  }, [fetchUserData]);
+  }, []); // Removido fetchUserData e userData das dependências
 
-  // Timeout de segurança
+  // Timeout de segurança mais longo
   useEffect(() => {
     if (!loading) return;
     
     const timeoutId = setTimeout(() => {
-      if (loading) {
-        console.warn("⏰ [useAuthState] Timeout de carregamento");
+      if (loading && mounted.current) {
+        console.warn("⏰ [useAuthState] Timeout de carregamento (10s)");
         setLoading(false);
       }
-    }, 5000);
+    }, 10000); // Aumentado para 10 segundos
 
     return () => clearTimeout(timeoutId);
   }, [loading]);

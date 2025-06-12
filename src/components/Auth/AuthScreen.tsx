@@ -38,14 +38,27 @@ const AuthScreen = () => {
   const navigate = useNavigate();
   const toast = useToast();
 
-  // Redirecionamento simplificado
+  // Redirecionamento otimizado
   useEffect(() => {
-    if (authLoading) return;
+    if (authLoading) {
+      console.log("🔄 [AuthScreen] Aguardando autenticação...");
+      return;
+    }
 
     if (isAuthenticated && userData) {
-      console.log("🎯 [AuthScreen] Redirecionando usuário autenticado:", userData.email);
-      const targetRoute = userData.is_admin ? "/admin" : "/";
-      navigate(targetRoute, { replace: true });
+      console.log("🎯 [AuthScreen] Usuário autenticado, redirecionando:", {
+        email: userData.email,
+        is_admin: userData.is_admin
+      });
+      
+      // Redirecionamento baseado no tipo de usuário
+      if (userData.is_admin) {
+        console.log("👑 [AuthScreen] Redirecionando admin para /admin");
+        navigate("/admin", { replace: true });
+      } else {
+        console.log("👤 [AuthScreen] Redirecionando usuário comum para /");
+        navigate("/", { replace: true });
+      }
     }
   }, [isAuthenticated, userData, authLoading, navigate]);
 
@@ -84,9 +97,10 @@ const AuthScreen = () => {
       } else {
         console.error("❌ [AuthScreen] Falha no login:", result.message);
         
-        if (result.message.includes("Email ou senha")) {
+        // Mensagens de erro melhoradas
+        if (result.message.includes("Invalid login credentials")) {
           toast.error("Credenciais inválidas", "Verifique seu email e senha.");
-        } else if (result.message.includes("Muitas tentativas")) {
+        } else if (result.message.includes("Too many requests")) {
           toast.error("Muitas tentativas", "Aguarde alguns minutos.");
         } else {
           toast.error("Erro no login", result.message);
@@ -173,7 +187,7 @@ const AuthScreen = () => {
     }
   };
 
-  // Loading state simplificado
+  // Loading state durante autenticação
   if (authLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
