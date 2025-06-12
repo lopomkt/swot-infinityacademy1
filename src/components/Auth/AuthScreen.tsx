@@ -38,25 +38,29 @@ const AuthScreen = () => {
   const navigate = useNavigate();
   const toast = useToast();
 
-  // Redirecionamento otimizado
+  // Redirecionamento otimizado e simplificado
   useEffect(() => {
     if (authLoading) {
       console.log("🔄 [AuthScreen] Aguardando autenticação...");
       return;
     }
 
-    if (isAuthenticated && userData) {
-      console.log("🎯 [AuthScreen] Usuário autenticado, redirecionando:", {
-        email: userData.email,
-        is_admin: userData.is_admin
-      });
+    // REDIRECIONAMENTO SIMPLIFICADO: basear apenas em isAuthenticated
+    if (isAuthenticated) {
+      console.log("🎯 [AuthScreen] Usuário autenticado, redirecionando...");
       
-      // Redirecionamento baseado no tipo de usuário
-      if (userData.is_admin) {
-        console.log("👑 [AuthScreen] Redirecionando admin para /admin");
-        navigate("/admin", { replace: true });
+      // Se temos userData, usar para determinar rota
+      if (userData) {
+        if (userData.is_admin) {
+          console.log("👑 [AuthScreen] Redirecionando admin para /admin");
+          navigate("/admin", { replace: true });
+        } else {
+          console.log("👤 [AuthScreen] Redirecionando usuário para /");
+          navigate("/", { replace: true });
+        }
       } else {
-        console.log("👤 [AuthScreen] Redirecionando usuário comum para /");
+        // Se não temos userData ainda, redirecionar para home (será refinado depois)
+        console.log("👤 [AuthScreen] Redirecionando para / (userData pendente)");
         navigate("/", { replace: true });
       }
     }
@@ -105,8 +109,9 @@ const AuthScreen = () => {
         } else {
           toast.error("Erro no login", result.message);
         }
-        setIsLoading(false);
       }
+      
+      setIsLoading(false);
     } catch (error: any) {
       console.error("❌ [AuthScreen] Erro inesperado no login:", error);
       toast.error("Erro inesperado", "Tente novamente em alguns instantes.");

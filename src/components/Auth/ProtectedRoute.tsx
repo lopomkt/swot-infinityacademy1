@@ -15,7 +15,7 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   
   const modoAdminTeste = location.search.includes("modo_teste_admin=true");
 
-  // Timeout de emergência mais longo
+  // Timeout de emergência
   useEffect(() => {
     if (!loading) {
       setEmergencyTimeout(false);
@@ -23,9 +23,9 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     }
 
     const timer = setTimeout(() => {
-      console.warn("[ProtectedRoute] Timeout de emergência atingido (10s)");
+      console.warn("[ProtectedRoute] Timeout de emergência atingido (7s)");
       setEmergencyTimeout(true);
-    }, 10000); // Aumentado para 10 segundos
+    }, 7000);
     
     return () => clearTimeout(timer);
   }, [loading]);
@@ -45,7 +45,7 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     return <LoadingScreen />;
   }
 
-  // Verificar autenticação
+  // Verificar autenticação - SIMPLIFICADO
   if (!user || emergencyTimeout) {
     console.log("[ProtectedRoute] Redirecionando para /auth - Usuário não autenticado");
     
@@ -62,32 +62,30 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     return <Navigate to="/auth" replace />;
   }
 
-  // Verificar se é admin (bypass todas as verificações)
-  if (userData?.is_admin === true) {
-    console.log("[ProtectedRoute] ✅ Admin autenticado, acesso liberado");
-    return <>{children}</>;
+  // VERIFICAÇÃO SIMPLIFICADA: Se userData existe, usar. Se não, permitir acesso básico.
+  if (userData) {
+    // Se é admin, liberar acesso total
+    if (userData.is_admin === true) {
+      console.log("[ProtectedRoute] ✅ Admin autenticado, acesso liberado");
+      return <>{children}</>;
+    }
+
+    // Verificar se usuário está ativo
+    if (userData.ativo === false) {
+      console.warn("[ProtectedRoute] Usuário inativo");
+      return <Navigate to="/auth" replace />;
+    }
+
+    // Verificar expiração de assinatura
+    if (subscriptionExpired && !modoAdminTeste) {
+      console.log("[ProtectedRoute] Assinatura expirada, redirecionando");
+      return <Navigate to="/expired" replace />;
+    }
   }
 
-  // Se userData ainda está carregando mas temos user, aguardar um pouco mais
-  if (user && !userData && !emergencyTimeout) {
-    console.log("[ProtectedRoute] ⏳ Aguardando userData...");
-    return <LoadingScreen />;
-  }
-
-  // Verificar se usuário está ativo
-  if (userData && userData.ativo === false) {
-    console.warn("[ProtectedRoute] Usuário inativo");
-    return <Navigate to="/auth" replace />;
-  }
-
-  // Verificar expiração de assinatura
-  if (userData && subscriptionExpired && !modoAdminTeste) {
-    console.log("[ProtectedRoute] Assinatura expirada, redirecionando");
-    return <Navigate to="/expired" replace />;
-  }
-
-  // Acesso autorizado
-  console.log("[ProtectedRoute] ✅ Acesso autorizado para usuário comum");
+  // NOVO: Permitir acesso mesmo sem userData (para casos onde a busca falhou)
+  // O usuário está autenticado no Supabase, então podemos permitir acesso básico
+  console.log("[ProtectedRoute] ✅ Acesso autorizado (com ou sem userData completo)");
   return <>{children}</>;
 };
 

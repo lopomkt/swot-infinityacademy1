@@ -27,6 +27,12 @@ const AdminRoute = ({ children }: AdminRouteProps) => {
     return <Navigate to="/auth" replace />;
   }
 
+  // VERIFICAÇÃO MAIS PERMISSIVA: Se não temos userData ainda, aguardar um pouco mais
+  if (!userData) {
+    console.log("[AdminRoute] Aguardando userData...");
+    return <LoadingScreen />;
+  }
+
   // Verificar se o usuário tem permissão de admin
   if (!userData?.is_admin) {
     console.log("[AdminRoute] Usuário não é admin, redirecionando para /");

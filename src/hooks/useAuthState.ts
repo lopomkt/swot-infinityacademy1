@@ -37,50 +37,79 @@ export function useAuthState(): AuthState & AuthActions {
   const mounted = useRef(true);
   const initialized = useRef(false);
   const authSubscription = useRef<any>(null);
-  const fetchingUserData = useRef(false);
 
   // Estados derivados
   const isAuthenticated = !!user && !!session;
   const subscriptionExpired = userData?.subscription_status === 'expired' || 
     (userData?.subscription_expires_at && new Date(userData.subscription_expires_at) < new Date()) || false;
 
-  // Função otimizada para buscar userData
+  // Função otimizada para buscar userData com timeout e fallback
   const fetchUserData = useCallback(async (userId: string): Promise<void> => {
-    if (fetchingUserData.current || !mounted.current) return;
-    
-    fetchingUserData.current = true;
+    if (!mounted.current) return;
     
     try {
       console.log(`🔍 [useAuthState] Buscando userData para:`, userId);
       
-      const { data, error } = await supabase
+      // Timeout de 5 segundos para evitar travamento
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Timeout na busca de userData')), 5000);
+      });
+      
+      const queryPromise = supabase
         .from('users')
         .select('*')
         .eq('id', userId)
         .maybeSingle();
       
+      const { data, error } = await Promise.race([queryPromise, timeoutPromise]) as any;
+      
       if (!mounted.current) return;
       
       if (error) {
         console.error("❌ [useAuthState] Erro ao buscar userData:", error);
+        // Não bloquear o login por falha na busca de userData
+        console.log("⚠️ [useAuthState] Continuando login sem userData detalhado");
         return;
       }
       
       if (data) {
-        console.log("✅ [useAuthState] UserData obtido:", { email: data.email, is_admin: data.is_admin });
+        console.log("✅ [useAuthState] UserData obtido:", { 
+          email: data.email, 
+          is_admin: data.is_admin,
+          ativo: data.ativo 
+        });
         setUserData(data);
       } else {
         console.warn("⚠️ [useAuthState] UserData não encontrado para:", userId);
-        setUserData(null);
+        // Criar userData básico a partir dos dados do auth.user se não existir
+        const fallbackUserData = {
+          id: userId,
+          email: user?.email || '',
+          nome_empresa: user?.user_metadata?.nome_empresa || 'Empresa',
+          is_admin: false,
+          ativo: true
+        };
+        console.log("🔄 [useAuthState] Usando userData fallback:", fallbackUserData);
+        setUserData(fallbackUserData);
       }
     } catch (error: any) {
       console.error("❌ [useAuthState] Erro na consulta userData:", error);
-    } finally {
-      fetchingUserData.current = false;
+      // Em caso de erro, usar dados básicos do user
+      if (user) {
+        const fallbackUserData = {
+          id: userId,
+          email: user.email || '',
+          nome_empresa: user.user_metadata?.nome_empresa || 'Empresa',
+          is_admin: false,
+          ativo: true
+        };
+        console.log("🔄 [useAuthState] Usando userData fallback após erro:", fallbackUserData);
+        setUserData(fallbackUserData);
+      }
     }
-  }, []);
+  }, [user]);
 
-  // Login simplificado
+  // Login simplificado e robusto
   const signIn = useCallback(async (email: string, password: string, rememberMe: boolean = false) => {
     console.log("🔐 [useAuthState] Iniciando login...");
     setLoading(true);
@@ -104,10 +133,11 @@ export function useAuthState(): AuthState & AuthActions {
         setUser(data.user);
         setSession(data.session);
         
-        // Buscar userData imediatamente
-        await fetchUserData(data.user.id);
+        // Buscar userData em background - não bloquear o login
+        fetchUserData(data.user.id).finally(() => {
+          setLoading(false);
+        });
         
-        setLoading(false);
         return { success: true, message: "Login realizado com sucesso" };
       }
       
@@ -154,7 +184,7 @@ export function useAuthState(): AuthState & AuthActions {
         setSession(data.session);
         
         if (!userData) {
-          await fetchUserData(data.user.id);
+          fetchUserData(data.user.id);
         }
       }
       
@@ -194,10 +224,8 @@ export function useAuthState(): AuthState & AuthActions {
               setSession(session);
               setUser(session.user);
               
-              // Buscar userData apenas se necessário
-              if (!userData || userData.id !== session.user.id) {
-                await fetchUserData(session.user.id);
-              }
+              // Buscar userData em background
+              fetchUserData(session.user.id);
             }
             
             setLoading(false);
@@ -215,12 +243,12 @@ export function useAuthState(): AuthState & AuthActions {
           console.log("🔍 [useAuthState] Sessão existente encontrada");
           setSession(existingSession);
           setUser(existingSession.user);
-          await fetchUserData(existingSession.user.id);
+          fetchUserData(existingSession.user.id);
         } else {
           console.log("🔍 [useAuthState] Nenhuma sessão existente");
+          setLoading(false);
         }
         
-        setLoading(false);
         initialized.current = true;
 
       } catch (error) {
@@ -239,18 +267,18 @@ export function useAuthState(): AuthState & AuthActions {
         authSubscription.current.unsubscribe();
       }
     };
-  }, []); // Removido fetchUserData e userData das dependências
+  }, [fetchUserData]);
 
-  // Timeout de segurança mais longo
+  // Timeout de segurança - reduzido para 7 segundos
   useEffect(() => {
     if (!loading) return;
     
     const timeoutId = setTimeout(() => {
       if (loading && mounted.current) {
-        console.warn("⏰ [useAuthState] Timeout de carregamento (10s)");
+        console.warn("⏰ [useAuthState] Timeout de carregamento (7s)");
         setLoading(false);
       }
-    }, 10000); // Aumentado para 10 segundos
+    }, 7000);
 
     return () => clearTimeout(timeoutId);
   }, [loading]);
