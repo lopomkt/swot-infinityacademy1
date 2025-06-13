@@ -33,38 +33,56 @@ const AuthScreen = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [manterLogado, setManterLogado] = useState(false);
   const [loginAttempts, setLoginAttempts] = useState(0);
+  const [hasRedirected, setHasRedirected] = useState(false);
   
   const { signIn, isAuthenticated, userData, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const toast = useToast();
 
-  // Redirecionamento otimizado e simplificado
+  // Redirecionamento corrigido - aguarda userData e verifica is_admin
   useEffect(() => {
+    // Evitar múltiplos redirecionamentos
+    if (hasRedirected) return;
+
     if (authLoading) {
       console.log("🔄 [AuthScreen] Aguardando autenticação...");
       return;
     }
 
-    // REDIRECIONAMENTO SIMPLIFICADO: basear apenas em isAuthenticated
+    // Só redirecionar quando tivermos usuário autenticado
     if (isAuthenticated) {
-      console.log("🎯 [AuthScreen] Usuário autenticado, redirecionando...");
+      console.log("🎯 [AuthScreen] Usuário autenticado, verificando userData...", {
+        hasUserData: !!userData,
+        isAdmin: userData?.is_admin
+      });
       
       // Se temos userData, usar para determinar rota
       if (userData) {
-        if (userData.is_admin) {
+        setHasRedirected(true);
+        
+        if (userData.is_admin === true) {
           console.log("👑 [AuthScreen] Redirecionando admin para /admin");
           navigate("/admin", { replace: true });
         } else {
           console.log("👤 [AuthScreen] Redirecionando usuário para /");
           navigate("/", { replace: true });
         }
-      } else {
-        // Se não temos userData ainda, redirecionar para home (será refinado depois)
-        console.log("👤 [AuthScreen] Redirecionando para / (userData pendente)");
-        navigate("/", { replace: true });
+      }
+      // Se não temos userData ainda, aguardar mais um pouco (máximo 3 segundos)
+      else {
+        console.log("⏳ [AuthScreen] Aguardando userData...");
+        const timeout = setTimeout(() => {
+          if (!userData && isAuthenticated) {
+            console.log("⚠️ [AuthScreen] Timeout userData - redirecionando para home");
+            setHasRedirected(true);
+            navigate("/", { replace: true });
+          }
+        }, 3000);
+
+        return () => clearTimeout(timeout);
       }
     }
-  }, [isAuthenticated, userData, authLoading, navigate]);
+  }, [isAuthenticated, userData, authLoading, navigate, hasRedirected]);
 
   const loginForm = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
