@@ -15,7 +15,7 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   
   const modoAdminTeste = location.search.includes("modo_teste_admin=true");
 
-  // Timeout de emergência
+  // Timeout de emergência - agora sincronizado com useAuthState (10s)
   useEffect(() => {
     if (!loading) {
       setEmergencyTimeout(false);
@@ -23,9 +23,9 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     }
 
     const timer = setTimeout(() => {
-      console.warn("[ProtectedRoute] Timeout de emergência atingido (7s)");
+      console.warn("[ProtectedRoute] Timeout de emergência atingido (10s)");
       setEmergencyTimeout(true);
-    }, 7000);
+    }, 10000);
     
     return () => clearTimeout(timer);
   }, [loading]);
@@ -45,7 +45,7 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     return <LoadingScreen />;
   }
 
-  // Verificar autenticação - SIMPLIFICADO
+  // Verificar autenticação
   if (!user || emergencyTimeout) {
     console.log("[ProtectedRoute] Redirecionando para /auth - Usuário não autenticado");
     
@@ -62,9 +62,9 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     return <Navigate to="/auth" replace />;
   }
 
-  // VERIFICAÇÃO SIMPLIFICADA: Se userData existe, usar. Se não, permitir acesso básico.
+  // Verificação robusta: Com userData ou sem userData, permitir acesso se autenticado
   if (userData) {
-    // Se é admin, liberar acesso total
+    // Se temos userData, usar dados completos
     if (userData.is_admin === true) {
       console.log("[ProtectedRoute] ✅ Admin autenticado, acesso liberado");
       return <>{children}</>;
@@ -83,9 +83,8 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     }
   }
 
-  // NOVO: Permitir acesso mesmo sem userData (para casos onde a busca falhou)
-  // O usuário está autenticado no Supabase, então podemos permitir acesso básico
-  console.log("[ProtectedRoute] ✅ Acesso autorizado (com ou sem userData completo)");
+  // Permitir acesso: usuário está autenticado no Supabase
+  console.log("[ProtectedRoute] ✅ Acesso autorizado");
   return <>{children}</>;
 };
 

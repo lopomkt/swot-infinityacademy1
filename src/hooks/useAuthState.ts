@@ -37,22 +37,23 @@ export function useAuthState(): AuthState & AuthActions {
   const mounted = useRef(true);
   const initialized = useRef(false);
   const authSubscription = useRef<any>(null);
+  const fetchAttempts = useRef(0);
 
   // Estados derivados
   const isAuthenticated = !!user && !!session;
   const subscriptionExpired = userData?.subscription_status === 'expired' || 
     (userData?.subscription_expires_at && new Date(userData.subscription_expires_at) < new Date()) || false;
 
-  // Função otimizada para buscar userData com timeout e fallback
-  const fetchUserData = useCallback(async (userId: string): Promise<void> => {
+  // Função robusta para buscar userData com fallback
+  const fetchUserData = useCallback(async (userId: string, retryCount: number = 0): Promise<void> => {
     if (!mounted.current) return;
     
+    console.log(`🔍 [useAuthState] Tentativa ${retryCount + 1} de buscar userData:`, userId);
+    
     try {
-      console.log(`🔍 [useAuthState] Buscando userData para:`, userId);
-      
-      // Timeout de 5 segundos para evitar travamento
+      // Timeout de 8 segundos para a consulta
       const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Timeout na busca de userData')), 5000);
+        setTimeout(() => reject(new Error('Timeout na busca de userData')), 8000);
       });
       
       const queryPromise = supabase
@@ -66,9 +67,29 @@ export function useAuthState(): AuthState & AuthActions {
       if (!mounted.current) return;
       
       if (error) {
-        console.error("❌ [useAuthState] Erro ao buscar userData:", error);
-        // Não bloquear o login por falha na busca de userData
-        console.log("⚠️ [useAuthState] Continuando login sem userData detalhado");
+        console.error(`❌ [useAuthState] Erro na tentativa ${retryCount + 1}:`, error);
+        
+        // Retry com backoff exponencial
+        if (retryCount < 2) {
+          const delay = Math.pow(2, retryCount) * 1000; // 1s, 2s, 4s
+          console.log(`🔄 [useAuthState] Retry em ${delay}ms...`);
+          setTimeout(() => {
+            fetchUserData(userId, retryCount + 1);
+          }, delay);
+          return;
+        }
+        
+        // Fallback: criar userData básico com is_admin = false
+        console.warn("⚠️ [useAuthState] Falha em todas as tentativas, usando fallback");
+        const fallbackUserData = {
+          id: userId,
+          email: user?.email || '',
+          nome_empresa: user?.user_metadata?.nome_empresa || 'Empresa',
+          is_admin: false,
+          ativo: true
+        };
+        console.log("🔄 [useAuthState] UserData fallback:", fallbackUserData);
+        setUserData(fallbackUserData);
         return;
       }
       
@@ -80,8 +101,8 @@ export function useAuthState(): AuthState & AuthActions {
         });
         setUserData(data);
       } else {
-        console.warn("⚠️ [useAuthState] UserData não encontrado para:", userId);
-        // Criar userData básico a partir dos dados do auth.user se não existir
+        console.warn("⚠️ [useAuthState] UserData não encontrado, usando fallback");
+        // Fallback para dados básicos se não existir na tabela
         const fallbackUserData = {
           id: userId,
           email: user?.email || '',
@@ -89,12 +110,24 @@ export function useAuthState(): AuthState & AuthActions {
           is_admin: false,
           ativo: true
         };
-        console.log("🔄 [useAuthState] Usando userData fallback:", fallbackUserData);
+        console.log("🔄 [useAuthState] UserData fallback para usuário não encontrado:", fallbackUserData);
         setUserData(fallbackUserData);
       }
+      
     } catch (error: any) {
-      console.error("❌ [useAuthState] Erro na consulta userData:", error);
-      // Em caso de erro, usar dados básicos do user
+      console.error(`❌ [useAuthState] Erro inesperado na tentativa ${retryCount + 1}:`, error);
+      
+      // Retry em caso de erro de rede
+      if (retryCount < 2) {
+        const delay = Math.pow(2, retryCount) * 1000;
+        console.log(`🔄 [useAuthState] Retry por erro em ${delay}ms...`);
+        setTimeout(() => {
+          fetchUserData(userId, retryCount + 1);
+        }, delay);
+        return;
+      }
+      
+      // Fallback final: criar userData básico
       if (user) {
         const fallbackUserData = {
           id: userId,
@@ -103,16 +136,17 @@ export function useAuthState(): AuthState & AuthActions {
           is_admin: false,
           ativo: true
         };
-        console.log("🔄 [useAuthState] Usando userData fallback após erro:", fallbackUserData);
+        console.log("🔄 [useAuthState] UserData fallback final:", fallbackUserData);
         setUserData(fallbackUserData);
       }
     }
   }, [user]);
 
-  // Login simplificado e robusto
+  // Login otimizado com melhor handling
   const signIn = useCallback(async (email: string, password: string, rememberMe: boolean = false) => {
     console.log("🔐 [useAuthState] Iniciando login...");
     setLoading(true);
+    fetchAttempts.current = 0;
     
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -133,10 +167,9 @@ export function useAuthState(): AuthState & AuthActions {
         setUser(data.user);
         setSession(data.session);
         
-        // Buscar userData em background - não bloquear o login
-        fetchUserData(data.user.id).finally(() => {
-          setLoading(false);
-        });
+        // Buscar userData em foreground para garantir que esteja disponível
+        await fetchUserData(data.user.id);
+        setLoading(false);
         
         return { success: true, message: "Login realizado com sucesso" };
       }
@@ -152,7 +185,7 @@ export function useAuthState(): AuthState & AuthActions {
     }
   }, [fetchUserData]);
 
-  // Logout simples
+  // Logout otimizado
   const signOut = useCallback(async () => {
     console.log("🚪 [useAuthState] Iniciando logout...");
     
@@ -195,7 +228,7 @@ export function useAuthState(): AuthState & AuthActions {
     }
   }, [fetchUserData, userData]);
 
-  // Inicialização única e otimizada
+  // Inicialização otimizada
   useEffect(() => {
     if (initialized.current) return;
     
@@ -224,8 +257,8 @@ export function useAuthState(): AuthState & AuthActions {
               setSession(session);
               setUser(session.user);
               
-              // Buscar userData em background
-              fetchUserData(session.user.id);
+              // Buscar userData de forma síncrona para redirecionamento
+              await fetchUserData(session.user.id);
             }
             
             setLoading(false);
@@ -243,7 +276,7 @@ export function useAuthState(): AuthState & AuthActions {
           console.log("🔍 [useAuthState] Sessão existente encontrada");
           setSession(existingSession);
           setUser(existingSession.user);
-          fetchUserData(existingSession.user.id);
+          await fetchUserData(existingSession.user.id);
         } else {
           console.log("🔍 [useAuthState] Nenhuma sessão existente");
           setLoading(false);
@@ -269,16 +302,16 @@ export function useAuthState(): AuthState & AuthActions {
     };
   }, [fetchUserData]);
 
-  // Timeout de segurança - reduzido para 7 segundos
+  // Timeout de segurança
   useEffect(() => {
     if (!loading) return;
     
     const timeoutId = setTimeout(() => {
       if (loading && mounted.current) {
-        console.warn("⏰ [useAuthState] Timeout de carregamento (7s)");
+        console.warn("⏰ [useAuthState] Timeout de carregamento (10s)");
         setLoading(false);
       }
-    }, 7000);
+    }, 10000);
 
     return () => clearTimeout(timeoutId);
   }, [loading]);

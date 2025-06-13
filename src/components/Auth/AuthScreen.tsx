@@ -39,7 +39,7 @@ const AuthScreen = () => {
   const navigate = useNavigate();
   const toast = useToast();
 
-  // Redirecionamento corrigido - aguarda userData e verifica is_admin
+  // Redirecionamento robusto com timeout estendido
   useEffect(() => {
     // Evitar múltiplos redirecionamentos
     if (hasRedirected) return;
@@ -68,16 +68,17 @@ const AuthScreen = () => {
           navigate("/", { replace: true });
         }
       }
-      // Se não temos userData ainda, aguardar mais um pouco (máximo 3 segundos)
+      // Aguardar userData por até 7 segundos (tempo otimizado)
       else {
         console.log("⏳ [AuthScreen] Aguardando userData...");
         const timeout = setTimeout(() => {
           if (!userData && isAuthenticated) {
-            console.log("⚠️ [AuthScreen] Timeout userData - redirecionando para home");
+            console.log("⚠️ [AuthScreen] Timeout userData - usando fallback para redirecionamento");
             setHasRedirected(true);
+            // Fallback: redirecionar para home (useAuthState já criou userData básico)
             navigate("/", { replace: true });
           }
-        }, 3000);
+        }, 7000);
 
         return () => clearTimeout(timeout);
       }
@@ -129,10 +130,10 @@ const AuthScreen = () => {
         }
       }
       
-      setIsLoading(false);
     } catch (error: any) {
       console.error("❌ [AuthScreen] Erro inesperado no login:", error);
       toast.error("Erro inesperado", "Tente novamente em alguns instantes.");
+    } finally {
       setIsLoading(false);
     }
   };
