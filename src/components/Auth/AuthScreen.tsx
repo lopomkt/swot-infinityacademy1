@@ -39,7 +39,7 @@ const AuthScreen = () => {
   const navigate = useNavigate();
   const toast = useToast();
 
-  // Redirecionamento robusto com timeout estendido
+  // Redirecionamento DEFINITIVO e robusto
   useEffect(() => {
     // Evitar múltiplos redirecionamentos
     if (hasRedirected) return;
@@ -53,32 +53,34 @@ const AuthScreen = () => {
     if (isAuthenticated) {
       console.log("🎯 [AuthScreen] Usuário autenticado, verificando userData...", {
         hasUserData: !!userData,
-        isAdmin: userData?.is_admin
+        isAdmin: userData?.is_admin,
+        email: userData?.email
       });
       
       // Se temos userData, usar para determinar rota
       if (userData) {
         setHasRedirected(true);
         
+        // REDIRECIONAMENTO DEFINITIVO BASEADO EM is_admin
         if (userData.is_admin === true) {
-          console.log("👑 [AuthScreen] Redirecionando admin para /admin");
+          console.log("👑 [AuthScreen] ADMIN CONFIRMADO - Redirecionando para /admin");
           navigate("/admin", { replace: true });
         } else {
-          console.log("👤 [AuthScreen] Redirecionando usuário para /");
+          console.log("👤 [AuthScreen] Usuário padrão - Redirecionando para /");
           navigate("/", { replace: true });
         }
       }
-      // Aguardar userData por até 7 segundos (tempo otimizado)
+      // Aguardar userData por até 12 segundos (tempo estendido)
       else {
         console.log("⏳ [AuthScreen] Aguardando userData...");
         const timeout = setTimeout(() => {
           if (!userData && isAuthenticated) {
-            console.log("⚠️ [AuthScreen] Timeout userData - usando fallback para redirecionamento");
+            console.log("⚠️ [AuthScreen] Timeout userData - redirecionamento com fallback");
             setHasRedirected(true);
             // Fallback: redirecionar para home (useAuthState já criou userData básico)
             navigate("/", { replace: true });
           }
-        }, 7000);
+        }, 12000); // Aumentado para 12 segundos
 
         return () => clearTimeout(timeout);
       }
@@ -114,7 +116,7 @@ const AuthScreen = () => {
       const result = await signIn(data.email.trim().toLowerCase(), data.password, manterLogado);
       
       if (result.success) {
-        console.log("✅ [AuthScreen] Login bem-sucedido");
+        console.log("✅ [AuthScreen] Login bem-sucedido - aguardando redirecionamento");
         toast.success("Login realizado com sucesso!", "Redirecionando...");
         // O redirecionamento será handled pelo useEffect
       } else {
