@@ -8,6 +8,13 @@ interface ProtectedRouteProps {
   children: ReactNode;
 }
 
+// Lista DEFINITIVA de emails admin para verificação alternativa
+const ADMIN_EMAILS = [
+  'infinitymkt00@gmail.com',
+  'admin@swotinsights.com',
+  'admin@infinityacademy.com'
+];
+
 const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const { user, loading, userData, subscriptionExpired } = useAuth();
   const location = useLocation();
@@ -15,7 +22,7 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   
   const modoAdminTeste = location.search.includes("modo_teste_admin=true");
 
-  // Timeout de emergência aumentado para 15 segundos
+  // Timeout de emergência aumentado para 20 segundos
   useEffect(() => {
     if (!loading) {
       setEmergencyTimeout(false);
@@ -23,9 +30,9 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     }
 
     const timer = setTimeout(() => {
-      console.warn("[ProtectedRoute] Timeout de emergência atingido (15s)");
+      console.warn("[ProtectedRoute] Timeout de emergência atingido (20s)");
       setEmergencyTimeout(true);
-    }, 15000); // Aumentado para 15 segundos
+    }, 20000); // Aumentado para 20 segundos
     
     return () => clearTimeout(timer);
   }, [loading]);
@@ -37,7 +44,8 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     userDataAdmin: userData?.is_admin,
     subscriptionExpired,
     pathname: location.pathname,
-    emergencyTimeout
+    emergencyTimeout,
+    userEmail: user?.email
   });
 
   // Aguardar carregamento
@@ -62,40 +70,51 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     return <Navigate to="/auth" replace />;
   }
 
-  // Verificação DEFINITIVA com userData
-  if (userData) {
-    // Se temos userData, usar dados completos para verificação
-    console.log("[ProtectedRoute] Verificando permissões com userData:", {
-      email: userData.email,
-      is_admin: userData.is_admin,
-      ativo: userData.ativo
-    });
+  // VERIFICAÇÃO DUPLA: userData + email alternativo para garantir identificação correta
+  const userEmail = (user.email || '').toLowerCase();
+  const isAdminByEmail = ADMIN_EMAILS.includes(userEmail);
+  const isAdminByUserData = userData?.is_admin === true;
+  
+  // Determinar se é admin por qualquer um dos métodos
+  const isDefinitivelyAdmin = isAdminByUserData || isAdminByEmail;
+  
+  console.log("[ProtectedRoute] Análise de permissões:", {
+    userEmail,
+    isAdminByEmail,
+    isAdminByUserData,
+    isDefinitivelyAdmin,
+    hasUserData: !!userData
+  });
 
-    if (userData.is_admin === true) {
-      console.log("[ProtectedRoute] ✅ Admin CONFIRMADO, acesso liberado");
-      return <>{children}</>;
-    }
-
-    // Verificar se usuário está ativo
-    if (userData.ativo === false) {
+  // Se temos userData OU podemos determinar admin via email, proceder
+  if (userData || isAdminByEmail) {
+    // Verificar se usuário está ativo (apenas se temos userData)
+    if (userData && userData.ativo === false) {
       console.warn("[ProtectedRoute] Usuário inativo");
       return <Navigate to="/auth" replace />;
     }
 
-    // Verificar expiração de assinatura para usuários não-admin
+    // Se é admin, liberar acesso total
+    if (isDefinitivelyAdmin) {
+      console.log("[ProtectedRoute] ✅ Admin CONFIRMADO, acesso liberado");
+      return <>{children}</>;
+    }
+
+    // Para usuários não-admin, verificar expiração de assinatura
     if (subscriptionExpired && !modoAdminTeste) {
       console.log("[ProtectedRoute] Assinatura expirada, redirecionando");
       return <Navigate to="/expired" replace />;
     }
+    
+    // Usuário padrão com acesso válido
+    console.log("[ProtectedRoute] ✅ Usuário padrão autorizado");
+    return <>{children}</>;
+    
   } else {
-    // Se não temos userData ainda, aguardar um pouco mais
+    // Se não temos userData e não é admin por email, aguardar mais um pouco
     console.log("[ProtectedRoute] Aguardando userData...");
     return <LoadingScreen />;
   }
-
-  // Permitir acesso: usuário está autenticado e verificado
-  console.log("[ProtectedRoute] ✅ Acesso autorizado");
-  return <>{children}</>;
 };
 
 export default ProtectedRoute;

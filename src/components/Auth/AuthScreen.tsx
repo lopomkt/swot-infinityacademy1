@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -28,6 +29,13 @@ const registerSchema = z.object({
 type LoginFormValues = z.infer<typeof loginSchema>;
 type RegisterFormValues = z.infer<typeof registerSchema>;
 
+// Lista DEFINITIVA de emails admin para verificação alternativa
+const ADMIN_EMAILS = [
+  'infinitymkt00@gmail.com',
+  'admin@swotinsights.com',
+  'admin@infinityacademy.com'
+];
+
 const AuthScreen = () => {
   const [activeTab, setActiveTab] = useState<string>("login");
   const [isLoading, setIsLoading] = useState(false);
@@ -35,11 +43,11 @@ const AuthScreen = () => {
   const [loginAttempts, setLoginAttempts] = useState(0);
   const [hasRedirected, setHasRedirected] = useState(false);
   
-  const { signIn, isAuthenticated, userData, loading: authLoading } = useAuth();
+  const { signIn, isAuthenticated, userData, loading: authLoading, user } = useAuth();
   const navigate = useNavigate();
   const toast = useToast();
 
-  // Redirecionamento DEFINITIVO e robusto
+  // Redirecionamento DEFINITIVO e ultra-robusto
   useEffect(() => {
     // Evitar múltiplos redirecionamentos
     if (hasRedirected) return;
@@ -50,19 +58,34 @@ const AuthScreen = () => {
     }
 
     // Só redirecionar quando tivermos usuário autenticado
-    if (isAuthenticated) {
-      console.log("🎯 [AuthScreen] Usuário autenticado, verificando userData...", {
+    if (isAuthenticated && user) {
+      console.log("🎯 [AuthScreen] Usuário autenticado, verificando redirecionamento...", {
         hasUserData: !!userData,
         isAdmin: userData?.is_admin,
-        email: userData?.email
+        email: userData?.email || user.email,
+        userEmail: user.email
       });
       
-      // Se temos userData, usar para determinar rota
-      if (userData) {
+      // VERIFICAÇÃO DUPLA: userData + email alternativo
+      const userEmail = (userData?.email || user.email || '').toLowerCase();
+      const isAdminByEmail = ADMIN_EMAILS.includes(userEmail);
+      const isAdminByUserData = userData?.is_admin === true;
+      
+      // Determinar se é admin por qualquer um dos métodos
+      const isDefinitivelyAdmin = isAdminByUserData || isAdminByEmail;
+      
+      console.log("🔍 [AuthScreen] Análise de admin:", {
+        userEmail,
+        isAdminByEmail,
+        isAdminByUserData,
+        isDefinitivelyAdmin
+      });
+      
+      // Se temos userData OU podemos determinar via email, redirecionar
+      if (userData || isAdminByEmail) {
         setHasRedirected(true);
         
-        // REDIRECIONAMENTO DEFINITIVO BASEADO EM is_admin
-        if (userData.is_admin === true) {
+        if (isDefinitivelyAdmin) {
           console.log("👑 [AuthScreen] ADMIN CONFIRMADO - Redirecionando para /admin");
           navigate("/admin", { replace: true });
         } else {
@@ -70,22 +93,22 @@ const AuthScreen = () => {
           navigate("/", { replace: true });
         }
       }
-      // Aguardar userData por até 12 segundos (tempo estendido)
-      else {
-        console.log("⏳ [AuthScreen] Aguardando userData...");
+      // Aguardar userData por mais tempo apenas se não for admin por email
+      else if (!isAdminByEmail) {
+        console.log("⏳ [AuthScreen] Aguardando userData para usuário não-admin...");
         const timeout = setTimeout(() => {
-          if (!userData && isAuthenticated) {
+          if (!userData && isAuthenticated && !hasRedirected) {
             console.log("⚠️ [AuthScreen] Timeout userData - redirecionamento com fallback");
             setHasRedirected(true);
-            // Fallback: redirecionar para home (useAuthState já criou userData básico)
+            // Para usuários não-admin, redirecionar para home
             navigate("/", { replace: true });
           }
-        }, 12000); // Aumentado para 12 segundos
+        }, 18000); // Aumentado para 18 segundos
 
         return () => clearTimeout(timeout);
       }
     }
-  }, [isAuthenticated, userData, authLoading, navigate, hasRedirected]);
+  }, [isAuthenticated, userData, authLoading, navigate, hasRedirected, user]);
 
   const loginForm = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -130,12 +153,12 @@ const AuthScreen = () => {
         } else {
           toast.error("Erro no login", result.message);
         }
+        setIsLoading(false);
       }
       
     } catch (error: any) {
       console.error("❌ [AuthScreen] Erro inesperado no login:", error);
       toast.error("Erro inesperado", "Tente novamente em alguns instantes.");
-    } finally {
       setIsLoading(false);
     }
   };

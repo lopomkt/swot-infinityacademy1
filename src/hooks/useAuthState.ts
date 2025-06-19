@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -27,7 +28,7 @@ interface AuthActions {
   refreshToken: () => Promise<{success: boolean; message: string}>;
 }
 
-// Lista de emails admin para fallback
+// Lista DEFINITIVA de emails admin
 const ADMIN_EMAILS = [
   'infinitymkt00@gmail.com',
   'admin@swotinsights.com',
@@ -43,44 +44,68 @@ export function useAuthState(): AuthState & AuthActions {
   const mounted = useRef(true);
   const initialized = useRef(false);
   const authSubscription = useRef<any>(null);
-  const fetchAttempts = useRef(0);
 
   // Estados derivados
   const isAuthenticated = !!user && !!session;
   const subscriptionExpired = userData?.subscription_status === 'expired' || 
     (userData?.subscription_expires_at && new Date(userData.subscription_expires_at) < new Date()) || false;
 
-  // Função para criar userData inteligente com fallback
-  const createSmartFallback = useCallback((userId: string, authUser: User): UserData => {
+  // Função para criar fallback ULTRA-INTELIGENTE
+  const createUltraSmartFallback = useCallback((userId: string, authUser: User): UserData => {
     const email = authUser.email || '';
     const isAdminEmail = ADMIN_EMAILS.includes(email.toLowerCase());
-    const nomeEmpresa = authUser.user_metadata?.nome_empresa || 'Empresa';
     
-    console.log("🧠 [useAuthState] Criando fallback inteligente:", {
+    // Tentar recuperar dados do cache primeiro
+    const cachedUserData = sessionStorage.getItem(`userData_${userId}`);
+    if (cachedUserData) {
+      try {
+        const parsed = JSON.parse(cachedUserData);
+        console.log("🧠 [useAuthState] Usando dados do cache:", parsed);
+        return parsed;
+      } catch (err) {
+        console.warn("[useAuthState] Erro ao ler cache:", err);
+      }
+    }
+
+    // Usar user_metadata se disponível
+    const userMetadata = authUser.user_metadata || {};
+    const nomeEmpresa = userMetadata.nome_empresa || 'Empresa';
+    
+    console.log("🧠 [useAuthState] Criando fallback ULTRA-INTELIGENTE:", {
       email,
       isAdminEmail,
-      userMetadata: authUser.user_metadata
+      userMetadata,
+      preservingAdminStatus: isAdminEmail
     });
 
-    return {
+    const fallbackData: UserData = {
       id: userId,
       email,
       nome_empresa: nomeEmpresa,
-      is_admin: isAdminEmail, // PRESERVAR STATUS ADMIN
+      is_admin: isAdminEmail, // ✅ PRESERVAR STATUS ADMIN
       ativo: true
     };
+
+    // Salvar no cache
+    try {
+      sessionStorage.setItem(`userData_${userId}`, JSON.stringify(fallbackData));
+    } catch (err) {
+      console.warn("[useAuthState] Erro ao salvar cache:", err);
+    }
+
+    return fallbackData;
   }, []);
 
-  // Função robusta para buscar userData com fallback inteligente
+  // Função ROBUSTA para buscar userData com fallback inteligente
   const fetchUserData = useCallback(async (userId: string, retryCount: number = 0): Promise<void> => {
     if (!mounted.current || !user) return;
     
-    console.log(`🔍 [useAuthState] Tentativa ${retryCount + 1} de buscar userData:`, userId);
+    console.log(`🔍 [useAuthState] Tentativa ${retryCount + 1}/8 de buscar userData:`, userId);
     
     try {
-      // Timeout de 10 segundos para a consulta
+      // Timeout mais generoso - 15 segundos
       const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Timeout na busca de userData')), 10000);
+        setTimeout(() => reject(new Error('Timeout na busca de userData')), 15000);
       });
       
       const queryPromise = supabase
@@ -96,9 +121,9 @@ export function useAuthState(): AuthState & AuthActions {
       if (error) {
         console.error(`❌ [useAuthState] Erro na tentativa ${retryCount + 1}:`, error);
         
-        // Retry com backoff exponencial (até 5 tentativas)
-        if (retryCount < 4) {
-          const delay = Math.pow(2, retryCount) * 1000; // 1s, 2s, 4s, 8s, 16s
+        // Retry mais agressivo - até 8 tentativas
+        if (retryCount < 7) {
+          const delay = Math.min(Math.pow(1.5, retryCount) * 1000, 5000); // Backoff limitado a 5s
           console.log(`🔄 [useAuthState] Retry em ${delay}ms...`);
           setTimeout(() => {
             fetchUserData(userId, retryCount + 1);
@@ -106,11 +131,11 @@ export function useAuthState(): AuthState & AuthActions {
           return;
         }
         
-        // Fallback INTELIGENTE: preservar admin status
-        console.warn("⚠️ [useAuthState] Todas as tentativas falharam, usando fallback INTELIGENTE");
-        const smartFallback = createSmartFallback(userId, user);
-        console.log("🧠 [useAuthState] Fallback inteligente criado:", smartFallback);
-        setUserData(smartFallback);
+        // Fallback ULTRA-INTELIGENTE após todas as tentativas
+        console.warn("⚠️ [useAuthState] Todas as tentativas falharam, usando fallback ULTRA-INTELIGENTE");
+        const ultraSmartFallback = createUltraSmartFallback(userId, user);
+        console.log("🧠 [useAuthState] Fallback ultra-inteligente criado:", ultraSmartFallback);
+        setUserData(ultraSmartFallback);
         return;
       }
       
@@ -120,20 +145,28 @@ export function useAuthState(): AuthState & AuthActions {
           is_admin: data.is_admin,
           ativo: data.ativo 
         });
+        
+        // Salvar no cache para próximas sessões
+        try {
+          sessionStorage.setItem(`userData_${userId}`, JSON.stringify(data));
+        } catch (err) {
+          console.warn("[useAuthState] Erro ao salvar cache:", err);
+        }
+        
         setUserData(data);
       } else {
-        console.warn("⚠️ [useAuthState] UserData não encontrado, usando fallback inteligente");
-        const smartFallback = createSmartFallback(userId, user);
-        console.log("🧠 [useAuthState] Fallback para usuário não encontrado:", smartFallback);
-        setUserData(smartFallback);
+        console.warn("⚠️ [useAuthState] UserData não encontrado, usando fallback ultra-inteligente");
+        const ultraSmartFallback = createUltraSmartFallback(userId, user);
+        console.log("🧠 [useAuthState] Fallback para usuário não encontrado:", ultraSmartFallback);
+        setUserData(ultraSmartFallback);
       }
       
     } catch (error: any) {
       console.error(`❌ [useAuthState] Erro inesperado na tentativa ${retryCount + 1}:`, error);
       
-      // Retry em caso de erro de rede (até 5 tentativas)
-      if (retryCount < 4) {
-        const delay = Math.pow(2, retryCount) * 1000;
+      // Retry em caso de erro de rede (até 8 tentativas)
+      if (retryCount < 7) {
+        const delay = Math.min(Math.pow(1.5, retryCount) * 1000, 5000);
         console.log(`🔄 [useAuthState] Retry por erro em ${delay}ms...`);
         setTimeout(() => {
           fetchUserData(userId, retryCount + 1);
@@ -141,20 +174,19 @@ export function useAuthState(): AuthState & AuthActions {
         return;
       }
       
-      // Fallback FINAL INTELIGENTE
+      // Fallback FINAL ULTRA-INTELIGENTE
       if (user) {
-        const smartFallback = createSmartFallback(userId, user);
-        console.log("🧠 [useAuthState] Fallback final inteligente:", smartFallback);
-        setUserData(smartFallback);
+        const ultraSmartFallback = createUltraSmartFallback(userId, user);
+        console.log("🧠 [useAuthState] Fallback final ultra-inteligente:", ultraSmartFallback);
+        setUserData(ultraSmartFallback);
       }
     }
-  }, [user, createSmartFallback]);
+  }, [user, createUltraSmartFallback]);
 
   // Login otimizado com melhor handling
   const signIn = useCallback(async (email: string, password: string, rememberMe: boolean = false) => {
     console.log("🔐 [useAuthState] Iniciando login...");
     setLoading(true);
-    fetchAttempts.current = 0;
     
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -198,6 +230,11 @@ export function useAuthState(): AuthState & AuthActions {
     console.log("🚪 [useAuthState] Iniciando logout...");
     
     try {
+      // Limpar cache
+      if (user?.id) {
+        sessionStorage.removeItem(`userData_${user.id}`);
+      }
+      
       await supabase.auth.signOut();
       setUser(null);
       setSession(null);
@@ -206,7 +243,7 @@ export function useAuthState(): AuthState & AuthActions {
     } catch (error: any) {
       console.error("❌ [useAuthState] Erro no signOut:", error);
     }
-  }, []);
+  }, [user]);
 
   // Refresh token
   const refreshToken = useCallback(async () => {
@@ -310,16 +347,16 @@ export function useAuthState(): AuthState & AuthActions {
     };
   }, [fetchUserData]);
 
-  // Timeout de segurança aumentado para 15 segundos
+  // Timeout de segurança aumentado para 20 segundos
   useEffect(() => {
     if (!loading) return;
     
     const timeoutId = setTimeout(() => {
       if (loading && mounted.current) {
-        console.warn("⏰ [useAuthState] Timeout de carregamento (15s)");
+        console.warn("⏰ [useAuthState] Timeout de carregamento (20s)");
         setLoading(false);
       }
-    }, 15000);
+    }, 20000);
 
     return () => clearTimeout(timeoutId);
   }, [loading]);
