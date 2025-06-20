@@ -41,54 +41,32 @@ export function useAuthState(): AuthState & AuthActions {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
   
-  const mounted = useRef(true);
-  const initialized = useRef(false);
   const authSubscription = useRef<any>(null);
+  const initializationComplete = useRef(false);
 
   // Estados derivados
   const isAuthenticated = !!user && !!session;
   const subscriptionExpired = userData?.subscription_status === 'expired' || 
     (userData?.subscription_expires_at && new Date(userData.subscription_expires_at) < new Date()) || false;
 
-  // Função para criar fallback ULTRA-INTELIGENTE
-  const createUltraSmartFallback = useCallback((userId: string, authUser: User): UserData => {
+  // Função para criar fallback IMEDIATO para admins
+  const createAdminFallback = useCallback((authUser: User): UserData => {
     const email = authUser.email || '';
     const isAdminEmail = ADMIN_EMAILS.includes(email.toLowerCase());
     
-    // Tentar recuperar dados do cache primeiro
-    const cachedUserData = sessionStorage.getItem(`userData_${userId}`);
-    if (cachedUserData) {
-      try {
-        const parsed = JSON.parse(cachedUserData);
-        console.log("🧠 [useAuthState] Usando dados do cache:", parsed);
-        return parsed;
-      } catch (err) {
-        console.warn("[useAuthState] Erro ao ler cache:", err);
-      }
-    }
-
-    // Usar user_metadata se disponível
-    const userMetadata = authUser.user_metadata || {};
-    const nomeEmpresa = userMetadata.nome_empresa || 'Empresa';
-    
-    console.log("🧠 [useAuthState] Criando fallback ULTRA-INTELIGENTE:", {
-      email,
-      isAdminEmail,
-      userMetadata,
-      preservingAdminStatus: isAdminEmail
-    });
+    console.log("🔥 [useAuthState] Criando fallback IMEDIATO para admin:", email);
 
     const fallbackData: UserData = {
-      id: userId,
+      id: authUser.id,
       email,
-      nome_empresa: nomeEmpresa,
-      is_admin: isAdminEmail, // ✅ PRESERVAR STATUS ADMIN
+      nome_empresa: 'Admin',
+      is_admin: isAdminEmail,
       ativo: true
     };
 
-    // Salvar no cache
+    // Cache imediato
     try {
-      sessionStorage.setItem(`userData_${userId}`, JSON.stringify(fallbackData));
+      sessionStorage.setItem(`userData_${authUser.id}`, JSON.stringify(fallbackData));
     } catch (err) {
       console.warn("[useAuthState] Erro ao salvar cache:", err);
     }
@@ -96,96 +74,67 @@ export function useAuthState(): AuthState & AuthActions {
     return fallbackData;
   }, []);
 
-  // Função ROBUSTA para buscar userData com fallback inteligente
-  const fetchUserData = useCallback(async (userId: string, retryCount: number = 0): Promise<void> => {
-    if (!mounted.current || !user) return;
+  // Função SIMPLIFICADA para buscar userData
+  const fetchUserData = useCallback(async (userId: string): Promise<void> => {
+    if (!user) return;
     
-    console.log(`🔍 [useAuthState] Tentativa ${retryCount + 1}/8 de buscar userData:`, userId);
+    console.log("🔍 [useAuthState] Buscando userData para:", userId);
     
     try {
-      // Timeout mais generoso - 15 segundos
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Timeout na busca de userData')), 15000);
-      });
+      const { data, error } = await Promise.race([
+        supabase.from('users').select('*').eq('id', userId).maybeSingle(),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 8000))
+      ]) as any;
       
-      const queryPromise = supabase
-        .from('users')
-        .select('*')
-        .eq('id', userId)
-        .maybeSingle();
-      
-      const { data, error } = await Promise.race([queryPromise, timeoutPromise]) as any;
-      
-      if (!mounted.current) return;
-      
-      if (error) {
-        console.error(`❌ [useAuthState] Erro na tentativa ${retryCount + 1}:`, error);
+      if (error || !data) {
+        console.warn("⚠️ [useAuthState] Erro ou dados não encontrados, usando fallback");
         
-        // Retry mais agressivo - até 8 tentativas
-        if (retryCount < 7) {
-          const delay = Math.min(Math.pow(1.5, retryCount) * 1000, 5000); // Backoff limitado a 5s
-          console.log(`🔄 [useAuthState] Retry em ${delay}ms...`);
-          setTimeout(() => {
-            fetchUserData(userId, retryCount + 1);
-          }, delay);
+        // Se é admin por email, usar fallback imediato
+        const userEmail = (user.email || '').toLowerCase();
+        if (ADMIN_EMAILS.includes(userEmail)) {
+          const adminFallback = createAdminFallback(user);
+          setUserData(adminFallback);
           return;
         }
         
-        // Fallback ULTRA-INTELIGENTE após todas as tentativas
-        console.warn("⚠️ [useAuthState] Todas as tentativas falharam, usando fallback ULTRA-INTELIGENTE");
-        const ultraSmartFallback = createUltraSmartFallback(userId, user);
-        console.log("🧠 [useAuthState] Fallback ultra-inteligente criado:", ultraSmartFallback);
-        setUserData(ultraSmartFallback);
+        // Para não-admins, criar fallback básico
+        const fallback: UserData = {
+          id: userId,
+          email: user.email || '',
+          nome_empresa: 'Empresa',
+          is_admin: false,
+          ativo: true
+        };
+        setUserData(fallback);
         return;
       }
       
-      if (data) {
-        console.log("✅ [useAuthState] UserData obtido com sucesso:", { 
-          email: data.email, 
-          is_admin: data.is_admin,
-          ativo: data.ativo 
-        });
-        
-        // Salvar no cache para próximas sessões
-        try {
-          sessionStorage.setItem(`userData_${userId}`, JSON.stringify(data));
-        } catch (err) {
-          console.warn("[useAuthState] Erro ao salvar cache:", err);
-        }
-        
-        setUserData(data);
-      } else {
-        console.warn("⚠️ [useAuthState] UserData não encontrado, usando fallback ultra-inteligente");
-        const ultraSmartFallback = createUltraSmartFallback(userId, user);
-        console.log("🧠 [useAuthState] Fallback para usuário não encontrado:", ultraSmartFallback);
-        setUserData(ultraSmartFallback);
-      }
+      console.log("✅ [useAuthState] UserData obtido:", data.email);
+      setUserData(data);
       
     } catch (error: any) {
-      console.error(`❌ [useAuthState] Erro inesperado na tentativa ${retryCount + 1}:`, error);
+      console.error("❌ [useAuthState] Erro ao buscar userData:", error);
       
-      // Retry em caso de erro de rede (até 8 tentativas)
-      if (retryCount < 7) {
-        const delay = Math.min(Math.pow(1.5, retryCount) * 1000, 5000);
-        console.log(`🔄 [useAuthState] Retry por erro em ${delay}ms...`);
-        setTimeout(() => {
-          fetchUserData(userId, retryCount + 1);
-        }, delay);
-        return;
-      }
-      
-      // Fallback FINAL ULTRA-INTELIGENTE
+      // Fallback final sempre funciona
       if (user) {
-        const ultraSmartFallback = createUltraSmartFallback(userId, user);
-        console.log("🧠 [useAuthState] Fallback final ultra-inteligente:", ultraSmartFallback);
-        setUserData(ultraSmartFallback);
+        const userEmail = (user.email || '').toLowerCase();
+        const fallback = ADMIN_EMAILS.includes(userEmail) 
+          ? createAdminFallback(user)
+          : {
+              id: userId,
+              email: user.email || '',
+              nome_empresa: 'Empresa',
+              is_admin: false,
+              ativo: true
+            };
+        setUserData(fallback);
       }
     }
-  }, [user, createUltraSmartFallback]);
+  }, [user, createAdminFallback]);
 
-  // Login otimizado com melhor handling
+  // Login OTIMIZADO
   const signIn = useCallback(async (email: string, password: string, rememberMe: boolean = false) => {
-    console.log("🔐 [useAuthState] Iniciando login...");
+    console.log("🔐 [useAuthState] Iniciando login para:", email);
     setLoading(true);
     
     try {
@@ -193,8 +142,6 @@ export function useAuthState(): AuthState & AuthActions {
         email: email.trim().toLowerCase(),
         password,
       });
-      
-      if (!mounted.current) return { success: false, message: "Componente desmontado" };
       
       if (error) {
         console.error("❌ [useAuthState] Erro no login:", error);
@@ -207,10 +154,17 @@ export function useAuthState(): AuthState & AuthActions {
         setUser(data.user);
         setSession(data.session);
         
-        // Buscar userData em foreground para garantir que esteja disponível
-        await fetchUserData(data.user.id);
-        setLoading(false);
+        // Para admins, criar userData imediatamente
+        const userEmail = (data.user.email || '').toLowerCase();
+        if (ADMIN_EMAILS.includes(userEmail)) {
+          const adminData = createAdminFallback(data.user);
+          setUserData(adminData);
+        } else {
+          // Para usuários normais, buscar em background
+          fetchUserData(data.user.id);
+        }
         
+        setLoading(false);
         return { success: true, message: "Login realizado com sucesso" };
       }
       
@@ -218,19 +172,16 @@ export function useAuthState(): AuthState & AuthActions {
       return { success: false, message: "Falha na autenticação" };
     } catch (error: any) {
       console.error("❌ [useAuthState] Erro no signIn:", error);
-      if (mounted.current) {
-        setLoading(false);
-      }
+      setLoading(false);
       return { success: false, message: "Erro interno no login" };
     }
-  }, [fetchUserData]);
+  }, [fetchUserData, createAdminFallback]);
 
-  // Logout otimizado
+  // Logout SIMPLIFICADO
   const signOut = useCallback(async () => {
-    console.log("🚪 [useAuthState] Iniciando logout...");
+    console.log("🚪 [useAuthState] Executando logout...");
     
     try {
-      // Limpar cache
       if (user?.id) {
         sessionStorage.removeItem(`userData_${user.id}`);
       }
@@ -241,7 +192,7 @@ export function useAuthState(): AuthState & AuthActions {
       setUserData(null);
       console.log("✅ [useAuthState] Logout completo");
     } catch (error: any) {
-      console.error("❌ [useAuthState] Erro no signOut:", error);
+      console.error("❌ [useAuthState] Erro no logout:", error);
     }
   }, [user]);
 
@@ -249,8 +200,6 @@ export function useAuthState(): AuthState & AuthActions {
   const refreshToken = useCallback(async () => {
     try {
       const { data, error } = await supabase.auth.refreshSession();
-      
-      if (!mounted.current) return { success: false, message: "Componente desmontado" };
       
       if (error) {
         console.error("❌ [useAuthState] Erro ao renovar sessão:", error);
@@ -273,19 +222,17 @@ export function useAuthState(): AuthState & AuthActions {
     }
   }, [fetchUserData, userData]);
 
-  // Inicialização otimizada
+  // Inicialização CORRIGIDA - sem race condition
   useEffect(() => {
-    if (initialized.current) return;
+    if (initializationComplete.current) return;
     
     const initAuth = async () => {
       try {
         console.log("🔧 [useAuthState] Inicializando autenticação...");
         
-        // Setup listener primeiro
+        // Setup listener PRIMEIRO
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
           async (event, session) => {
-            if (!mounted.current) return;
-
             console.log(`🔐 [useAuthState] Auth event: ${event}`);
             
             if (event === 'SIGNED_OUT' || !session) {
@@ -302,8 +249,14 @@ export function useAuthState(): AuthState & AuthActions {
               setSession(session);
               setUser(session.user);
               
-              // Buscar userData de forma síncrona para redirecionamento
-              await fetchUserData(session.user.id);
+              // Para admins, userData imediato
+              const userEmail = (session.user.email || '').toLowerCase();
+              if (ADMIN_EMAILS.includes(userEmail)) {
+                const adminData = createAdminFallback(session.user);
+                setUserData(adminData);
+              } else {
+                await fetchUserData(session.user.id);
+              }
             }
             
             setLoading(false);
@@ -312,51 +265,54 @@ export function useAuthState(): AuthState & AuthActions {
 
         authSubscription.current = subscription;
 
-        // Verificar sessão existente
+        // Verificar sessão existente DEPOIS
         const { data: { session: existingSession } } = await supabase.auth.getSession();
         
-        if (!mounted.current) return;
-
         if (existingSession?.user) {
           console.log("🔍 [useAuthState] Sessão existente encontrada");
           setSession(existingSession);
           setUser(existingSession.user);
-          await fetchUserData(existingSession.user.id);
+          
+          // Para admins, userData imediato
+          const userEmail = (existingSession.user.email || '').toLowerCase();
+          if (ADMIN_EMAILS.includes(userEmail)) {
+            const adminData = createAdminFallback(existingSession.user);
+            setUserData(adminData);
+          } else {
+            await fetchUserData(existingSession.user.id);
+          }
         } else {
           console.log("🔍 [useAuthState] Nenhuma sessão existente");
-          setLoading(false);
         }
         
-        initialized.current = true;
+        setLoading(false);
+        initializationComplete.current = true;
 
       } catch (error) {
         console.error("❌ [useAuthState] Erro na inicialização:", error);
-        if (mounted.current) {
-          setLoading(false);
-        }
+        setLoading(false);
       }
     };
 
     initAuth();
 
     return () => {
-      mounted.current = false;
       if (authSubscription.current) {
         authSubscription.current.unsubscribe();
       }
     };
-  }, [fetchUserData]);
+  }, [fetchUserData, createAdminFallback]);
 
-  // Timeout de segurança aumentado para 20 segundos
+  // Timeout de segurança REDUZIDO para 10 segundos
   useEffect(() => {
     if (!loading) return;
     
     const timeoutId = setTimeout(() => {
-      if (loading && mounted.current) {
-        console.warn("⏰ [useAuthState] Timeout de carregamento (20s)");
+      if (loading) {
+        console.warn("⏰ [useAuthState] Timeout de carregamento (10s) - finalizando");
         setLoading(false);
       }
-    }, 20000);
+    }, 10000);
 
     return () => clearTimeout(timeoutId);
   }, [loading]);

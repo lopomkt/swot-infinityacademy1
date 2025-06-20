@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -29,7 +28,7 @@ const registerSchema = z.object({
 type LoginFormValues = z.infer<typeof loginSchema>;
 type RegisterFormValues = z.infer<typeof registerSchema>;
 
-// Lista DEFINITIVA de emails admin para verificação alternativa
+// Lista DEFINITIVA de emails admin
 const ADMIN_EMAILS = [
   'infinitymkt00@gmail.com',
   'admin@swotinsights.com',
@@ -47,7 +46,7 @@ const AuthScreen = () => {
   const navigate = useNavigate();
   const toast = useToast();
 
-  // Redirecionamento DEFINITIVO e ultra-robusto
+  // Redirecionamento OTIMIZADO e IMEDIATO
   useEffect(() => {
     // Evitar múltiplos redirecionamentos
     if (hasRedirected) return;
@@ -61,51 +60,48 @@ const AuthScreen = () => {
     if (isAuthenticated && user) {
       console.log("🎯 [AuthScreen] Usuário autenticado, verificando redirecionamento...", {
         hasUserData: !!userData,
-        isAdmin: userData?.is_admin,
-        email: userData?.email || user.email,
-        userEmail: user.email
+        email: user.email
       });
       
-      // VERIFICAÇÃO DUPLA: userData + email alternativo
-      const userEmail = (userData?.email || user.email || '').toLowerCase();
+      // VERIFICAÇÃO IMEDIATA por email
+      const userEmail = (user.email || '').toLowerCase();
       const isAdminByEmail = ADMIN_EMAILS.includes(userEmail);
       const isAdminByUserData = userData?.is_admin === true;
       
-      // Determinar se é admin por qualquer um dos métodos
-      const isDefinitivelyAdmin = isAdminByUserData || isAdminByEmail;
-      
-      console.log("🔍 [AuthScreen] Análise de admin:", {
+      console.log("🔍 [AuthScreen] Análise IMEDIATA:", {
         userEmail,
         isAdminByEmail,
-        isAdminByUserData,
-        isDefinitivelyAdmin
+        isAdminByUserData
       });
       
-      // Se temos userData OU podemos determinar via email, redirecionar
-      if (userData || isAdminByEmail) {
-        setHasRedirected(true);
-        
-        if (isDefinitivelyAdmin) {
-          console.log("👑 [AuthScreen] ADMIN CONFIRMADO - Redirecionando para /admin");
-          navigate("/admin", { replace: true });
-        } else {
-          console.log("👤 [AuthScreen] Usuário padrão - Redirecionando para /");
-          navigate("/", { replace: true });
-        }
+      setHasRedirected(true);
+      
+      // Decisão IMEDIATA baseada no email
+      if (isAdminByEmail) {
+        console.log("👑 [AuthScreen] ADMIN por EMAIL - Redirecionamento IMEDIATO para /admin");
+        navigate("/admin", { replace: true });
+        return;
       }
-      // Aguardar userData por mais tempo apenas se não for admin por email
-      else if (!isAdminByEmail) {
-        console.log("⏳ [AuthScreen] Aguardando userData para usuário não-admin...");
-        const timeout = setTimeout(() => {
-          if (!userData && isAuthenticated && !hasRedirected) {
-            console.log("⚠️ [AuthScreen] Timeout userData - redirecionamento com fallback");
-            setHasRedirected(true);
-            // Para usuários não-admin, redirecionar para home
+      
+      // Se é admin por userData
+      if (isAdminByUserData) {
+        console.log("👑 [AuthScreen] ADMIN por USERDATA - Redirecionando para /admin");
+        navigate("/admin", { replace: true });
+        return;
+      }
+      
+      // Se temos userData ou após timeout curto, redirecionar usuário normal
+      if (userData) {
+        console.log("👤 [AuthScreen] Usuário padrão - Redirecionando para /");
+        navigate("/", { replace: true });
+      } else {
+        // Timeout MUITO curto para não-admins
+        setTimeout(() => {
+          if (!hasRedirected) {
+            console.log("⏳ [AuthScreen] Timeout curto - redirecionando usuário para /");
             navigate("/", { replace: true });
           }
-        }, 18000); // Aumentado para 18 segundos
-
-        return () => clearTimeout(timeout);
+        }, 2000); // Apenas 2 segundos
       }
     }
   }, [isAuthenticated, userData, authLoading, navigate, hasRedirected, user]);

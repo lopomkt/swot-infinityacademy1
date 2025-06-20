@@ -8,7 +8,7 @@ interface ProtectedRouteProps {
   children: ReactNode;
 }
 
-// Lista DEFINITIVA de emails admin para verificação alternativa
+// Lista DEFINITIVA de emails admin
 const ADMIN_EMAILS = [
   'infinitymkt00@gmail.com',
   'admin@swotinsights.com',
@@ -22,7 +22,7 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   
   const modoAdminTeste = location.search.includes("modo_teste_admin=true");
 
-  // Timeout de emergência aumentado para 20 segundos
+  // Timeout de emergência REDUZIDO para 10 segundos
   useEffect(() => {
     if (!loading) {
       setEmergencyTimeout(false);
@@ -30,9 +30,9 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     }
 
     const timer = setTimeout(() => {
-      console.warn("[ProtectedRoute] Timeout de emergência atingido (20s)");
+      console.warn("[ProtectedRoute] Timeout de emergência atingido (10s)");
       setEmergencyTimeout(true);
-    }, 20000); // Aumentado para 20 segundos
+    }, 10000);
     
     return () => clearTimeout(timer);
   }, [loading]);
@@ -48,7 +48,7 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     userEmail: user?.email
   });
 
-  // Aguardar carregamento
+  // Aguardar carregamento (TEMPO REDUZIDO)
   if (loading && !emergencyTimeout) {
     return <LoadingScreen />;
   }
@@ -70,12 +70,12 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     return <Navigate to="/auth" replace />;
   }
 
-  // VERIFICAÇÃO DUPLA: userData + email alternativo para garantir identificação correta
+  // VERIFICAÇÃO DUPLA E IMEDIATA: userData + email
   const userEmail = (user.email || '').toLowerCase();
   const isAdminByEmail = ADMIN_EMAILS.includes(userEmail);
   const isAdminByUserData = userData?.is_admin === true;
   
-  // Determinar se é admin por qualquer um dos métodos
+  // Determinar se é admin
   const isDefinitivelyAdmin = isAdminByUserData || isAdminByEmail;
   
   console.log("[ProtectedRoute] Análise de permissões:", {
@@ -86,33 +86,46 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     hasUserData: !!userData
   });
 
-  // Se temos userData OU podemos determinar admin via email, proceder
-  if (userData || isAdminByEmail) {
-    // Verificar se usuário está ativo (apenas se temos userData)
-    if (userData && userData.ativo === false) {
+  // DECISÃO IMEDIATA: Se é admin por email, liberar acesso
+  if (isAdminByEmail) {
+    console.log("[ProtectedRoute] ✅ Admin por EMAIL - acesso liberado IMEDIATO");
+    return <>{children}</>;
+  }
+
+  // Se temos userData, proceder com verificações normais
+  if (userData) {
+    // Verificar se usuário está ativo
+    if (userData.ativo === false) {
       console.warn("[ProtectedRoute] Usuário inativo");
       return <Navigate to="/auth" replace />;
     }
 
-    // Se é admin, liberar acesso total
-    if (isDefinitivelyAdmin) {
-      console.log("[ProtectedRoute] ✅ Admin CONFIRMADO, acesso liberado");
+    // Se é admin por userData, liberar
+    if (userData.is_admin === true) {
+      console.log("[ProtectedRoute] ✅ Admin por USERDATA - acesso liberado");
       return <>{children}</>;
     }
 
-    // Para usuários não-admin, verificar expiração de assinatura
+    // Para usuários não-admin, verificar expiração
     if (subscriptionExpired && !modoAdminTeste) {
       console.log("[ProtectedRoute] Assinatura expirada, redirecionando");
       return <Navigate to="/expired" replace />;
     }
     
-    // Usuário padrão com acesso válido
+    // Usuário padrão autorizado
     console.log("[ProtectedRoute] ✅ Usuário padrão autorizado");
     return <>{children}</>;
     
   } else {
-    // Se não temos userData e não é admin por email, aguardar mais um pouco
-    console.log("[ProtectedRoute] Aguardando userData...");
+    // Se não temos userData E não é admin por email, aguardar POUCO tempo
+    console.log("[ProtectedRoute] Aguardando userData por 3s...");
+    
+    setTimeout(() => {
+      if (!userData && !isAdminByEmail) {
+        console.warn("[ProtectedRoute] Timeout userData - liberando acesso básico");
+      }
+    }, 3000);
+    
     return <LoadingScreen />;
   }
 };
