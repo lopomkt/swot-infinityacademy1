@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect, useRef } from "react";
-import { Loader, AlertCircle, CheckCircle, Sparkles } from "lucide-react";
+import { Loader, AlertCircle, CheckCircle, Sparkles, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { ResultadoFinalData } from "@/types/formData";
@@ -7,6 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useOpenRouterGeneration } from "@/hooks/useOpenRouterGeneration";
 import ErrorMessageBlock from "@/components/ErrorMessageBlock";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import { Progress } from "@/components/ui/progress";
 
 interface AIBlockProps {
   formData: any;
@@ -15,7 +17,6 @@ interface AIBlockProps {
 }
 
 const AIBlock: React.FC<AIBlockProps> = ({ formData, onRestart, onAIComplete }) => {
-  const [timeoutWarning, setTimeoutWarning] = useState(false);
   const [processingState, setProcessingState] = useState<'idle' | 'processing' | 'completed' | 'failed'>('idle');
   const [progress, setProgress] = useState(0);
   const [currentTask, setCurrentTask] = useState('');
@@ -23,10 +24,20 @@ const AIBlock: React.FC<AIBlockProps> = ({ formData, onRestart, onAIComplete }) 
   const { user } = useAuth();
   const debounceRef = useRef<NodeJS.Timeout>();
   
-  // Hook para geração com OpenRouter + GPT-4o-mini
-  const { loading, error, resultado, generateReport, clearReport, regenerateReport } = useOpenRouterGeneration();
+  // Hook para geração com OpenRouter + GPT-4o-mini (com retry e timeout)
+  const { 
+    loading, 
+    error, 
+    resultado, 
+    generateReport, 
+    retryGeneration,
+    clearReport, 
+    regenerateReport,
+    attempt,
+    timeoutReached
+  } = useOpenRouterGeneration();
 
-  // Função para processar o resultado da IA (OpenRouter apenas)
+  // Função para processar o resultado da IA
   const processarResultado = async (resultados: any) => {
     setProcessingState('completed');
     setProgress(100);
@@ -42,7 +53,7 @@ const AIBlock: React.FC<AIBlockProps> = ({ formData, onRestart, onAIComplete }) 
         planos_acao: resultados.planos_acao,
         acoes_priorizadas: [],
         ai_block_pronto: resultados.ai_block_pronto,
-        openrouter_prompt_ok: resultados.openrouter_prompt_ok, // OpenRouter flag apenas
+        openrouter_prompt_ok: resultados.openrouter_prompt_ok,
         tipo: resultados.tipo,
         created_at: resultados.created_at
       };
@@ -56,16 +67,29 @@ const AIBlock: React.FC<AIBlockProps> = ({ formData, onRestart, onAIComplete }) 
     });
   };
 
-  // Função para tentar novamente
-  const handleRetry = () => {
-    clearReport();
-    setProcessingState('idle');
-    setTimeoutWarning(false);
+  // Função para tentar novamente (com sistema robusto)
+  const handleRetry = async () => {
+    if (!user?.id) {
+      toast({
+        title: "Erro",
+        description: "Usuário não autenticado",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setProcessingState('processing');
     setProgress(0);
-    setCurrentTask('');
+    setCurrentTask('Reiniciando geração...');
     
-    if (user) {
-      handleGenerateReport();
+    try {
+      const result = await retryGeneration(formData, user.id);
+      if (result) {
+        processarResultado(result);
+      }
+    } catch (error: any) {
+      console.error('❌ Erro no retry:', error);
+      setProcessingState('failed');
     }
   };
 
@@ -84,40 +108,46 @@ const AIBlock: React.FC<AIBlockProps> = ({ formData, onRestart, onAIComplete }) 
     setProgress(10);
     setCurrentTask('Validando dados do formulário...');
 
-    // Simular progresso visual
-    const progressSteps = [
-      { step: 20, task: 'Conectando com OpenRouter...' },
-      { step: 40, task: 'Enviando dados para GPT-4o-mini...' },
-      { step: 60, task: 'Processando análise estratégica...' },
-      { step: 80, task: 'Formatando resultado final...' },
-      { step: 90, task: 'Salvando relatório...' }
-    ];
-
-    let currentStep = 0;
-    const progressInterval = setInterval(() => {
-      if (currentStep < progressSteps.length && !loading) {
-        const { step, task } = progressSteps[currentStep];
-        setProgress(step);
-        setCurrentTask(task);
-        currentStep++;
-      } else {
-        clearInterval(progressInterval);
-      }
-    }, 1000);
-
     try {
       const result = await generateReport(formData, user.id);
-      clearInterval(progressInterval);
       
       if (result) {
         processarResultado(result);
       }
     } catch (error: any) {
-      clearInterval(progressInterval);
       console.error('❌ Erro na geração:', error);
       setProcessingState('failed');
     }
   };
+
+  // Controlar progresso visual
+  useEffect(() => {
+    if (loading) {
+      // Progresso baseado na tentativa atual
+      const baseProgress = (attempt - 1) * 25; // 0%, 25%, 50%
+      
+      const interval = setInterval(() => {
+        setProgress(prev => {
+          const maxForAttempt = baseProgress + 20; // Deixar espaço
+          if (prev < maxForAttempt) {
+            return prev + 3;
+          }
+          return prev;
+        });
+      }, 800);
+
+      // Atualizar mensagem baseada na tentativa
+      if (attempt > 0) {
+        if (timeoutReached) {
+          setCurrentTask(`⏰ Timeout na tentativa ${attempt}, continuando...`);
+        } else {
+          setCurrentTask(`🔄 Tentativa ${attempt}/3 - Gerando análise...`);
+        }
+      }
+
+      return () => clearInterval(interval);
+    }
+  }, [loading, attempt, timeoutReached]);
 
   // Effect com debounce para iniciar geração automaticamente
   useEffect(() => {
@@ -152,19 +182,6 @@ const AIBlock: React.FC<AIBlockProps> = ({ formData, onRestart, onAIComplete }) 
     }
   }, [error]);
 
-  // Effect para timeout warning
-  useEffect(() => {
-    if (loading || processingState === 'processing') {
-      const timeoutId = setTimeout(() => {
-        setTimeoutWarning(true);
-      }, 20000);
-
-      return () => clearTimeout(timeoutId);
-    } else {
-      setTimeoutWarning(false);
-    }
-  }, [loading, processingState]);
-
   return (
     <ErrorBoundary>
       <div className="w-full max-w-4xl mx-auto py-8 px-4 animate-fade-in">
@@ -176,31 +193,40 @@ const AIBlock: React.FC<AIBlockProps> = ({ formData, onRestart, onAIComplete }) 
                 🤖 Gerando análise estratégica com OpenRouter + GPT-4o-mini...
               </h3>
               <p className="text-gray-600 max-w-md mx-auto text-center mb-4">
-                {timeoutWarning 
-                  ? "Isso está demorando mais do que o esperado. Por favor, aguarde..." 
-                  : currentTask || "Nossa IA está analisando seus dados via OpenRouter e criando um relatório estratégico personalizado."}
+                {currentTask || "Nossa IA está analisando seus dados via OpenRouter e criando um relatório estratégico personalizado."}
               </p>
 
-              {/* Barra de progresso visual */}
+              {/* Barra de progresso aprimorada */}
               <div className="w-full max-w-md mt-8 mx-auto">
-                <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
-                  <div 
-                    className="h-2 bg-[#ef0002] transition-all duration-500 ease-out rounded-full"
-                    style={{ width: `${progress}%` }}
-                  />
+                <Progress value={progress} className="h-3 mb-2" />
+                <div className="flex justify-between text-sm text-gray-500 mb-4">
+                  <span>Progresso</span>
+                  <span>{progress}%</span>
                 </div>
-                <p className="text-center text-sm font-semibold text-[#ef0002] mt-2">
-                  {progress}% concluído
-                </p>
+                
+                {attempt > 0 && (
+                  <div className="text-sm text-blue-600 mb-4">
+                    Tentativa {attempt}/3 {timeoutReached ? "(timeout detectado)" : ""}
+                  </div>
+                )}
               </div>
 
-              {/* Mensagem motivacional atualizada */}
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6">
-                <p className="text-sm text-blue-800">
-                  <strong>🤖 OpenRouter + GPT-4o-mini está trabalhando para você!</strong><br />
-                  Estamos analisando seus dados e gerando estratégias personalizadas 
-                  para impulsionar seu negócio.
-                </p>
+              {/* Status cards */}
+              <div className="space-y-3 mt-6">
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <p className="text-sm text-blue-800">
+                    <strong>🤖 Sistema Robusto Ativo!</strong><br />
+                    Até 3 tentativas automáticas • Timeout de 60s por tentativa • Retry inteligente
+                  </p>
+                </div>
+                
+                {attempt > 1 && (
+                  <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
+                    <p className="text-sm text-orange-700">
+                      ⚡ <strong>Auto-recovery ativo:</strong> Detectamos demora e estamos usando estratégias alternativas
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -211,13 +237,37 @@ const AIBlock: React.FC<AIBlockProps> = ({ formData, onRestart, onAIComplete }) 
               onRetry={handleRetry}
               isRetrying={loading || processingState === 'processing'}
             />
+            
+            {attempt > 0 && (
+              <div className="mt-4 text-center">
+                <p className="text-sm text-gray-600 mb-2">
+                  Tentativas realizadas: {attempt}/3
+                </p>
+                {timeoutReached && (
+                  <p className="text-xs text-orange-600">
+                    ⏰ Timeout detectado - o sistema tentará com diferentes abordagens
+                  </p>
+                )}
+              </div>
+            )}
+            
             <div className="mt-6 flex gap-4">
               <Button 
                 onClick={handleRetry}
                 className="bg-[#ef0002] hover:bg-[#c50000]"
                 disabled={loading || processingState === 'processing'}
               >
-                Tentar Novamente
+                {loading ? (
+                  <>
+                    <Loader className="mr-2 h-4 w-4 animate-spin" />
+                    Tentando...
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                    Tentar Novamente
+                  </>
+                )}
               </Button>
               <Button 
                 variant="outline" 
