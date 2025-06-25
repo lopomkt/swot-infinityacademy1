@@ -24,17 +24,17 @@ const VisualizarRelatorio = () => {
         setLoading(true);
         setError(null);
         
-        // Obter ID do relatório da URL
+        // Enhanced report ID retrieval
         const params = new URLSearchParams(location.search);
         const relatorioId = params.get('id') || sessionStorage.getItem('relatorio_id');
         
         if (!relatorioId) {
-          setError("ID do relatório não fornecido.");
+          setError("ID do relatório não fornecido. Verifique o link utilizado.");
           setLoading(false);
           return;
         }
         
-        // Buscar dados do relatório
+        // Enhanced database query with better error handling
         const { data, error } = await supabase
           .from('relatorios')
           .select('*')
@@ -43,51 +43,51 @@ const VisualizarRelatorio = () => {
           
         if (error) {
           console.error("Erro ao buscar relatório:", error);
-          setError("Não foi possível carregar o relatório.");
+          setError("Não foi possível carregar o relatório. Verifique se o link está correto.");
           setLoading(false);
           return;
         }
         
         if (!data) {
-          setError("Relatório não encontrado.");
+          setError("Relatório não encontrado ou foi removido.");
           setLoading(false);
           return;
         }
         
-        // Verificar acesso se não for admin
+        // Enhanced permission check
         if (!userData?.is_admin && data.user_id !== userData?.id) {
           setError("Você não tem permissão para visualizar este relatório.");
           setLoading(false);
           return;
         }
         
-        // FALLBACK: Verificar se dados são válidos antes de processar
+        // Enhanced data validation and processing
         if (!data.dados || typeof data.dados !== "object") {
-          setError("Relatório com dados inválidos ou malformados.");
+          setError("Relatório com dados inválidos ou corrompidos.");
           setLoading(false);
           return;
         }
         
-        // Verificar se dados é um objeto antes de usar spread operator
+        // Safe data processing with fallbacks
         const dadosForm = typeof data.dados === 'object' && data.dados !== null 
           ? data.dados as Record<string, unknown>
           : {};
           
-        // Verificar se resultado_final é um objeto antes de atribuir
         const resultadoFinal = typeof data.resultado_final === 'object' && data.resultado_final !== null 
           ? data.resultado_final as FormData['resultadoFinal']
           : undefined;
         
-        // Combinar dados do formulário com resultado final
+        // Construct final data structure
         const fullData: FormData = {
           ...dadosForm,
           resultadoFinal: resultadoFinal,
         } as FormData;
         
         setFormData(fullData);
+        
       } catch (err) {
         console.error("Erro ao processar relatório:", err);
-        setError("Ocorreu um erro ao processar o relatório.");
+        setError("Ocorreu um erro inesperado ao carregar o relatório.");
       } finally {
         setLoading(false);
       }
@@ -97,11 +97,10 @@ const VisualizarRelatorio = () => {
   }, [location.search, userData]);
   
   const handleBack = () => {
-    // Se for admin, voltar para o painel administrativo
+    // Enhanced navigation logic
     if (userData?.is_admin) {
       navigate('/admin');
     } else {
-      // Se for usuário comum, voltar para histórico ou home
       navigate('/historico');
     }
   };
@@ -119,9 +118,14 @@ const VisualizarRelatorio = () => {
             <h2 className="text-lg font-medium text-red-700">Erro ao carregar relatório</h2>
           </div>
           <p className="text-red-600 mb-6">{error || "Não foi possível carregar os dados do relatório."}</p>
-          <Button onClick={handleBack} className="w-full">
-            Voltar
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={handleBack} className="flex-1">
+              Voltar
+            </Button>
+            <Button onClick={() => window.location.reload()} variant="outline" className="flex-1">
+              Tentar novamente
+            </Button>
+          </div>
         </div>
       </div>
     );
@@ -132,7 +136,7 @@ const VisualizarRelatorio = () => {
       <div className="absolute top-4 left-4 z-10">
         <Button 
           variant="outline" 
-          className="flex items-center gap-2"
+          className="flex items-center gap-2 bg-white bg-opacity-90 backdrop-blur-sm shadow-md hover:bg-opacity-100 transition-all"
           onClick={handleBack}
         >
           <ArrowLeft size={16} />
@@ -142,7 +146,7 @@ const VisualizarRelatorio = () => {
       
       <ResultsScreen 
         formData={formData} 
-        onRestart={() => {/* Em modo visualização, não fazer nada */}} 
+        onRestart={() => {/* View mode - no action needed */}} 
         isViewMode={true} 
       />
     </div>
