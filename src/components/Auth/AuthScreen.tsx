@@ -40,88 +40,47 @@ const AuthScreen = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [manterLogado, setManterLogado] = useState(false);
   const [loginAttempts, setLoginAttempts] = useState(0);
-  const [hasRedirected, setHasRedirected] = useState(false);
+  const [redirectHandled, setRedirectHandled] = useState(false);
   
   const { signIn, isAuthenticated, userData, loading: authLoading, user } = useAuth();
   const navigate = useNavigate();
   const toast = useToast();
 
-  // Redirecionamento OTIMIZADO e IMEDIATO
+  // Redirecionamento SIMPLIFICADO com controle de estado
   useEffect(() => {
     // Evitar múltiplos redirecionamentos
-    if (hasRedirected) return;
-
-    if (authLoading) {
-      console.log("🔄 [AuthScreen] Aguardando autenticação...");
+    if (redirectHandled || authLoading || !isAuthenticated || !user) {
       return;
     }
 
-    // Só redirecionar quando tivermos usuário autenticado
-    if (isAuthenticated && user) {
-      console.log("🎯 [AuthScreen] Usuário autenticado, verificando redirecionamento...", {
-        hasUserData: !!userData,
-        email: user.email
-      });
-      
-      // VERIFICAÇÃO IMEDIATA por email
-      const userEmail = (user.email || '').toLowerCase();
-      const isAdminByEmail = ADMIN_EMAILS.includes(userEmail);
-      const isAdminByUserData = userData?.is_admin === true;
-      
-      console.log("🔍 [AuthScreen] Análise IMEDIATA:", {
-        userEmail,
-        isAdminByEmail,
-        isAdminByUserData
-      });
-      
-      setHasRedirected(true);
-      
-      // Decisão IMEDIATA baseada no email
+    console.log("🎯 [AuthScreen] Preparando redirecionamento...", {
+      hasUser: !!user,
+      hasUserData: !!userData,
+      email: user.email
+    });
+    
+    // Marcar como handled IMEDIATAMENTE
+    setRedirectHandled(true);
+    
+    // DECISÃO IMEDIATA por email
+    const userEmail = (user.email || '').toLowerCase();
+    const isAdminByEmail = ADMIN_EMAILS.includes(userEmail);
+    
+    // Pequeno delay para evitar race conditions
+    setTimeout(() => {
       if (isAdminByEmail) {
-        console.log("👑 [AuthScreen] ADMIN por EMAIL - Redirecionamento IMEDIATO para /admin");
+        console.log("👑 [AuthScreen] Admin por EMAIL → /admin");
         navigate("/admin", { replace: true });
-        return;
-      }
-      
-      // Se é admin por userData
-      if (isAdminByUserData) {
-        console.log("👑 [AuthScreen] ADMIN por USERDATA - Redirecionando para /admin");
+      } else if (userData?.is_admin === true) {
+        console.log("👑 [AuthScreen] Admin por USERDATA → /admin");
         navigate("/admin", { replace: true });
-        return;
-      }
-      
-      // Se temos userData ou após timeout curto, redirecionar usuário normal
-      if (userData) {
-        console.log("👤 [AuthScreen] Usuário padrão - Redirecionando para /");
-        navigate("/", { replace: true });
       } else {
-        // Timeout MUITO curto para não-admins
-        setTimeout(() => {
-          if (!hasRedirected) {
-            console.log("⏳ [AuthScreen] Timeout curto - redirecionando usuário para /");
-            navigate("/", { replace: true });
-          }
-        }, 2000); // Apenas 2 segundos
+        console.log("👤 [AuthScreen] Usuário padrão → /");
+        navigate("/", { replace: true });
       }
-    }
-  }, [isAuthenticated, userData, authLoading, navigate, hasRedirected, user]);
-
-  const loginForm = useForm<LoginFormValues>({
-    resolver: zodResolver(loginSchema),
-    defaultValues: {
-      email: "",
-      password: ""
-    }
-  });
-
-  const registerForm = useForm<RegisterFormValues>({
-    resolver: zodResolver(registerSchema),
-    defaultValues: {
-      nome_empresa: "",
-      email: "",
-      password: ""
-    }
-  });
+    }, 100);
+    
+  }, [isAuthenticated, userData, authLoading, navigate, redirectHandled, user]);
 
   const onLoginSubmit = async (data: LoginFormValues) => {
     if (isLoading) return;
@@ -135,9 +94,9 @@ const AuthScreen = () => {
       const result = await signIn(data.email.trim().toLowerCase(), data.password, manterLogado);
       
       if (result.success) {
-        console.log("✅ [AuthScreen] Login bem-sucedido - aguardando redirecionamento");
+        console.log("✅ [AuthScreen] Login bem-sucedido");
         toast.success("Login realizado com sucesso!", "Redirecionando...");
-        // O redirecionamento será handled pelo useEffect
+        // Redirecionamento será handled pelo useEffect
       } else {
         console.error("❌ [AuthScreen] Falha no login:", result.message);
         
@@ -231,6 +190,23 @@ const AuthScreen = () => {
       setIsLoading(false);
     }
   };
+
+  const loginForm = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: "",
+      password: ""
+    }
+  });
+
+  const registerForm = useForm<RegisterFormValues>({
+    resolver: zodResolver(registerSchema),
+    defaultValues: {
+      nome_empresa: "",
+      email: "",
+      password: ""
+    }
+  });
 
   // Loading state durante autenticação
   if (authLoading) {

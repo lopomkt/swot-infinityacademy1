@@ -22,7 +22,7 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   
   const modoAdminTeste = location.search.includes("modo_teste_admin=true");
 
-  // Timeout de emergência REDUZIDO para 10 segundos
+  // Timeout de emergência AUMENTADO para 15 segundos
   useEffect(() => {
     if (!loading) {
       setEmergencyTimeout(false);
@@ -30,25 +30,24 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     }
 
     const timer = setTimeout(() => {
-      console.warn("[ProtectedRoute] Timeout de emergência atingido (10s)");
+      console.warn("[ProtectedRoute] Timeout de emergência atingido (15s)");
       setEmergencyTimeout(true);
-    }, 10000);
+    }, 15000); // Aumentado de 10s para 15s
     
     return () => clearTimeout(timer);
   }, [loading]);
 
   console.log("[ProtectedRoute] Estado:", { 
     loading, 
-    user: !!user, 
-    userData: !!userData,
-    userDataAdmin: userData?.is_admin,
+    hasUser: !!user, 
+    hasUserData: !!userData,
     subscriptionExpired,
     pathname: location.pathname,
     emergencyTimeout,
     userEmail: user?.email
   });
 
-  // Aguardar carregamento (TEMPO REDUZIDO)
+  // Aguardar carregamento (com timeout estendido)
   if (loading && !emergencyTimeout) {
     return <LoadingScreen />;
   }
@@ -57,6 +56,7 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   if (!user || emergencyTimeout) {
     console.log("[ProtectedRoute] Redirecionando para /auth - Usuário não autenticado");
     
+    // Limpar dados apenas se não estiver na página de auth
     if (location.pathname !== "/auth") {
       try {
         localStorage.removeItem('swotForm');
@@ -70,29 +70,16 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     return <Navigate to="/auth" replace />;
   }
 
-  // VERIFICAÇÃO DUPLA E IMEDIATA: userData + email
+  // VERIFICAÇÃO IMEDIATA POR EMAIL para admins
   const userEmail = (user.email || '').toLowerCase();
   const isAdminByEmail = ADMIN_EMAILS.includes(userEmail);
-  const isAdminByUserData = userData?.is_admin === true;
   
-  // Determinar se é admin
-  const isDefinitivelyAdmin = isAdminByUserData || isAdminByEmail;
-  
-  console.log("[ProtectedRoute] Análise de permissões:", {
-    userEmail,
-    isAdminByEmail,
-    isAdminByUserData,
-    isDefinitivelyAdmin,
-    hasUserData: !!userData
-  });
-
-  // DECISÃO IMEDIATA: Se é admin por email, liberar acesso
   if (isAdminByEmail) {
-    console.log("[ProtectedRoute] ✅ Admin por EMAIL - acesso liberado IMEDIATO");
+    console.log("[ProtectedRoute] ✅ Admin por EMAIL - acesso liberado");
     return <>{children}</>;
   }
 
-  // Se temos userData, proceder com verificações normais
+  // Se temos userData, proceder com verificações
   if (userData) {
     // Verificar se usuário está ativo
     if (userData.ativo === false) {
@@ -117,15 +104,8 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     return <>{children}</>;
     
   } else {
-    // Se não temos userData E não é admin por email, aguardar POUCO tempo
-    console.log("[ProtectedRoute] Aguardando userData por 3s...");
-    
-    setTimeout(() => {
-      if (!userData && !isAdminByEmail) {
-        console.warn("[ProtectedRoute] Timeout userData - liberando acesso básico");
-      }
-    }, 3000);
-    
+    // Se não temos userData E não é admin por email, aguardar mais tempo
+    console.log("[ProtectedRoute] Aguardando userData...");
     return <LoadingScreen />;
   }
 };
