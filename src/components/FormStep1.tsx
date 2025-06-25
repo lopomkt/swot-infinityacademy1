@@ -24,26 +24,34 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const MESSAGE = "Vamos começar entendendo melhor sobre seu negócio.";
 
+// Schema simplificado - apenas campos essenciais obrigatórios
 const formSchema = z.object({
+  // OBRIGATÓRIOS (6 campos essenciais)
   nomeEmpresa: z.string().min(2, {
     message: "O nome da empresa deve ter pelo menos 2 caracteres.",
   }),
   segmento: z.string().min(2, {
     message: "O segmento deve ter pelo menos 2 caracteres.",
   }),
-  faturamentoMensal: z.string().min(2, {
-    message: "O faturamento mensal deve ter pelo menos 2 caracteres.",
+  faturamentoMensal: z.string().min(1, {
+    message: "Informe o faturamento mensal.",
   }),
-  tempoDeMercado: z.string().min(2, {
-    message: "O tempo de mercado deve ter pelo menos 2 caracteres.",
+  tempoDeMercado: z.string().min(1, {
+    message: "Informe o tempo de mercado.",
   }),
+  numero_colaboradores: z.string().min(1, {
+    message: "Informe o número de colaboradores.",
+  }),
+  perfil_cliente_ideal: z.string().min(3, {
+    message: "Descreva brevemente seu cliente ideal.",
+  }),
+  
+  // OPCIONAIS (podem ser vazios)
   tipo_produto_servico: z.string().optional(),
   tempo_retencao_clientes: z.string().optional(),
-  perfil_cliente_ideal: z.string().optional(),
-  fonte_trafego_principal: z.string().optional(),
+  fonte_trafego_principal: z.string().optional(), 
   nivel_automacao: z.string().optional(),
   canais_venda_atuais: z.string().optional(),
-  numero_colaboradores: z.string().optional(),
   modelo_precificacao: z.string().optional(),
 });
 
@@ -74,11 +82,30 @@ const FormStep1 = ({ defaultValues = {}, onComplete, onBack }: Props) => {
     },
   });
 
+  // Monitorar mudanças para salvamento automático
+  const watchedValues = form.watch();
+  useState(() => {
+    const timer = setTimeout(() => {
+      if (Object.keys(watchedValues).length > 0) {
+        console.log("💾 Auto-salvando progresso da identificação...");
+        localStorage.setItem('swot-form-identificacao', JSON.stringify(watchedValues));
+      }
+    }, 2000);
+    
+    return () => clearTimeout(timer);
+  });
+
   const onSubmit = (data: IdentificacaoData) => {
+    console.log("✅ FormStep1 - Dados validados:", data);
+    
     const dataWithFlag = { 
       ...data,
       tipagem_identificacao_ok: true
     };
+    
+    // Salvar no localStorage antes de avançar
+    localStorage.setItem('swot-form-identificacao', JSON.stringify(dataWithFlag));
+    
     onComplete(dataWithFlag);
   };
 
@@ -98,17 +125,21 @@ const FormStep1 = ({ defaultValues = {}, onComplete, onBack }: Props) => {
           <CardTitle className="text-2xl text-[#560005]">
             Etapa 1 – IDENTIFICAÇÃO DA EMPRESA
           </CardTitle>
+          <p className="text-sm text-gray-600">
+            Campos com * são obrigatórios. Outros podem ser preenchidos depois.
+          </p>
         </CardHeader>
         
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className={`space-y-${isMobile ? '4' : '6'}`}>
+              {/* CAMPOS OBRIGATÓRIOS */}
               <FormField
                 control={form.control}
                 name="nomeEmpresa"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="font-medium">1. Nome da Empresa</FormLabel>
+                    <FormLabel className="font-medium">1. Nome da Empresa *</FormLabel>
                     <FormControl>
                       <Input placeholder="Infinity Academy" {...field} />
                     </FormControl>
@@ -125,7 +156,7 @@ const FormStep1 = ({ defaultValues = {}, onComplete, onBack }: Props) => {
                 name="segmento"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="font-medium">2. Segmento</FormLabel>
+                    <FormLabel className="font-medium">2. Segmento *</FormLabel>
                     <FormControl>
                       <Input placeholder="Ex: Educação, Tecnologia, Varejo..." {...field} />
                     </FormControl>
@@ -139,27 +170,10 @@ const FormStep1 = ({ defaultValues = {}, onComplete, onBack }: Props) => {
               
               <FormField
                 control={form.control}
-                name="tipo_produto_servico"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="font-medium">3. Principal Produto ou Serviço</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Ex: Cursos online, Software, Consultoria..." {...field} />
-                    </FormControl>
-                    <FormDescription>
-                      O que sua empresa oferece como principal solução?
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
                 name="faturamentoMensal"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="font-medium">4. Faturamento Mensal</FormLabel>
+                    <FormLabel className="font-medium">3. Faturamento Mensal *</FormLabel>
                     <FormControl>
                       <Input placeholder="Ex: R$ 10.000, R$ 50.000..." {...field} />
                     </FormControl>
@@ -176,7 +190,7 @@ const FormStep1 = ({ defaultValues = {}, onComplete, onBack }: Props) => {
                 name="tempoDeMercado"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="font-medium">5. Tempo de Mercado</FormLabel>
+                    <FormLabel className="font-medium">4. Tempo de Mercado *</FormLabel>
                     <FormControl>
                       <Input placeholder="Ex: 2 anos, 6 meses..." {...field} />
                     </FormControl>
@@ -193,7 +207,7 @@ const FormStep1 = ({ defaultValues = {}, onComplete, onBack }: Props) => {
                 name="numero_colaboradores"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="font-medium">6. Número de Colaboradores</FormLabel>
+                    <FormLabel className="font-medium">5. Número de Colaboradores *</FormLabel>
                     <FormControl>
                       <Input placeholder="Ex: 5, 12, 30..." {...field} />
                     </FormControl>
@@ -207,15 +221,40 @@ const FormStep1 = ({ defaultValues = {}, onComplete, onBack }: Props) => {
               
               <FormField
                 control={form.control}
-                name="tempo_retencao_clientes"
+                name="perfil_cliente_ideal"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="font-medium">7. Tempo Médio de Retenção de Clientes</FormLabel>
+                    <FormLabel className="font-medium">6. Perfil do Cliente Ideal *</FormLabel>
                     <FormControl>
-                      <Input placeholder="Ex: 3 meses, 1 ano, 5 anos..." {...field} />
+                      <Input placeholder="Ex: Empresários, Profissionais de RH, Estudantes..." {...field} />
                     </FormControl>
                     <FormDescription>
-                      Por quanto tempo, em média, você mantém seus clientes?
+                      Quem é o cliente ideal para seu negócio?
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* DIVISOR */}
+              <div className="border-t pt-6">
+                <h3 className="text-lg font-semibold mb-4 text-gray-700">
+                  Informações Complementares (Opcionais)
+                </h3>
+              </div>
+              
+              {/* CAMPOS OPCIONAIS */}
+              <FormField
+                control={form.control}
+                name="tipo_produto_servico"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="font-medium">7. Principal Produto ou Serviço</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Ex: Cursos online, Software, Consultoria..." {...field} />
+                    </FormControl>
+                    <FormDescription>
+                      O que sua empresa oferece como principal solução? (Opcional)
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -224,15 +263,15 @@ const FormStep1 = ({ defaultValues = {}, onComplete, onBack }: Props) => {
               
               <FormField
                 control={form.control}
-                name="perfil_cliente_ideal"
+                name="tempo_retencao_clientes"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="font-medium">8. Perfil do Cliente Ideal</FormLabel>
+                    <FormLabel className="font-medium">8. Tempo Médio de Retenção de Clientes</FormLabel>
                     <FormControl>
-                      <Input placeholder="Ex: Empresários, Profissionais de RH, Estudantes..." {...field} />
+                      <Input placeholder="Ex: 3 meses, 1 ano, 5 anos..." {...field} />
                     </FormControl>
                     <FormDescription>
-                      Quem é o cliente ideal para seu negócio?
+                      Por quanto tempo, em média, você mantém seus clientes? (Opcional)
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -249,7 +288,7 @@ const FormStep1 = ({ defaultValues = {}, onComplete, onBack }: Props) => {
                       <Input placeholder="Ex: Instagram, Google, Indicações..." {...field} />
                     </FormControl>
                     <FormDescription>
-                      De onde vêm a maioria dos seus clientes?
+                      De onde vêm a maioria dos seus clientes? (Opcional)
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -266,7 +305,7 @@ const FormStep1 = ({ defaultValues = {}, onComplete, onBack }: Props) => {
                       <Input placeholder="Ex: Site próprio, WhatsApp, Marketplace..." {...field} />
                     </FormControl>
                     <FormDescription>
-                      Quais são seus principais canais de venda?
+                      Quais são seus principais canais de venda? (Opcional)
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -282,7 +321,7 @@ const FormStep1 = ({ defaultValues = {}, onComplete, onBack }: Props) => {
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Selecione o nível de automação" />
+                          <SelectValue placeholder="Selecione o nível de automação (opcional)" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -292,7 +331,7 @@ const FormStep1 = ({ defaultValues = {}, onComplete, onBack }: Props) => {
                       </SelectContent>
                     </Select>
                     <FormDescription>
-                      Qual o grau de automação dos processos no seu negócio?
+                      Qual o grau de automação dos processos no seu negócio? (Opcional)
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -309,7 +348,7 @@ const FormStep1 = ({ defaultValues = {}, onComplete, onBack }: Props) => {
                       <Input placeholder="Ex: Mensal, Por projeto, Recorrência anual..." {...field} />
                     </FormControl>
                     <FormDescription>
-                      Como você cobra por seus produtos ou serviços?
+                      Como você cobra por seus produtos ou serviços? (Opcional)
                     </FormDescription>
                     <FormMessage />
                   </FormItem>

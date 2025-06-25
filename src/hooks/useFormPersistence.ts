@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { FormData } from '@/types/formData';
 
@@ -22,14 +21,12 @@ interface PersistenceState {
 
 /**
  * Hook para salvamento e recuperação automática do progresso do formulário
- * Utiliza localStorage com debounce para otimizar performance
- * @param config Configuração do comportamento de persistência
- * @returns Estado e funções para persistência de dados
+ * ETAPA 3: Melhorado com salvamento mais inteligente e recuperação robusta
  */
 export function useFormPersistence(config: Partial<PersistenceConfig> = {}) {
   const {
     storageKey = 'swot-form-data',
-    debounceMs = 1000,
+    debounceMs = 2000, // Aumentado para 2s
     autoSave = true,
   } = config;
 
@@ -43,22 +40,48 @@ export function useFormPersistence(config: Partial<PersistenceConfig> = {}) {
   const [debounceTimer, setDebounceTimer] = useState<NodeJS.Timeout | null>(null);
 
   /**
-   * Salva dados no localStorage
-   * @param data Dados a serem salvos
-   * @param immediate Se true, salva imediatamente sem debounce
+   * Salva dados no localStorage de forma mais robusta
    */
   const saveData = useCallback((data: FormData, immediate: boolean = false) => {
     const performSave = () => {
       try {
-        console.log("💾 Salvando dados do formulário...");
+        console.log("💾 [useFormPersistence] Salvando dados do formulário...");
+        
+        // Validar se os dados não estão vazios
+        if (!data || Object.keys(data).length === 0) {
+          console.log("⚠️ [useFormPersistence] Dados vazios, pulando salvamento");
+          return;
+        }
         
         const dataToSave = {
           formData: data,
           timestamp: new Date().toISOString(),
-          version: '1.0',
+          version: '1.1', // Incrementada para ETAPA 3
+          steps_completed: {
+            identificacao: !!data.identificacao?.tipagem_identificacao_ok,
+            forcas: !!data.step_forcas_ok,
+            fraquezas: !!data.fraquezas,
+            oportunidades: !!data.oportunidades,
+            ameacas: !!data.ameacas,
+            financeiro: !!data.saudeFinanceira?.step_financas_ok,
+            prioridades: !!data.step_prioridades_ok,
+          }
         };
 
-        localStorage.setItem(storageKey, JSON.stringify(dataToSave));
+        // Tentar salvar com fallback
+        try {
+          localStorage.setItem(storageKey, JSON.stringify(dataToSave));
+        } catch (quotaError: any) {
+          console.warn("⚠️ [useFormPersistence] Quota excedida, limpando dados antigos...");
+          // Limpar dados antigos se quota for excedida
+          const oldKeys = Object.keys(localStorage).filter(key => 
+            key.startsWith('swot-') && key !== storageKey
+          );
+          oldKeys.forEach(key => localStorage.removeItem(key));
+          
+          // Tentar novamente
+          localStorage.setItem(storageKey, JSON.stringify(dataToSave));
+        }
         
         setPersistenceState(prev => ({
           ...prev,
@@ -66,9 +89,21 @@ export function useFormPersistence(config: Partial<PersistenceConfig> = {}) {
           hasChanges: false,
         }));
 
-        console.log("✅ Dados salvos com sucesso");
+        console.log("✅ [useFormPersistence] Dados salvos com sucesso");
       } catch (error: any) {
-        console.error("❌ Erro ao salvar dados:", error);
+        console.error("❌ [useFormPersistence] Erro ao salvar dados:", error);
+        
+        // Fallback: tentar salvar dados mínimos
+        try {
+          const minimalData = {
+            identificacao: data.identificacao,
+            timestamp: new Date().toISOString(),
+          };
+          localStorage.setItem(`${storageKey}_minimal`, JSON.stringify(minimalData));
+          console.log("💾 [useFormPersistence] Dados mínimos salvos como fallback");
+        } catch (fallbackError: any) {
+          console.error("❌ [useFormPersistence] Falha no fallback:", fallbackError);
+        }
       }
     };
 
@@ -95,17 +130,24 @@ export function useFormPersistence(config: Partial<PersistenceConfig> = {}) {
   }, [storageKey, debounceMs, autoSave, debounceTimer]);
 
   /**
-   * Carrega dados do localStorage
-   * @returns Dados carregados ou objeto vazio se não existir
+   * Carrega dados do localStorage com recuperação robusta
    */
   const loadData = useCallback((): FormData => {
     try {
-      console.log("📂 Carregando dados salvos...");
+      console.log("📂 [useFormPersistence] Carregando dados salvos...");
       
       const savedData = localStorage.getItem(storageKey);
       
       if (!savedData) {
-        console.log("ℹ️ Nenhum dado salvo encontrado");
+        // Tentar carregar dados mínimos como fallback
+        const minimalData = localStorage.getItem(`${storageKey}_minimal`);
+        if (minimalData) {
+          console.log("📂 [useFormPersistence] Carregando dados mínimos de fallback");
+          const parsed = JSON.parse(minimalData);
+          return parsed.identificacao ? { identificacao: parsed.identificacao } : {};
+        }
+        
+        console.log("ℹ️ [useFormPersistence] Nenhum dado salvo encontrado");
         return {};
       }
 
@@ -113,21 +155,28 @@ export function useFormPersistence(config: Partial<PersistenceConfig> = {}) {
       
       // Verificar estrutura dos dados salvos
       if (!parsed.formData || !parsed.timestamp) {
-        console.warn("⚠️ Estrutura de dados inválida, ignorando");
+        console.warn("⚠️ [useFormPersistence] Estrutura de dados inválida, tentando recuperar...");
+        
+        // Tentar interpretar dados antigos
+        if (parsed.identificacao || parsed.forcas || parsed.fraquezas) {
+          console.log("🔄 [useFormPersistence] Convertendo formato de dados antigo");
+          return parsed as FormData;
+        }
+        
         return {};
       }
 
-      // Verificar se os dados não são muito antigos (7 dias)
+      // Verificar se os dados não são muito antigos (14 dias - aumentado)
       const savedDate = new Date(parsed.timestamp);
       const daysDiff = (Date.now() - savedDate.getTime()) / (1000 * 60 * 60 * 24);
       
-      if (daysDiff > 7) {
-        console.warn("⚠️ Dados muito antigos, removendo do localStorage");
-        localStorage.removeItem(storageKey);
-        return {};
+      if (daysDiff > 14) {
+        console.warn("⚠️ [useFormPersistence] Dados muito antigos, mas mantendo para usuário decidir");
+        // Não remover automaticamente - deixar usuário decidir
       }
 
-      console.log("✅ Dados carregados com sucesso");
+      console.log("✅ [useFormPersistence] Dados carregados com sucesso");
+      console.log("📊 [useFormPersistence] Etapas completadas:", parsed.steps_completed);
       
       setPersistenceState(prev => ({
         ...prev,
@@ -137,14 +186,37 @@ export function useFormPersistence(config: Partial<PersistenceConfig> = {}) {
 
       return parsed.formData;
     } catch (error: any) {
-      console.error("❌ Erro ao carregar dados:", error);
+      console.error("❌ [useFormPersistence] Erro ao carregar dados:", error);
+      
+      // Tentar recuperação de emergência
+      try {
+        const emergencyKeys = ['swot-form-identificacao', 'swot-form-forcas', 'swot-form-fraquezas'];
+        const recoveredData: FormData = {};
+        
+        emergencyKeys.forEach(key => {
+          const data = localStorage.getItem(key);
+          if (data) {
+            try {
+              const parsed = JSON.parse(data);
+              if (key.includes('identificacao')) recoveredData.identificacao = parsed;
+              if (key.includes('forcas')) recoveredData.forcas = parsed;
+              if (key.includes('fraquezas')) recoveredData.fraquezas = parsed;
+            } catch {}
+          }
+        });
+        
+        if (Object.keys(recoveredData).length > 0) {
+          console.log("🔄 [useFormPersistence] Dados parciais recuperados de chaves individuais");
+          return recoveredData;
+        }
+      } catch {}
+      
       return {};
     }
   }, [storageKey]);
 
   /**
-   * Atualiza dados do formulário e marca como alterado
-   * @param newData Novos dados ou função que recebe dados atuais
+   * Atualiza dados do formulário de forma mais inteligente
    */
   const updateFormData = useCallback((
     newData: FormData | ((prev: FormData) => FormData)
@@ -152,10 +224,12 @@ export function useFormPersistence(config: Partial<PersistenceConfig> = {}) {
     setFormData(prev => {
       const updated = typeof newData === 'function' ? newData(prev) : newData;
       
-      // Marcar como alterado se há diferenças
-      const hasChanges = JSON.stringify(updated) !== JSON.stringify(prev);
+      // Verificar se realmente há mudanças significativas
+      const hasSignificantChanges = JSON.stringify(updated) !== JSON.stringify(prev);
       
-      if (hasChanges) {
+      if (hasSignificantChanges) {
+        console.log("📝 [useFormPersistence] Detectadas mudanças significativas");
+        
         setPersistenceState(prevState => ({
           ...prevState,
           hasChanges: true,
@@ -172,13 +246,24 @@ export function useFormPersistence(config: Partial<PersistenceConfig> = {}) {
   }, [autoSave, saveData]);
 
   /**
-   * Limpa todos os dados salvos
+   * Limpa dados de forma mais seletiva
    */
-  const clearData = useCallback(() => {
+  const clearData = useCallback((clearAll: boolean = false) => {
     try {
-      console.log("🗑️ Limpando dados salvos...");
+      console.log("🗑️ [useFormPersistence] Limpando dados salvos...");
       
-      localStorage.removeItem(storageKey);
+      if (clearAll) {
+        // Limpar tudo relacionado ao formulário
+        const keysToRemove = Object.keys(localStorage).filter(key => 
+          key.startsWith('swot-')
+        );
+        keysToRemove.forEach(key => localStorage.removeItem(key));
+      } else {
+        // Limpar apenas chave principal
+        localStorage.removeItem(storageKey);
+        localStorage.removeItem(`${storageKey}_minimal`);
+      }
+      
       setFormData({});
       setPersistenceState({
         lastSaved: null,
@@ -192,9 +277,9 @@ export function useFormPersistence(config: Partial<PersistenceConfig> = {}) {
         setDebounceTimer(null);
       }
 
-      console.log("✅ Dados limpos com sucesso");
+      console.log("✅ [useFormPersistence] Dados limpos com sucesso");
     } catch (error: any) {
-      console.error("❌ Erro ao limpar dados:", error);
+      console.error("❌ [useFormPersistence] Erro ao limpar dados:", error);
     }
   }, [storageKey, debounceTimer]);
 
@@ -211,7 +296,8 @@ export function useFormPersistence(config: Partial<PersistenceConfig> = {}) {
   const hasSavedData = useCallback((): boolean => {
     try {
       const savedData = localStorage.getItem(storageKey);
-      return !!savedData;
+      const minimalData = localStorage.getItem(`${storageKey}_minimal`);
+      return !!(savedData || minimalData);
     } catch {
       return false;
     }

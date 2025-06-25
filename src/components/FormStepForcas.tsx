@@ -14,10 +14,19 @@ interface FormStepForcasProps {
 }
 
 export default function FormStepForcas(props: FormStepForcasProps) {
+  // Log para debug
+  console.log("🎯 [FormStepForcas] Renderizando com props:", {
+    hasOnSubmit: !!props.onSubmit,
+    hasOnComplete: !!props.onComplete,
+    hasDefaultValues: !!props.defaultValues,
+    hasOnBack: !!props.onBack,
+  });
+
+  // Wrapper simplificado sem lógica adicional
   return (
-    <>
+    <div className="w-full">
       <TransitionMessage message={MESSAGE} />
       <ForcasForm {...props} />
-    </>
+    </div>
   );
 }
