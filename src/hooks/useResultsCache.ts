@@ -17,8 +17,8 @@ export function useResultsCache() {
   // Generate hash for form data
   const generateHash = useCallback((data: FormData): string => {
     const str = JSON.stringify({
-      nomeEmpresa: data.nomeEmpresa,
-      segmento: data.segmento,
+      nomeEmpresa: data.identificacao?.nomeEmpresa,
+      segmento: data.identificacao?.segmento,
       forcas: data.forcas,
       fraquezas: data.fraquezas,
       oportunidades: data.oportunidades,

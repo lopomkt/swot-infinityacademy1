@@ -19,10 +19,10 @@ const OptimizedResults = memo(function OptimizedResults({
     if (!formData) return null;
     
     return {
-      empresa: formData.nomeEmpresa || 'Empresa',
-      segmento: formData.segmento || 'Não informado',
-      faturamento: formData.faturamentoMensal || 'Não informado',
-      tempo: formData.tempoDeMercado || 'Não informado',
+      empresa: formData.identificacao?.nomeEmpresa || 'Empresa',
+      segmento: formData.identificacao?.segmento || 'Não informado',
+      faturamento: formData.identificacao?.faturamentoMensal || 'Não informado',
+      tempo: formData.identificacao?.tempoDeMercado || 'Não informado',
       hasResults: !!formData.resultadoFinal?.ai_block_pronto
     };
   }, [formData]);
