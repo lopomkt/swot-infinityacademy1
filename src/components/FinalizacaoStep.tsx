@@ -86,6 +86,15 @@ const FinalizacaoStep = ({ onRestart, formData, onAIComplete }: FinalizacaoStepP
 
     try {
       console.log("🤖 [FinalizacaoStep] Gerando relatório com OpenRouter...");
+      console.log("📋 [FinalizacaoStep] Dados do formulário:", {
+        empresa: formData.identificacao?.nomeEmpresa,
+        forcas: Object.keys(formData.forcas || {}).length,
+        fraquezas: Object.keys(formData.fraquezas || {}).length,
+        oportunidades: Object.keys(formData.oportunidades || {}).length,
+        ameacas: Object.keys(formData.ameacas || {}).length,
+        userId: user.id
+      });
+      
       setProgress(0);
       
       const result = await generateReport(formData, user.id);

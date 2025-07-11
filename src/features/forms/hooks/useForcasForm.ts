@@ -6,21 +6,21 @@ import { forcasSchema, ForcasData } from "@/schemas/forcasSchema";
 export function useForcasForm(defaultValues?: ForcasData) {
   const form = useForm<ForcasData>({
     resolver: zodResolver(forcasSchema),
-    defaultValues: defaultValues || {
-      cultura_forte: "",
-      equipe_qualificada: "",
-      marca_reconhecida: "",
-      tecnologia_propria: "",
-      carteira_fiel: "",
-      diferencial_mercado: "",
-      reputacao_regional: "",
-      canais_distribuicao: "",
-      estrutura_financeira: "",
-      velocidade_entrega: "",
-      processos_otimizados: "",
-      lideranca_setorial: "",
-      atendimento_diferenciado: "",
-      outros: "",
+    defaultValues: {
+      cultura_forte: defaultValues?.cultura_forte || "",
+      equipe_qualificada: defaultValues?.equipe_qualificada || "",
+      marca_reconhecida: defaultValues?.marca_reconhecida || "",
+      tecnologia_propria: defaultValues?.tecnologia_propria || "",
+      carteira_fiel: defaultValues?.carteira_fiel || "",
+      diferencial_mercado: defaultValues?.diferencial_mercado || "",
+      reputacao_regional: defaultValues?.reputacao_regional || "",
+      canais_distribuicao: defaultValues?.canais_distribuicao || "",
+      estrutura_financeira: defaultValues?.estrutura_financeira || "",
+      velocidade_entrega: defaultValues?.velocidade_entrega || "",
+      processos_otimizados: defaultValues?.processos_otimizados || "",
+      lideranca_setorial: defaultValues?.lideranca_setorial || "",
+      atendimento_diferenciado: defaultValues?.atendimento_diferenciado || "",
+      outros: defaultValues?.outros || "",
     }
   });
 

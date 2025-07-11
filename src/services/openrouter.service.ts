@@ -40,11 +40,29 @@ class OpenRouterService {
         throw new Error('Nome da empresa é obrigatório para análise');
       }
 
-      // Obter token de autenticação
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        throw new Error('Usuário não autenticado');
+      // Obter sessão atual e tentar renovar se necessário
+      let { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session || !session.access_token) {
+        console.log('🔄 Token expirado ou ausente, tentando renovar...');
+        
+        const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
+        
+        if (refreshError || !refreshData.session) {
+          console.error('❌ Falha ao renovar token:', refreshError);
+          throw new Error('Sessão expirada. Faça login novamente.');
+        }
+        
+        session = refreshData.session;
+        console.log('✅ Token renovado com sucesso');
       }
+
+      // Validar sessão final
+      if (!session.access_token) {
+        throw new Error('Token de acesso inválido');
+      }
+
+      console.log('🔐 Sessão validada, chamando edge function...');
 
       // Chamar edge function
       const { data, error } = await supabase.functions.invoke('openrouter-analysis', {
